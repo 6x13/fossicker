@@ -68,38 +68,7 @@
   "Fallback to sexp when there is no associated type definition."
   :tag "UNDEFINED"
   :format "%t %v\n"
-  :type '(sexp :format "%v"))
-
-(defun fossicker--reload-spec-widget (types)
-  (define-widget 'fossicker--spec-widget 'lazy
-    "Widget to customize specific type settings in project."
-    :offset 2
-    :format "%v"
-    :type (list 'repeat :tag "Specification"
-                (append '(menu-choice :tag "TYPE")
-                        (fossicker--list-type-widgets)
-                        '(fossicker--type-undefined-widget)))))
-
-(define-widget 'fossicker--project-widget 'lazy
-  "A project description."
-  :offset 2
-  :tag "Project"
-  :type '(list :format "%v"
-               (string :size 15
-                       :format "%v\n" :value "")
-               (cons :tag "Project Root"
-                     (const :format "" root)
-                     (directory :size 41
-                                :format "%v\n"
-                                :value "~/"))
-               (cons :tag "Asset Path"
-                     (const :format "" path)
-                     (directory :size 41
-                                :format "%v\n"
-                                :value "Resources/"))
-               (cons :format "%v"
-                     (const :format "" spec)
-                     fossicker--spec-widget)))
+  :type '(sexp :format "%v" :size 20))
 
 ;;;###autoload
 (defun fossicker-edit-project ()
@@ -111,9 +80,11 @@
     (erase-buffer))
   (remove-overlays)
   (fossicker-load-libs)
-  (fossicker--reload-spec-widget fossicker--type-registry)
   
-  (widget-create 'fossicker--project-widget
+  (widget-create 'list
+                 :offset 2
+                 :tag "Project"
+                 :format "%v"
                  :notify (lambda (w &rest ignore)
                            (setq fossicker--edited-project (widget-value w)))
                  :value '("test"
@@ -126,7 +97,31 @@
                                              ("retina/" . 256)))
                                    (model "models/")
                                    (bla "meh")
-                                   (shader "shaders/")))))
+                                   (shader "shaders/"))))
+                 '(string :size 15
+                         :format "%v\n" :value "")
+                 '(cons :tag "Project Root"
+                       (const :format "" root)
+                       (directory :size 41
+                                  :format "%v\n"
+                                  :value "~/"))
+                 '(cons :tag "Asset Path"
+                       (const :format "" path)
+                       (directory :size 41
+                                  :format "%v\n"
+                                  :value "Resources/"))
+                 (list 'cons :format "%v"
+                       '(const :format "" spec)
+                       (list 'repeat
+                             :tag "Specification"
+                             :offset 2
+                             :format "%v"
+                             (list 'menu-choice
+                                   :tag "TYPE"
+                                   :args (append
+                                          (fossicker--list-type-widgets)
+                                          '(fossicker--type-undefined-widget))))))
+  
   (widget-insert "\n\n")
   (widget-create 'push-button
                  :tag "GENERATE"
