@@ -157,7 +157,7 @@
 
 (defun fossicker--widget-list-projects ()
   (let ((value nil)
-        (projlist (mapcar 'car fossicker-projects))
+        (projlist (mapcar 'car fossicker--project-definitions))
         name)
     (dolist (proj projlist)
       (setq name (capitalize proj))
@@ -283,6 +283,7 @@
     (erase-buffer))
   (remove-overlays)
   (fossicker-load-libs)
+  (fossicker-load-projects)
   
   (widget-insert "\n ")
   (fossicker--widget-insert-logo)

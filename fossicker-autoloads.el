@@ -33,8 +33,8 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "fossicker" "fossicker.el" (22138 55742 213637
-;;;;;;  146000))
+;;;### (autoloads nil "fossicker" "fossicker.el" (22139 7507 879905
+;;;;;;  974000))
 ;;; Generated autoloads from fossicker.el
 
 (let ((loads (get 'fossicker 'custom-loads))) (if (member '"fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"fossicker" loads))))
@@ -68,9 +68,14 @@ List of regular expressions and the directory names they map to.")
 (custom-autoload 'fossicker-legend "fossicker" t)
 
 (defvar fossicker-projects nil "\
-The list of fossicker project definitions.")
+The list of fossicker project paths.")
 
 (custom-autoload 'fossicker-projects "fossicker" t)
+
+(autoload 'fossicker-load-projects "fossicker" "\
+Loads all projects in FOSSICKER-PROJECTS.
+
+\(fn)" nil nil)
 
 (autoload 'fossicker-customize "fossicker" "\
 Customize fossicker group.
@@ -129,8 +134,8 @@ See `fossicker-mode' for more information on Fossicker mode.
 
 ;;;***
 
-;;;### (autoloads nil "fossicker-widget" "fossicker-widget.el" (22138
-;;;;;;  44423 675492 506000))
+;;;### (autoloads nil "fossicker-widget" "fossicker-widget.el" (22139
+;;;;;;  7366 460672 107000))
 ;;; Generated autoloads from fossicker-widget.el
 
 (autoload 'fossicker "fossicker-widget" "\

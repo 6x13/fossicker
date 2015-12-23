@@ -218,12 +218,32 @@ to type using :WIDGETS."
 ;;;###autoload
 (defcustom fossicker-projects
   nil
-  "The list of fossicker project definitions."
+  "The list of fossicker project paths."
   :group 'fossicker
-  :type '(repeat :tag "Fossicker Project" fossicker--project-widget))
+  :type '(repeat :tag "Fossicker Projects"
+                 (file :must-match t
+                       :tag "Project File")))
+
+(defvar fossicker--project-definitions
+  nil
+  "The list of fossicker project definitions.")
+
+(defun fossicker--get-data-from-file (path)
+  "Read s-expression from PATH."
+  (read (with-temp-buffer
+          (insert-file-contents path)
+          (buffer-string))))
+
+;;;###autoload
+(defun fossicker-load-projects ()
+  "Loads all projects in FOSSICKER-PROJECTS."
+  (setq fossicker--project-definitions nil)
+  (dolist (path fossicker-projects)
+    (push (fossicker--get-data-from-file path)
+          fossicker--project-definitions)))
 
 (defun fossicker--projects-assert ()
-  (cl-assert fossicker-projects nil
+  (cl-assert fossicker--project-definitions nil
              "No fossicker projects defined. You need at least one."))
 
 
@@ -265,12 +285,12 @@ to type using :WIDGETS."
   (fossicker--projects-assert)
   (cl-assert (or
               (null project)
-              (member project (mapcar 'car fossicker-projects)))
+              (member project (mapcar 'car fossicker--project-definitions)))
              nil "%S is not in project list." project)
   (setq fossicker-project (or project
                               (completing-read
                                "Select Fossicker Project buffer belongs to: "
-                               (mapcar 'car fossicker-projects)
+                               (mapcar 'car fossicker--project-definitions)
                                nil t)))
   (fossicker-show-current-project))
 
@@ -289,7 +309,8 @@ the current buffer path to find the project buffer
 belongs to."  
   (interactive)
   (fossicker--projects-assert)
-  (setq fossicker-project (car (fossicker--find-project fossicker-projects)))
+  (setq fossicker-project (car (fossicker--find-project
+                                fossicker--project-definitions)))
   (fossicker-show-current-project))
 
 
@@ -300,7 +321,7 @@ belongs to."
              (cdr
               (assoc
                fossicker-project
-               fossicker-projects)))))
+               fossicker--project-definitions)))))
 
 (defun fossicker--get-text-inside-quotes ()
   "Return text between double straight
@@ -489,6 +510,7 @@ at current cursor position."
             map)
   :group 'fossicker
   (fossicker-load-libs)
+  (fossicker-load-projects)
   (or fossicker-project (fossicker-auto-select-project)))
 
 ;;;###autoload
