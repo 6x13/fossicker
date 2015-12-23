@@ -1,98 +1,295 @@
-;;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: FOSSICKER -*-
+;;; fossicker.el --- Fossicker: On-the-fly asset generation for development.
 
-(in-package #:fossicker)
-(in-readtable :qtools)
+;; Copyright (C) 2015 Kenan Bölükbaşı
 
-(define-widget main (qwidget)
-  ((angle :initform 0)
-   (angle-delta :initform 1)))
-(define-initializer (main main-setup)
-  (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
-  (setf (q+:fixed-size main) (values 480 360)))
+;; Author: Kenan Bölükbaşı <kenanbolukbasi@gmail.com>
+;; Created: 23 October 2015
+;; Version: 0.1.1
+;; Keywords: gamedev, game, development, sprite, asset, tools
+;; Homepage: http://kenanb.com
 
-(define-subwidget (main logo) (q+:make-qlabel)
-  (setf (q+:pixmap logo) (q+:make-qpixmap "etc/fossicker-logo.png")))
+;; This file is not part of GNU Emacs.
 
-(define-subwidget (main info) (q+:make-qlabel "Select project, type file name, press GENERATE. That's it! Check out our website and follow us on Twitter for more libraries and games.")
-  (setf (q+:word-wrap info) t))
+;; This file is part of Fossicker.
 
-(define-subwidget (main header) (q+:make-qhboxlayout)
-  (q+:add-widget header logo)
-  (q+:add-widget header info))
+;; Fossicker is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-(define-subwidget (main website) (q+:make-qpushbutton "6x13 Website"))
-(define-subwidget (main twitter) (q+:make-qpushbutton "Twitter"))
-(define-subwidget (main documentation) (q+:make-qpushbutton "Documentation"))
-(define-subwidget (main report) (q+:make-qpushbutton "Report Bugs"))
-(define-subwidget (main navbar) (q+:make-qhboxlayout)
-  (q+:add-widget navbar website)
-  (q+:add-widget navbar twitter)
-  (q+:add-widget navbar documentation)
-  (q+:add-widget navbar report))
+;; Fossicker is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-(define-subwidget (main project) (q+:make-qcombobox)
-  (q+:add-item project "6x13")
-  (q+:add-item project "Twiniwt")
-  (q+:add-item project "Test"))
-(define-subwidget (main filename) (q+:make-qlineedit "asset-name.png"))
-(define-subwidget (main type) (q+:make-qlabel "Type"))
-(define-subwidget (main context) (q+:make-qlineedit "game/ui/"))
-(define-subwidget (main grid) (q+:make-qgridlayout)
-  (q+:add-widget grid (q+:make-qlabel "Project") 0 0)
-  (q+:add-widget grid project 0 1)
-  (q+:add-widget grid (q+:make-qlabel "Filename") 0 2)
-  (q+:add-widget grid filename 0 3)
-  (q+:add-widget grid (q+:make-qlabel "Type") 1 0)
-  (q+:add-widget grid type 1 1)
-  (q+:add-widget grid (q+:make-qlabel "Context") 1 2)
-  (q+:add-widget grid context) 1 3)
+;; You should have received a copy of the GNU General Public License
+;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
-(define-subwidget (main source) (q+:make-qlineedit "source"))
-(define-subwidget (main browse) (q+:make-qpushbutton "Browse"))
-(define-subwidget (main srcbar) (q+:make-qhboxlayout)
-  (q+:add-widget srcbar (q+:make-qlabel "Source"))
-  (q+:add-widget srcbar source)
-  (q+:add-widget srcbar browse))
+;;; Code:
 
-(define-subwidget (main reset) (q+:make-qpushbutton "RESET"))
-(define-subwidget (main generate) (q+:make-qpushbutton "GENERATE"))
-(define-subwidget (main buttons) (q+:make-qhboxlayout)
-  (q+:add-widget buttons reset)
-  (q+:add-widget buttons generate))
+;;; Dependencies
 
-(define-subwidget (main general) (q+:make-qwidget))
 
-(define-subwidget (main asset) (q+:make-qvboxlayout general)
-  (q+:add-layout asset grid)
-  (q+:add-layout asset srcbar)
-  (q+:add-layout asset buttons))
+;;; Fossicker Message
 
-(define-subwidget (main settings) (q+:make-qwidget))
+(defun message (&rest args)
+  (apply 'message args))
 
-(define-subwidget (main tabs) (q+:make-qtabwidget)
-  (q+:add-tab tabs general "General")
-  (q+:add-tab tabs settings "Settings"))
+;;; Fossicker Libs
 
-;; (define-subwidget (main group) (q+:make-qgroupbox "Asset Generation")
-;;   (setf (q+:layout group) asset))
+(defvar path nil
+  "Directory containing the Fossicker package.
+This is used to load the supporting fossicker type libraries.
+The default value is automatically computed from the location of
+the Emacs Lisp package.")
+(setq path (file-name-directory (or load-file-name buffer-file-name)))
+(pushnew (expand-file-name path)
+         load-path
+         :test 'string=)
+(pushnew (expand-file-name "lib/" path)
+         load-path
+         :test 'string=)
 
-(define-subwidget (main log) (q+:make-qlabel "Report: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: Success")
-  (setf (q+:word-wrap log) t)
-  (setf (q+:frame-style log)
-        (logior (q+:qframe.styled-panel) (q+:qframe.sunken))))
+(defvar libraries '(all)
+  "A list of lib packages to load with FOSSICKER.
+Defaults to ALL meta-package.")
 
-(define-subwidget (main panel) (q+:make-qvboxlayout main)
-  (q+:add-layout panel header)
-  (q+:add-layout panel navbar)
-  (q+:add-widget panel tabs)
-  (q+:add-widget panel log))
+(defun load-libs (&rest libs)
+  "If supplied, load LIBS, else load libs supplied in LIBS variable."
+  (let ((ctr (or libs libraries)))
+    (when ctr
+      (dolist (lib
+               ctr
+               (message "Fossicker libraries loaded: %S"
+                        ctr))
+        (require lib)))))
 
-;; (define-slot (main inc) ()
-;;   (declare (connected increase (pressed))))
-;; (define-slot (main dec) ()
-;;   (declare (connected decrease (pressed))))
 
-(defun main ()
-  (with-main-window (window (make-instance 'main))))
+;;; Settings
 
-(main)
+;;;; Fossicker Data Path
+
+(defvar data-path
+  (file-name-as-directory (expand-file-name "data/" path))
+  "Location of the fossicker data.")
+
+
+;;;; Fossicker Types
+
+(defun get-types ()
+  (remove-duplicates type-registry :key #'car :from-end t))
+
+(defvar type-registry nil)
+
+(defun register-type (name override &rest args)
+  "Register a new fossicker type. 
+Fossicker TYPE is determined according a :REGEXP,
+usually matching file extensions.
+The asset picked from fossicker data path is
+processed by :FUNCTION in order to fit
+the type specification.
+:FORMATS defines which file format to pick
+among possible matches in the data path."
+  (let ((regexp (plist-get args :regexp))
+        (fn (or (plist-get args :function) 'ignore))
+        (formats (plist-get args :formats)))
+    (check-type regexp list)
+    (check-type fn function)
+    (check-type formats (or boolean list))
+    (when (or override (null (assq name type-registry)))
+      (push (list name regexp fn formats) type-registry))))
+
+
+;;;; Fossicker Vein Mappings
+
+(defvar legend
+  '(("_b_" "button")
+    ("_n_" "normal")
+    ("_p_" "pressed")
+    ("_e_" "enabled"))
+  "List of regular expressions and the directory names they map to.")
+
+
+;;;; Fossicker Projects
+
+(defvar projects nil
+  "The list of fossicker project definitions.")
+
+(defun projects-assert ()
+  (assert projects nil
+          "No fossicker projects defined. You need at least one."))
+
+;;; Implementation
+
+;;;; Fossicker Project Setting
+
+(defvar project nil
+  "Name of the fossicker project buffer belongs to.")
+
+(defun project-file-p (projectpath)
+  (when (buffer-file-name) 
+    (let ((pp (directory-file-name (expand-file-name projectpath)))
+          (bp (file-name-directory (buffer-file-name))))
+      (string-prefix-p pp bp))))
+
+(defun find-project (projects)
+  (when projects
+    (let ((proj (car projects)))
+      (if (project-file-p (cdr (assoc 'root proj)))
+          proj
+          (find-project (cdr projects))))))
+
+(defun show-current-project ()
+  "Shows the current fossicker project in minibuffer."
+  (message "Fossicker Project currently set to %s." (or project "nothing")))
+
+(defun set-project (&optional project)
+  "Manually select a project among fossicker projects list."
+  (projects-assert)
+  (assert (or
+           (null project)
+           (member project (mapcar 'car projects)))
+          nil "%S is not in project list." project)
+  (setq project (or project
+                    (completing-read
+                     "Select Fossicker Project buffer belongs to: "
+                     (mapcar 'car projects)
+                     nil t)))
+  (show-current-project))
+
+(defun unset-project ()
+  "Set project to nil."
+  (setq project nil)
+  (show-current-project))
+
+
+;;;; Asset Generation
+
+(defun project-get (data)
+  (cdr (assq data (cdr (assoc project projects)))))
+
+(defun type-match-p (fname type)
+  (some
+   (lambda (regexp) (string-match regexp fname))
+   (elt type 1)))
+
+(defun matching-types (fname)
+  (mapcar 'car
+          (remove-if-not
+           (lambda (type) (type-match-p fname type))
+           (get-types))))
+
+(defun matching-spec (types specs)
+  (when specs
+    (if (member (car specs) types)
+        (car specs)
+        (matching-spec types (cdr specs)))))
+
+(defun map-to-vein (string legend)
+  (when legend
+    (cons (cons (string-match (caar legend) string)
+                (cdar legend))
+          (map-to-vein string (cdr legend)))))
+
+(defun generate-vein-map (fname atype)
+  (cons (symbol-name atype)
+        (apply 'append
+               (mapcar (lambda (x) (cdr x))
+                       (sort 
+                        (assq-delete-all nil (map-to-vein
+                                              fname
+                                              (copy-alist
+                                               legend)))
+                        (lambda (l1 l2) (< (car l1) (car l2))))))))
+
+(defun prospect (map dir formats &optional prospect)
+  (if map
+      (let ((ndir (concat (file-name-as-directory dir) (car map))))
+        (prospect
+         (cdr map)
+         (if (file-exists-p ndir) ndir (file-name-as-directory dir))
+         formats
+         (or (car (directory-files
+                   dir t
+                   (concat (car map) "\\." (regexp-opt formats))))
+             prospect)))
+      prospect))
+
+(defun prompt-source (prospect)
+  (expand-file-name
+   (if prospect
+       (read-file-name "Source: "
+                       (expand-file-name
+                        (file-name-directory prospect))
+                       nil t
+                       (file-name-nondirectory prospect))
+       (read-file-name "Source: "
+                       (expand-file-name
+                        data-path)
+                       nil t))))
+
+(defun prompt-context (filename)
+  (file-name-as-directory
+   (read-string "Context: "
+                (file-name-directory filename))))
+
+(defun add-case-variations (formats)
+  (apply 'append
+         (mapcar (lambda (elt) (list (downcase elt) (upcase elt))) formats)))
+
+(defun get-extension-list (type ext)
+  (let* ((formats (elt (assoc type type-registry) 3)))
+    (if formats
+        (if (functionp formats)
+            (funcall formats ext)
+            (list ext))
+        nil)))
+
+(defun compile-path (spec)
+  (concat (file-name-as-directory (project-get 'root))
+          (file-name-as-directory (project-get 'path))
+          (file-name-as-directory (or (car spec) ""))))
+
+(defun report (result)
+  (message (if (listp result)
+               (format "%s assets generated!"
+                       (if result (length result) "No"))
+               "Finished!")))
+
+(defun generate (&optional filename)
+  "Generates the asset according to the double-quoted text
+at current cursor position."
+  (assert (or (null filename)
+              (stringp filename)) nil "%S is not a filename." filename)
+  (assert project nil "No fossicker project selected for current buffer.")
+  (let* ((fname (or filename (get-text-inside-quotes)))
+         (ext (file-name-extension fname nil))
+         (types (matching-types fname))
+         (specs (project-get 'spec))
+         (type (matching-spec types (mapcar 'car specs)))
+         (spec (cdr (assq type specs)))
+         (fn (elt (assoc type type-registry) 2))
+         (formats (get-extension-list type ext))
+         (context (prompt-context fname))
+         (path (compile-path spec))
+         source)
+    (assert types nil
+            "Couldn't match file name %S to regexp list of any fossicker type."
+            fname)
+    (assert type nil "No matching type is included in project. Possible types: %S" types)
+    (assert (listp formats) nil "Source dispatch function didn't return a list.")
+    (setq source (prompt-source
+                  (prospect
+                   (generate-vein-map fname type)
+                   (file-name-as-directory data-path)
+                   (add-case-variations formats))))
+    (assert (file-regular-p source) nil
+            "Source %S is not a regular file." source)
+    (assert
+     (or (null formats) (string-match (concat "\\." (regexp-opt formats) "\\'") source))
+     nil "Source expected to be one of following formats: %S. Got %S."
+     formats (file-name-extension source))
+    (report
+     (funcall fn path context
+              (file-name-nondirectory fname)
+              ext (cdr spec) source))))

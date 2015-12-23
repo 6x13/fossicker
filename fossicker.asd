@@ -11,4 +11,5 @@
   :serial t
   :depends-on (#:qtools #:qtcore #:qtgui)
   :components ((:file "package")
-               (:file "fossicker")))
+               (:file "fossicker")
+               (:file "widget")))

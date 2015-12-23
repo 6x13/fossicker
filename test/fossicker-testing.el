@@ -4,14 +4,14 @@
 
 (add-to-list 'fossicker-projects
              '("6x13"
-               (root . "~/dev/6x13/")
+               (root . "~/dev/lisp/local-projects/fossicker/")
                (path . "Resources/")
                (spec . ((texture "textures/"
                                  (("ldpi/" . 32)
                                   ("mdpi/" . 64)
                                   ("hdpi/" . 128)
                                   ("retina/" . 256)))))))
-(set-default-font "6x13")
+
 (setq fossicker-libs '(fossicker-texture fossicker-shader))
 (setq fossicker-libs '(fossicker-all))
 (setq fossicker-libs '(fossicker-texture fossicker-all))
@@ -30,19 +30,6 @@
                         (model "models/")
                         (bla "meh")
                         (shader "shaders/")))))
-
-(fossicker-register-type 'texture t
-                   :regexp
-                   '("\\.png\\'"
-                     "\\.tga\\'")
-                   :function 'fossicker-texture-handler
-                   :widgets
-                   '((repeat :tag "Sizes"
-                             :value (("ldpi/" . 32)
-                                     ("hdpi/" . 128))
-                             (cons :format "%v"
-                                   (directory :tag "Path")
-                                   (integer :tag "Unit Size")))))
 
 ;;; "test.png"
 ;;; 'test.png'
