@@ -1,0 +1,28 @@
+* COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
+
+The [[https://openclipart.org/detail/165301/miner][miner]] figure used in the logo and the icon is courtesy of [[https://openclipart.org/user-detail/tzunghaor][tzunghaor]] and stated to be released into the Public Domain in Open Clip Art [[https://openclipart.org/share][Licence]] page.
+The following icons are part of Fossicker.  All are licensed under the GNU General Public License version 3 (see COPYING) or later.
+
+File: fossicker-logo.svg
+  Author: Kenan Bölükbaşı
+  Copyright (C) 2015 Kenan Bölükbaşı
+
+File: fossicker-logo.xpm
+  Author: Kenan Bölükbaşı
+  Copyright (C) 2015 Kenan Bölükbaşı
+
+File: fossicker-logo.pbm
+  Author: Kenan Bölükbaşı
+  Copyright (C) 2015 Kenan Bölükbaşı
+
+File: fossicker-icon.svg
+  Author: Kenan Bölükbaşı
+  Copyright (C) 2015 Kenan Bölükbaşı
+
+File: fossicker-icon.xpm
+  Author: Kenan Bölükbaşı
+  Copyright (C) 2015 Kenan Bölükbaşı
+
+File: fossicker-icon.pbm
+  Author: Kenan Bölükbaşı
+  Copyright (C) 2015 Kenan Bölükbaşı
