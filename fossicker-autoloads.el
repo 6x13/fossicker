@@ -134,6 +134,17 @@ See `fossicker-mode' for more information on Fossicker mode.
 
 ;;;***
 
+;;;### (autoloads nil "fossicker-project" "fossicker-project.el"
+;;;;;;  (22139 8807 782863 795000))
+;;; Generated autoloads from fossicker-project.el
+
+(autoload 'fossicker-edit-project "fossicker-project" "\
+Create the widgets for asset generation.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads nil "fossicker-widget" "fossicker-widget.el" (22139
 ;;;;;;  7366 460672 107000))
 ;;; Generated autoloads from fossicker-widget.el

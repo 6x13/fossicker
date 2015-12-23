@@ -1,4 +1,4 @@
-;;; fossicker-edit-project.el --- Project editing widget for Fossicker.
+;;; fossicker-project.el --- Project editing widget for Fossicker.
 
 ;; Copyright (C) 2015 Kenan Bölükbaşı
 
@@ -40,6 +40,68 @@
 (defvar-local fossicker--edited-project nil
   "Local variable holding the value of currently edited project.")
 
+(defun fossicker--list-type-widgets ()
+  "List of type widgets to choose."
+  (let (value)
+    (dolist (element
+             (fossicker--get-types)
+             value)
+      (let* ((atsym (elt element 0))
+             (atwidget (elt element 4))
+             (atname (symbol-name atsym))
+             (wbase (list 'list :tag (format "%-10s" (upcase atname))
+                          :format "%t\n%v\n"
+                          (list 'const :format "" atsym)
+                          (list 'menu-choice :tag "PATH"
+                                '(const :tag "Asset Path" nil)
+                                (list 'directory
+                                      :size 20
+                                      :format "%v\n"
+                                      :value
+                                      (file-name-as-directory atname))))))
+        (setq value
+              (cons
+               (if atwidget (append wbase atwidget) wbase)
+               value))))))
+
+(define-widget 'fossicker--type-undefined-widget 'lazy
+  "Fallback to sexp when there is no associated type definition."
+  :tag "UNDEFINED"
+  :format "%t %v\n"
+  :type '(sexp :format "%v"))
+
+(defun fossicker--reload-spec-widget (types)
+  (define-widget 'fossicker--spec-widget 'lazy
+    "Widget to customize specific type settings in project."
+    :offset 2
+    :format "%v"
+    :type (list 'repeat :tag "Specification"
+                (append '(menu-choice :tag "TYPE")
+                        (fossicker--list-type-widgets)
+                        '(fossicker--type-undefined-widget)))))
+
+(define-widget 'fossicker--project-widget 'lazy
+  "A project description."
+  :offset 2
+  :tag "Project"
+  :type '(list :format "%v"
+               (string :size 15
+                       :format "%v\n" :value "")
+               (cons :tag "Project Root"
+                     (const :format "" root)
+                     (directory :size 41
+                                :format "%v\n"
+                                :value "~/"))
+               (cons :tag "Asset Path"
+                     (const :format "" path)
+                     (directory :size 41
+                                :format "%v\n"
+                                :value "Resources/"))
+               (cons :format "%v"
+                     (const :format "" spec)
+                     fossicker--spec-widget)))
+
+;;;###autoload
 (defun fossicker-edit-project ()
    "Create the widgets for asset generation."
   (interactive)
@@ -49,6 +111,7 @@
     (erase-buffer))
   (remove-overlays)
   (fossicker-load-libs)
+  (fossicker--reload-spec-widget fossicker--type-registry)
   
   (widget-create 'fossicker--project-widget
                  :notify (lambda (w &rest ignore)
@@ -75,8 +138,8 @@
   (widget-setup))
 
 
-;;; Fossicker Edit Project Provide
+;;; Fossicker Project Provide
 
-(provide 'fossicker-edit-project)
+(provide 'fossicker-project)
 
-;;; fossicker-edit-project.el ends here
+;;; fossicker-project.el ends here

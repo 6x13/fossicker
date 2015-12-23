@@ -102,52 +102,12 @@ Defaults to FOSSICKER-ALL meta-package.")
 
 ;;;; Fossicker Types
 
+(defvar fossicker--type-registry nil)
+
 (defun fossicker--get-types ()
   (cl-remove-duplicates fossicker--type-registry
                         :key #'car
                         :from-end t))
-
-(defun fossicker--list-type-widgets ()
-  "List of type widgets to choose."
-  (let (value)
-    (dolist (element
-             (fossicker--get-types)
-             value)
-      (let* ((atsym (elt element 0))
-             (atwidget (elt element 4))
-             (atname (symbol-name atsym))
-             (wbase (list 'list :tag (format "%-10s" (upcase atname))
-                          :format "%t\n%v\n"
-                          (list 'const :format "" atsym)
-                          (list 'menu-choice :tag "PATH"
-                                '(const :tag "Asset Path" nil)
-                                (list 'directory
-                                      :size 20
-                                      :format "%v\n"
-                                      :value
-                                      (file-name-as-directory atname))))))
-        (setq value
-              (cons
-               (if atwidget (append wbase atwidget) wbase)
-               value))))))
-
-(define-widget 'fossicker--type-undefined-widget 'lazy
-  "Fallback to sexp when there is no associated type definition."
-  :tag "UNDEFINED"
-  :format "%t %v\n"
-  :type '(sexp :format "%v"))
-
-(defun fossicker--reload-spec-widget (types)
-  (define-widget 'fossicker--spec-widget 'lazy
-    "Widget to customize specific type settings in project."
-    :offset 2
-    :format "%v"
-    :type (list 'repeat :tag "Specification"
-                (append '(menu-choice :tag "TYPE")
-                        (fossicker--list-type-widgets)
-                        '(fossicker--type-undefined-widget)))))
-
-(defvar fossicker--type-registry nil)
 
 ;;;###autoload
 (defun fossicker-register-type (name override &rest args)
@@ -170,8 +130,7 @@ to type using :WIDGETS."
     (cl-check-type formats (or boolean list))
     (cl-check-type widgets list)
     (when (or override (null (assq name fossicker--type-registry)))
-      (push (list name regexp fn formats widgets) fossicker--type-registry)
-      (fossicker--reload-spec-widget fossicker--type-registry))))
+      (push (list name regexp fn formats widgets) fossicker--type-registry))))
 
 
 ;;;; Fossicker Vein Mappings
@@ -193,27 +152,6 @@ to type using :WIDGETS."
 
 
 ;;;; Fossicker Projects
-
-(define-widget 'fossicker--project-widget 'lazy
-  "A project description."
-  :offset 2
-  :tag "Project"
-  :type '(list :format "%v"
-               (string :size 15
-                       :format "%v\n" :value "")
-               (cons :tag "Project Root"
-                     (const :format "" root)
-                     (directory :size 41
-                                :format "%v\n"
-                                :value "~/"))
-               (cons :tag "Asset Path"
-                     (const :format "" path)
-                     (directory :size 41
-                                :format "%v\n"
-                                :value "Resources/"))
-               (cons :format "%v"
-                     (const :format "" spec)
-                     fossicker--spec-widget)))
 
 ;;;###autoload
 (defcustom fossicker-projects
