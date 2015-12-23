@@ -31,7 +31,7 @@
 
 (fossicker-register-type 'particle nil
                    :regexp '("\\.pl\\'")
-                   :match t)
+                   :formats t)
 
 (provide 'fossicker-particle)
 

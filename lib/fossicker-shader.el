@@ -36,17 +36,17 @@
                              "\\.tese\\'"
                              "\\.geom\\'"
                              "\\.comp\\'")
-                   :match (lambda (ext)
-                            (cond ((member-ignore-case
-                                    ext
-                                    '("vert" "vrt")) '("vrt" "vert"))
-                                  ((member-ignore-case
-                                    ext
-                                    '("frag" "frg")) '("frag" "frg"))
-                                  ((member-ignore-case
-                                    ext
-                                    '("tese" "tes")) '("tese" "tes"))
-                                  (t nil))))
+                   :formats (lambda (ext)
+                              (cond ((member-ignore-case
+                                      ext
+                                      '("vert" "vrt")) '("vrt" "vert"))
+                                    ((member-ignore-case
+                                      ext
+                                      '("frag" "frg")) '("frag" "frg"))
+                                    ((member-ignore-case
+                                      ext
+                                      '("tese" "tes")) '("tese" "tes"))
+                                    (t nil))))
 
 (provide 'fossicker-shader)
 

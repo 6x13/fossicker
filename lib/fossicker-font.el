@@ -32,7 +32,7 @@
 (fossicker-register-type 'font nil
                    :regexp '("\\.ttf\\'"
                              "\\.otf\\'")
-                   :match t)
+                   :formats t)
 
 (provide 'fossicker-font)
 

@@ -32,7 +32,7 @@
 (fossicker-register-type 'data nil
                    :regexp '("\\.xml\\'"
                              "\\.json\\'")
-                   :match t)
+                   :formats t)
 
 (provide 'fossicker-data)
 

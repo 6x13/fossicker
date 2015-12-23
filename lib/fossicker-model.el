@@ -32,7 +32,7 @@
 (fossicker-register-type 'model nil
                    :regexp '("\\.obj\\'"
                              "\\.3ds\\'")
-                   :match t)
+                   :formats t)
 
 (provide 'fossicker-model)
 

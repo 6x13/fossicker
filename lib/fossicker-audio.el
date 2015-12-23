@@ -34,7 +34,7 @@
                              "\\.wav\\'"
                              "\\.ogg\\'"
                              "\\.aac\\'")
-                   :match t)
+                   :formats t)
 
 (provide 'fossicker-audio)
 

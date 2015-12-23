@@ -42,10 +42,10 @@
 
 (defvar fossicker--logo (find-image '((:type xpm :file "etc/fossicker-logo.xpm")
                                       (:type pbm :file "etc/fossicker-logo.pbm"))))
-(defvar-local fossicker--fsrc nil
+(defvar-local fossicker--source nil
   "Holds the source data.")
 
-(defvar-local fossicker--fextl nil
+(defvar-local fossicker--formats nil
   "Holds the extension list.")
 
 (defvar-local fossicker--form nil
@@ -182,27 +182,27 @@
 (defun fossicker--widget-fname-notify (w &rest ignore)
   (let* ((fname (concat
                  (or (file-name-as-directory
-                      (widget-value (fossicker--fget 'cntxt))) "")
+                      (widget-value (fossicker--fget 'context))) "")
                  (or (widget-value w) "")))
          (ext (file-name-extension fname nil))
          (types (fossicker--matching-types fname))
          (specs (fossicker--project-get 'spec))
          (type (fossicker--matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
-         (extl (fossicker--get-extension-list type ext))
+         (formats (fossicker--get-extension-list type ext))
          (path (fossicker--compile-path spec))
          prospect)
     (widget-value-set (fossicker--fget 'type) type)
     (if types
         (if type
             (progn
-              (setq fossicker--fextl extl)
+              (setq fossicker--formats formats)
               (fossicker--message "SUCCESS:\n Found match for filename %S." fname)
               (widget-apply (fossicker--fget 'gen) :activate)
               (setq prospect (fossicker--prospect
                               (fossicker--generate-vein-map fname type)
                               (file-name-as-directory fossicker-data-path)
-                              (fossicker--add-case-variations extl)))
+                              (fossicker--add-case-variations formats)))
               (when prospect
                 (fossicker--message "SUCCESS:\n Found match for filename %S.\n Prospect: %s" fname prospect)
                 (widget-value-set (fossicker--fget 'source)
@@ -222,20 +222,20 @@
          (fl (file-name-nondirectory fname))
          (cn (file-name-directory fname)))
     (when cn
-      (widget-value-set (fossicker--fget 'cntxt) cn))
+      (widget-value-set (fossicker--fget 'context) cn))
     (widget-value-set w fl)
     (widget-setup)))
 
 (defun fossicker--widget-source-notify (w &rest ignore)
   (let ((src (read-file-name "Source: " "~/dev" nil t)))
     (if (file-regular-p src)
-        (if (or (null fossicker--fextl) (string-match (concat "\\." (regexp-opt fossicker--fextl) "\\'") src))
+        (if (or (null fossicker--formats) (string-match (concat "\\." (regexp-opt fossicker--formats) "\\'") src))
             (progn
-              (setq fossicker--fsrc src)
+              (setq fossicker--source src)
               (widget-value-set w (fossicker--ffmt-src src))
               (fossicker--message "SUCCESS:\n Successfully set the source to %S" src))
           (fossicker--message
-           "ERROR:\n Source expected to be one of following formats: %S.\n Got %S." fossicker--fextl (file-name-extension src)))
+           "ERROR:\n Source expected to be one of following formats: %S.\n Got %S." fossicker--formats (file-name-extension src)))
       (fossicker--message "ERROR:\n Source %S is not a regular file." src))))
 
 (defun fossicker--widget-generate-notify (&rest ignore)
@@ -244,7 +244,7 @@
                   (widget-value (fossicker--fget 'fname))))
           (context (or (file-name-directory
                         (widget-value (fossicker--fget 'fname)))
-                       (widget-value (fossicker--fget 'cntxt))))
+                       (widget-value (fossicker--fget 'context))))
           (ext (file-name-extension fname nil))
           (specs (fossicker--project-get 'spec))
           (type (widget-value (fossicker--fget 'type)))
@@ -252,7 +252,7 @@
           (fn (elt (assoc type fossicker--type-registry) 2))
           (path (fossicker--compile-path spec)))
      (fossicker--report
-      (funcall fn path context fname ext (cdr spec) fossicker--fsrc)))))
+      (funcall fn path context fname ext (cdr spec) fossicker--source)))))
 
 (defun fossicker--widget-create-types ()
   (apply 'widget-create
@@ -303,12 +303,12 @@
                                 (progn
                                   (fossicker-set-project (widget-value w))
                                   (widget-apply (fossicker--fget 'fname) :activate)
-                                  (widget-apply (fossicker--fget 'cntxt) :activate)
+                                  (widget-apply (fossicker--fget 'context) :activate)
                                   (widget-apply (fossicker--fget 'source) :activate))
                               (progn
                                 (fossicker-unset-project)
                                 (widget-apply (fossicker--fget 'fname) :deactivate)
-                                  (widget-apply (fossicker--fget 'cntxt) :activate)
+                                  (widget-apply (fossicker--fget 'context) :activate)
                                   (widget-apply (fossicker--fget 'source) :activate)
                                 (widget-apply (fossicker--fget 'gen) :deactivate))))
                   :args (fossicker--widget-list-projects)))
@@ -333,13 +333,13 @@
    (fossicker--widget-create-types))
   
   (fossicker--fset
-   'cntxt
+   'context
    (widget-create 'editable-field
                   :size 20
                   :tag (fossicker--ftag "Context")
                   :format "%t: %v\n"
                   "ui/buttons/"))
-  (widget-apply (fossicker--fget 'cntxt) :deactivate)
+  (widget-apply (fossicker--fget 'context) :deactivate)
 
   (widget-insert "\n")
 

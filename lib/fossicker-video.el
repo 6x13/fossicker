@@ -33,7 +33,7 @@
                    :regexp '("\\.mp4\\'"
                              "\\.webm\\'"
                              "\\.flv\\'")
-                   :match t)
+                   :formats t)
 
 (provide 'fossicker-video)
 

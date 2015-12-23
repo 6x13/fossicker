@@ -157,20 +157,20 @@ usually matching file extensions.
 The asset picked from fossicker data path is
 processed by :FUNCTION in order to fit
 the type specification.
-:MATCH defines which file format to pick
+:FORMATS defines which file format to pick
 among possible matches in the data path.
 You can add customizations parameeters
 to type using :WIDGETS."
   (let ((regexp (plist-get args :regexp))
         (fn (or (plist-get args :function) 'ignore))
-        (match (plist-get args :match))
+        (formats (plist-get args :formats))
         (widgets (plist-get args :widgets)))
     (cl-check-type regexp list)
     (cl-check-type fn function)
-    (cl-check-type match (or boolean list))
+    (cl-check-type formats (or boolean list))
     (cl-check-type widgets list)
     (when (or override (null (assq name fossicker--type-registry)))
-      (push (list name regexp fn match widgets) fossicker--type-registry)
+      (push (list name regexp fn formats widgets) fossicker--type-registry)
       (fossicker--reload-spec-widget fossicker--type-registry))))
 
 
@@ -391,10 +391,10 @@ quotes on each side of cursor."
                  extl)))
 
 (defun fossicker--get-extension-list (type ext)
-  (let* ((match (elt (assoc type fossicker--type-registry) 3)))
-    (if match
-        (if (functionp match)
-            (funcall match ext)
+  (let* ((formats (elt (assoc type fossicker--type-registry) 3)))
+    (if formats
+        (if (functionp formats)
+            (funcall formats ext)
           (list ext))
       nil)))
 
@@ -424,7 +424,7 @@ at current cursor position."
          (type (fossicker--matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
          (fn (elt (assoc type fossicker--type-registry) 2))
-         (extl (fossicker--get-extension-list type ext))
+         (formats (fossicker--get-extension-list type ext))
          (context (fossicker--prompt-context fname))
          (path (fossicker--compile-path spec))
          source)
@@ -432,18 +432,18 @@ at current cursor position."
                "Couldn't match file name %S to regexp list of any fossicker type."
                fname)
     (cl-assert type nil "No matching type is included in project. Possible types: %S" types)
-    (cl-assert (listp extl) nil "Source dispatch function didn't return a list.")
+    (cl-assert (listp formats) nil "Source dispatch function didn't return a list.")
     (setq source (fossicker--prompt-source
                   (fossicker--prospect
                    (fossicker--generate-vein-map fname type)
                    (file-name-as-directory fossicker-data-path)
-                   (fossicker--add-case-variations extl))))
+                   (fossicker--add-case-variations formats))))
     (cl-assert (file-regular-p source) nil
                "Source %S is not a regular file." source)
     (cl-assert
-     (or (null extl) (string-match (concat "\\." (regexp-opt extl) "\\'") source))
+     (or (null formats) (string-match (concat "\\." (regexp-opt formats) "\\'") source))
      nil "Source expected to be one of following formats: %S. Got %S."
-     extl (file-name-extension source))
+     formats (file-name-extension source))
     (fossicker--report
      (funcall fn path context
               (file-name-nondirectory fname)
