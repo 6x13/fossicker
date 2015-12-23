@@ -33,8 +33,8 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "fossicker" "fossicker.el" (22138 45650 482179
-;;;;;;  657000))
+;;;### (autoloads nil "fossicker" "fossicker.el" (22138 55742 213637
+;;;;;;  146000))
 ;;; Generated autoloads from fossicker.el
 
 (let ((loads (get 'fossicker 'custom-loads))) (if (member '"fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"fossicker" loads))))
@@ -55,7 +55,7 @@ usually matching file extensions.
 The asset picked from fossicker data path is
 processed by :FUNCTION in order to fit
 the type specification.
-:MATCH defines which file format to pick
+:FORMATS defines which file format to pick
 among possible matches in the data path.
 You can add customizations parameeters
 to type using :WIDGETS.

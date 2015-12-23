@@ -46,7 +46,7 @@
   "Holds the source data.")
 
 (defvar-local fossicker--formats nil
-  "Holds the extension list.")
+  "Holds the acceptable source format list.")
 
 (defvar-local fossicker--form nil
   "Holds the form data.")
