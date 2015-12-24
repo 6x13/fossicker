@@ -250,7 +250,7 @@ among possible matches in the data path."
       (let ((ndir (concat (file-name-as-directory dir) (car map))))
         (prospect
          (cdr map)
-         (if (file-exists-p ndir)
+         (if (cl-fad:file-exists-p ndir)
              ndir
              (file-name-as-directory dir))
          formats
@@ -278,13 +278,15 @@ among possible matches in the data path."
    (read-string "Context: "
                 (file-name-directory filename))))
 
+; REVISED
 (defun add-case-variations (formats)
   (apply #'append
          (mapcar (lambda (elt)
-                   (list (downcase elt)
-                         (upcase elt)))
+                   (list (string-downcase elt)
+                         (string-upcase elt)))
                  formats)))
 
+; REVISED
 (defun get-extension-list (type ext)
   (let* ((formats (elt (assoc type type-registry) 3)))
     (if formats
@@ -298,37 +300,36 @@ among possible matches in the data path."
           (file-name-as-directory (elt (get-project) 2))
           (file-name-as-directory (or (car spec) ""))))
 
+; REVISED
 (defun report (result)
   (message (if (listp result)
                (format "%s assets generated!"
                        (if result (length result) "No"))
                "Finished!")))
 
-(defun generate (&optional filename)
+(defun generate (filename)
   "Generates the asset according to the double-quoted text
 at current cursor position."
-  (assert (or (null filename)
-              (stringp filename)) nil "%S is not a filename." filename)
+  (assert (stringp filename) nil "%S is not a filename." filename)
   (assert project nil "No fossicker project selected for current buffer.")
-  (let* ((fname (or filename (get-text-inside-quotes)))
-         (ext (file-name-extension fname nil))
-         (types (matching-types fname))
+  (let* ((ext (file-name-extension filename nil))
+         (types (matching-types filename))
          (specs (cdddr (get-project)))
          (type (matching-spec types (mapcar #'car specs)))
          (spec (cdr (assoc type specs)))
          (fn (elt (assoc type type-registry) 2))
          (formats (get-extension-list type ext))
-         (context (prompt-context fname))
+         (context (prompt-context filename))
          (path (compile-path spec))
          source)
     (assert types nil
             "Couldn't match file name %S to regexp list of any fossicker type."
-            fname)
+            filename)
     (assert type nil "No matching type is included in project. Possible types: %S" types)
     (assert (listp formats) nil "Source dispatch function didn't return a list.")
     (setq source (prompt-source
                   (prospect
-                   (generate-vein-map fname type)
+                   (generate-vein-map filename type)
                    (file-name-as-directory data-path)
                    (add-case-variations formats))))
     (assert (file-regular-p source) nil
@@ -339,5 +340,5 @@ at current cursor position."
      formats (file-name-extension source))
     (report
      (funcall fn path context
-              (file-name-nondirectory fname)
+              (file-name-nondirectory filename)
               ext (cdr spec) source))))
