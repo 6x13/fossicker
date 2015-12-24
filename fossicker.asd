@@ -9,7 +9,7 @@
   :maintainer "Kenan Bölükbaşı <kenanbolukbasi@gmail.com>"
   :licence "GPL"
   :serial t
-  :depends-on (#:qtools #:qtcore #:qtgui)
+  :depends-on (#:cl-ppcre #:qtools #:qtcore #:qtgui)
   :components ((:file "package")
                (:file "fossicker")
                (:file "widget")))

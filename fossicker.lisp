@@ -32,13 +32,15 @@
 
 ;;; Fossicker Message
 
+; REVISED
 (defun message (&rest args)
-  (apply 'message args))
+  (apply #'format (cons t args)))
 
 
 ;;; Fossicker Libs
 
-(defvar path nil
+; REVISED
+(defvar *path* nil
   "Directory containing the Fossicker package.
 This is used to load the supporting fossicker type libraries.
 The default value is automatically computed from the location of
@@ -51,13 +53,13 @@ the Emacs Lisp package.")
          load-path
          :test 'string=)
 
-(defvar libs '(all)
+(defvar *libs* '(all)
   "A list of packages to load with FOSSICKER.
 Defaults to ALL meta-package.")
 
 (defun load-libs (&rest libraries)
   "If supplied, load LIBS, else load libs supplied in LIBS variable."
-  (let ((libs (or libraries libs)))
+  (let ((libs (or libraries *libs*)))
     (when libs
       (dolist (lib
                libs
@@ -70,21 +72,29 @@ Defaults to ALL meta-package.")
 
 ;;;; Fossicker Data Path
 
-(defvar data-path
+(defvar *data-path*
   (file-name-as-directory (expand-file-name "data/" path))
   "Location of the fossicker data.")
 
 
 ;;;; Fossicker Types
 
-(defvar type-registry nil)
+; REVISED
+(defvar *type-registry* nil)
 
+; REVISED
+(defun ignore ()
+  "Default argument for register-type FN parameter."
+  nil)
+
+; REVISED
 (defun get-types ()
-  (remove-duplicates type-registry
+  (remove-duplicates *type-registry*
                      :key #'car
                      :from-end t))
 
-(defun register-type (name override &rest args)
+; REVISED
+(defun register-type (name override &key regexp (function #'ignore) formats)
   "Register a new fossicker type. 
 Fossicker TYPE is determined according a :REGEXP,
 usually matching file extensions.
@@ -93,19 +103,17 @@ processed by :FUNCTION in order to fit
 the type specification.
 :FORMATS defines which file format to pick
 among possible matches in the data path."
-  (let ((regexp (plist-get args :regexp))
-        (fn (or (plist-get args :function) 'ignore))
-        (formats (plist-get args :formats)))
-    (check-type regexp list)
-    (check-type fn function)
-    (check-type formats (or boolean list))
-    (when (or override (null (assq name type-registry)))
-      (push (list name regexp fn formats) type-registry))))
+  (check-type regexp list)
+  (check-type function function)
+  (check-type formats (or boolean list))
+  (when (or override (null (assoc name *type-registry*)))
+    (push (list name regexp function formats) *type-registry*)))
 
 
 ;;;; Fossicker Vein Mappings
 
-(defvar legend
+; REVISED
+(defvar *legend*
   '(("_b_" "button")
     ("_n_" "normal")
     ("_p_" "pressed")
@@ -115,74 +123,82 @@ among possible matches in the data path."
 
 ;;;; Fossicker Projects
 
-(defvar projects nil
+; REVISED
+(defvar *projects* nil
   "The list of fossicker project paths.")
 
-(defvar project-definitions nil
+; REVISED
+(defun add-project (path)
+  "Add path to *PROJECTS* if not already added."
+  (pushnew path *projects* :test #'string=))
+
+; REVISED
+(defun remove-project (path)
+  "Add path to *PROJECTS* if not already added."
+  (delete path *projects* :test #'string=))
+
+; TESTING
+(add-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
+(add-project "~/dev/lisp/local-projects/fossicker/test/test.lisp")
+(remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
+
+; REVISED
+(defvar *project-definitions* nil
   "The list of fossicker project definitions.")
 
+; REVISED
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
-  (read (with-temp-buffer
-            (insert-file-contents path)
-          (buffer-string))))
+  (assert (probe-file path) nil "File ~a doesn't exist." path)
+  (with-open-file (in path :external-format :utf-8)
+    (read in)))
 
+; REVISED
 (defun load-projects ()
   "Loads all projects in PROJECTS."
-  (setq project-definitions nil)
-  (dolist (path projects)
+  (setq *project-definitions* nil)
+  (dolist (path *projects*)
     (push (get-data-from-file path)
-          project-definitions)))
+          *project-definitions*)))
 
+; REVISED
 (defun projects-assert ()
-  (assert project-definitions nil
+  (assert *project-definitions* nil
           "No fossicker projects defined. You need at least one."))
-
 
 ;;; Implementation
 
 ;;;; Fossicker Project Setting
 
-(defvar project nil
+; REVISED
+(defvar *project* nil
   "Name of the fossicker project buffer belongs to.")
 
-(defun project-file-p (projectpath)
-  (when (buffer-file-name) 
-    (let ((pp (directory-file-name (expand-file-name projectpath)))
-          (bp (file-name-directory (buffer-file-name))))
-      (string-prefix-p pp bp))))
-
-(defun find-project (projects)
-  (when projects
-    (let ((proj (car projects)))
-      (if (project-file-p (cadr proj))
-          proj
-          (find-project (cdr projects))))))
-
+; REVISED
 (defun get-project ()
-  (assoc project project-definitions))
+  (assoc *project* project-definitions))
 
+; REVISED
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
-  (message "Fossicker Project currently set to %s." (or project "nothing")))
+  (message "Fossicker Project currently set to ~a." (or *project* "nothing")))
 
-(defun set-project (&optional project)
+; REVISED
+(defun set-project (project)
   "Manually select a project among fossicker projects list."
   (projects-assert)
-  (assert (or
-           (null project)
-           (member project (mapcar 'car project-definitions)))
-          nil "%S is not in project list." project)
-  (setq project (or project
-                    (completing-read
-                     "Select Fossicker Project buffer belongs to: "
-                     (mapcar 'car project-definitions)
-                     nil t)))
+  (assert (member project
+                  *project-definitions*
+                  :key #'car
+                  :test #'string=)
+          nil "~a is not in project list." project)
+  (setq *project* project)
   (show-current-project))
 
+; REVISED
 (defun unset-project ()
   "Set project to nil."
-  (setq project nil)
+  (setq *project* nil)
   (show-current-project))
 
 
@@ -195,7 +211,7 @@ among possible matches in the data path."
    (elt type 1)))
 
 (defun matching-types (fname)
-  (mapcar 'car
+  (mapcar #'car
           (remove-if-not
            (lambda (type)
              (type-match-p fname type))
@@ -215,10 +231,10 @@ among possible matches in the data path."
 
 (defun generate-vein-map (fname atype)
   (cons (symbol-name atype)
-        (apply 'append
+        (apply #'append
                (mapcar (lambda (x) (cdr x))
                        (sort 
-                        (assq-delete-all nil (map-to-vein
+                        (assoc-delete-all nil (map-to-vein
                                               fname
                                               (copy-alist
                                                legend)))
@@ -258,7 +274,7 @@ among possible matches in the data path."
                 (file-name-directory filename))))
 
 (defun add-case-variations (formats)
-  (apply 'append
+  (apply #'append
          (mapcar (lambda (elt)
                    (list (downcase elt)
                          (upcase elt)))
@@ -293,8 +309,8 @@ at current cursor position."
          (ext (file-name-extension fname nil))
          (types (matching-types fname))
          (specs (cdddr (get-project)))
-         (type (matching-spec types (mapcar 'car specs)))
-         (spec (cdr (assq type specs)))
+         (type (matching-spec types (mapcar #'car specs)))
+         (spec (cdr (assoc type specs)))
          (fn (elt (assoc type type-registry) 2))
          (formats (get-extension-list type ext))
          (context (prompt-context fname))
