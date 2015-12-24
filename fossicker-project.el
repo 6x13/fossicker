@@ -72,7 +72,7 @@
 
 ;;;###autoload
 (defun fossicker-edit-project ()
-   "Create the widgets for asset generation."
+   "Create the widgets for fossicker project definition."
   (interactive)
   (switch-to-buffer "*FOSSICKER-EDIT-PROJECT*")
   (kill-all-local-variables)
@@ -81,46 +81,34 @@
   (remove-overlays)
   (fossicker-load-libs)
   
-  (widget-create 'list
-                 :offset 2
+  (widget-create 'cons
                  :tag "Project"
                  :format "%v"
                  :notify (lambda (w &rest ignore)
                            (setq fossicker--edited-project (widget-value w)))
-                 :value '("test"
-                          (root . "~/dev/test/")
-                          (path . "Resources/")
-                          (spec . ((texture "textures/"
-                                            (("ldpi/" . 32)
-                                             ("mdpi/" . 64)
-                                             ("hdpi/" . 128)
-                                             ("retina/" . 256)))
-                                   (model "models/")
-                                   (bla "meh")
-                                   (shader "shaders/"))))
-                 '(string :size 15
-                         :format "%v\n" :value "")
-                 '(cons :tag "Project Root"
-                       (const :format "" root)
-                       (directory :size 41
-                                  :format "%v\n"
-                                  :value "~/"))
-                 '(cons :tag "Asset Path"
-                       (const :format "" path)
-                       (directory :size 41
-                                  :format "%v\n"
-                                  :value "Resources/"))
+                 :value (fossicker--get-data-from-file )
+                 '(string :size 41
+                          :tag "Project Name "
+                          :format "%t: %v\n\n"
+                          :value "")
                  (list 'cons :format "%v"
-                       '(const :format "" spec)
-                       (list 'repeat
-                             :tag "Specification"
-                             :offset 2
-                             :format "%v"
-                             (list 'menu-choice
-                                   :tag "TYPE"
-                                   :args (append
-                                          (fossicker--list-type-widgets)
-                                          '(fossicker--type-undefined-widget))))))
+                       '(directory :size 41
+                                         :format "%t: %v\n\n"
+                                         :tag "Project Root "
+                                         :value "~/")
+                       (list 'cons :format "%v"
+                             '(directory :size 41
+                                         :format "%t: %v\n\n"
+                                         :tag "Asset Path   "
+                                         :value "Resources/")
+                             (list 'repeat
+                                   :tag "Specification"
+                                   :offset 12
+                                   (list 'menu-choice
+                                         :tag "TYPE"
+                                         :args (append
+                                                (fossicker--list-type-widgets)
+                                                '(fossicker--type-undefined-widget)))))))
   
   (widget-insert "\n\n")
   (widget-create 'push-button

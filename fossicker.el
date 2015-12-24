@@ -201,9 +201,12 @@ to type using :WIDGETS."
 (defun fossicker--find-project (projects)
   (when projects
     (let ((proj (car projects)))
-      (if (fossicker--project-file-p (cdr (assoc 'root proj)))
+      (if (fossicker--project-file-p (cadr proj))
           proj
         (fossicker--find-project (cdr projects))))))
+
+(defun fossicker--get-project ()
+  (assoc fossicker-project fossicker--project-definitions))
 
 (defun fossicker-show-current-project ()
   "Shows the current fossicker project in minibuffer."
@@ -253,13 +256,6 @@ belongs to."
 
 
 ;;;; Asset Generation
-
-(defun fossicker--project-get (data)
-  (cdr (assq data
-             (cdr
-              (assoc
-               fossicker-project
-               fossicker--project-definitions)))))
 
 (defun fossicker--get-text-inside-quotes ()
   "Return text between double straight
@@ -358,8 +354,8 @@ quotes on each side of cursor."
       nil)))
 
 (defun fossicker--compile-path (spec)
-  (concat (file-name-as-directory (fossicker--project-get 'root))
-          (file-name-as-directory (fossicker--project-get 'path))
+  (concat (file-name-as-directory (cadr (fossicker--get-project)))
+          (file-name-as-directory (cl-caddr (fossicker--get-project)))
           (file-name-as-directory (or (car spec) ""))))
 
 (defun fossicker--report (result)
@@ -379,7 +375,7 @@ at current cursor position."
   (let* ((fname (or filename (fossicker--get-text-inside-quotes)))
          (ext (file-name-extension fname nil))
          (types (fossicker--matching-types fname))
-         (specs (fossicker--project-get 'spec))
+         (specs (cl-cdddr (fossicker--get-project)))
          (type (fossicker--matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
          (fn (elt (assoc type fossicker--type-registry) 2))
