@@ -1,14 +1,8 @@
-;;; fossicker.el --- Fossicker: On-the-fly asset generation for development.
-
+;;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: FOSSICKER -*-
 ;; Copyright (C) 2015 Kenan Bölükbaşı
 
 ;; Author: Kenan Bölükbaşı <kenanbolukbasi@gmail.com>
 ;; Created: 23 October 2015
-;; Version: 0.1.1
-;; Keywords: gamedev, game, development, sprite, asset, tools
-;; Homepage: http://kenanb.com
-
-;; This file is not part of GNU Emacs.
 
 ;; This file is part of Fossicker.
 
@@ -25,22 +19,16 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Code:
-
-;;; Dependencies
-
 (in-package :fossicker)
 
 ;;; Fossicker Message
 
-; REVISED
 (defun message (&rest args)
   (apply #'format (cons t args)))
 
 
 ;;; Fossicker Libs
 
-; REVISED
 (defvar *path* (cl-fad:pathname-as-directory *load-truename*)
   "Directory containing the Fossicker package.
 This is used to load the supporting fossicker type libraries.
@@ -66,28 +54,23 @@ Defaults to ALL meta-package.")
 
 ;;;; Fossicker Data Path
 
-; REVISED
 (defvar *data-path* (cl-fad:merge-pathnames-as-directory *load-truename* "data")
   "Location of the fossicker data.")
 
 
 ;;;; Fossicker Types
 
-; REVISED
 (defvar *type-registry* nil)
 
-; REVISED
 (defun ignore ()
   "Default argument for register-type FN parameter."
   nil)
 
-; REVISED
 (defun get-types ()
   (remove-duplicates *type-registry*
                      :key #'car
                      :from-end t))
 
-; REVISED
 (defun register-type (name override &key regexp (function #'ignore) formats)
   "Register a new fossicker type. 
 Fossicker TYPE is determined according a :REGEXP,
@@ -106,7 +89,6 @@ among possible matches in the data path."
 
 ;;;; Fossicker Vein Mappings
 
-; REVISED
 (defvar *legend*
   '(("_b_" "button")
     ("_n_" "normal")
@@ -117,16 +99,13 @@ among possible matches in the data path."
 
 ;;;; Fossicker Projects
 
-; REVISED
 (defvar *projects* nil
   "The list of fossicker project paths.")
 
-; REVISED
 (defun add-project (path)
   "Add path to *PROJECTS* if not already added."
   (pushnew path *projects* :test #'string=))
 
-; REVISED
 (defun remove-project (path)
   "Add path to *PROJECTS* if not already added."
   (delete path *projects* :test #'string=))
@@ -136,18 +115,15 @@ among possible matches in the data path."
 (add-project "~/dev/lisp/local-projects/fossicker/test/test.lisp")
 (remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
 
-; REVISED
 (defvar *project-definitions* nil
   "The list of fossicker project definitions.")
 
-; REVISED
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
   (assert (cl-fad:file-exists-p path) nil "File ~a doesn't exist." path)
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
-; REVISED
 (defun load-projects ()
   "Loads all projects in PROJECTS."
   (setq *project-definitions* nil)
@@ -155,7 +131,6 @@ among possible matches in the data path."
     (push (get-data-from-file path)
           *project-definitions*)))
 
-; REVISED
 (defun projects-assert ()
   (assert *project-definitions* nil
           "No fossicker projects defined. You need at least one."))
@@ -164,20 +139,16 @@ among possible matches in the data path."
 
 ;;;; Fossicker Project Setting
 
-; REVISED
 (defvar *project* nil
   "Name of the fossicker project buffer belongs to.")
 
-; REVISED
 (defun get-project ()
   (assoc *project* project-definitions))
 
-; REVISED
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
   (message "Fossicker Project currently set to ~a." (or *project* "nothing")))
 
-; REVISED
 (defun set-project (project)
   "Manually select a project among fossicker projects list."
   (projects-assert)
@@ -189,7 +160,6 @@ among possible matches in the data path."
   (setq *project* project)
   (show-current-project))
 
-; REVISED
 (defun unset-project ()
   "Set project to nil."
   (setq *project* nil)
@@ -198,14 +168,12 @@ among possible matches in the data path."
 
 ;;;; Asset Generation
 
-; REVISED
 (defun type-match-p (fname type)
   (some
    (lambda (regexp)
      (cl-ppcre:scan regexp fname))
    (elt type 1)))
 
-; REVISED
 (defun matching-types (fname)
   (mapcar #'car
           (remove-if-not
@@ -213,21 +181,18 @@ among possible matches in the data path."
              (type-match-p fname type))
            (get-types))))
 
-; REVISED
 (defun matching-spec (types specs)
   (when specs
     (if (member (car specs) types)
         (car specs)
         (matching-spec types (cdr specs)))))
 
-; REVISED
 (defun map-to-vein (string legend)
   (when legend
     (cons (cons (cl-ppcre:scan (caar legend) string)
                 (cdar legend))
           (map-to-vein string (cdr legend)))))
 
-; REVISED
 (defun generate-vein-map (fname atype)
   (cons (symbol-name atype)
         (apply #'append
@@ -238,7 +203,6 @@ among possible matches in the data path."
                                    :key #'car)
                         #'< :key #'car)))))
 
-; REVISED
 (defun prospect (map dir formats &optional prospect)
   (if map
       (let ((ndir (concat (cl-fad:pathname-as-directory dir)
@@ -257,20 +221,17 @@ among possible matches in the data path."
              prospect)))
       prospect))
 
-; REVISED
 (defun prompt-read (prompt)
   (format *query-io* "~a: " prompt)
   (force-output *query-io*)
   (read-line *query-io*))
 
-; REVISED
 (defun prompt-source (prospect)
   (pathname
    (if (and prospect (y-or-n-p "Source: ~a" prospect))
        prospect
        (prompt-read "Source"))))
 
-; REVISED
 (defun prompt-context (filename)
   (cl-fad:pathname-as-directory
    (let ((context (cl-fad:pathname-directory-pathname filename)))
@@ -278,7 +239,6 @@ among possible matches in the data path."
          context
          (pathname (prompt-read "Context"))))))
 
-; REVISED
 (defun add-case-variations (formats)
   (apply #'append
          (mapcar (lambda (elt)
@@ -286,7 +246,6 @@ among possible matches in the data path."
                          (string-upcase elt)))
                  formats)))
 
-; REVISED
 (defun get-extension-list (type ext)
   (let* ((formats (elt (assoc type type-registry) 3)))
     (if formats
@@ -295,7 +254,6 @@ among possible matches in the data path."
             (list ext))
         nil)))
 
-; REVISED
 (defun compile-path (spec)
   (cl-fad:canonical-pathname
    (cl-fad:merge-pathnames-as-directory
@@ -303,14 +261,12 @@ among possible matches in the data path."
     (cl-fad:pathname-as-directory (elt (get-project) 2))
     (cl-fad:pathname-as-directory (or (car spec) "")))))
 
-; REVISED
 (defun report (result)
   (message (if (listp result)
                (format "%s assets generated!"
                        (if result (length result) "No"))
                "Finished!")))
 
-; REVISED
 (defun generate (filename)
   "Generates the asset according to the double-quoted text
 at current cursor position."
