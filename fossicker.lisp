@@ -239,7 +239,7 @@ among possible matches in the data path."
   (cons (symbol-name atype)
         (apply #'append
                (mapcar #'cdr
-                       (sort 
+                       (stable-sort 
                         (delete-if #'null
                                    (map-to-vein fname (copy-alist legend))
                                    :key #'car)
