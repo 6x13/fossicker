@@ -424,6 +424,10 @@ at current cursor position."
               '("Settings" . fossicker-customize))
             (define-key-after map [menu-bar fossicker-menu fossicker-p-menu]
               (cons "Project" (make-sparse-keymap)) 'fossicker-settings)
+            (define-key map [menu-bar fossicker-menu fossicker-p-menu edit]
+              '("Edit Project" . fossicker-edit-project))
+            (define-key map [menu-bar fossicker-menu fossicker-p-menu new]
+              '("New Project" . fossicker-new-project))
             (define-key map [menu-bar fossicker-menu fossicker-p-menu current]
               '("Current" . fossicker-show-current-project))
             (define-key map [menu-bar fossicker-menu fossicker-p-menu unset]
