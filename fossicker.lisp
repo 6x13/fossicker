@@ -35,6 +35,7 @@
 (defun message (&rest args)
   (apply 'message args))
 
+
 ;;; Fossicker Libs
 
 (defvar path nil
@@ -50,18 +51,18 @@ the Emacs Lisp package.")
          load-path
          :test 'string=)
 
-(defvar libraries '(all)
-  "A list of lib packages to load with FOSSICKER.
+(defvar libs '(all)
+  "A list of packages to load with FOSSICKER.
 Defaults to ALL meta-package.")
 
-(defun load-libs (&rest libs)
+(defun load-libs (&rest libraries)
   "If supplied, load LIBS, else load libs supplied in LIBS variable."
-  (let ((ctr (or libs libraries)))
-    (when ctr
+  (let ((libs (or libraries libs)))
+    (when libs
       (dolist (lib
-               ctr
+               libs
                (message "Fossicker libraries loaded: %S"
-                        ctr))
+                        libs))
         (require lib)))))
 
 
@@ -76,10 +77,12 @@ Defaults to ALL meta-package.")
 
 ;;;; Fossicker Types
 
-(defun get-types ()
-  (remove-duplicates type-registry :key #'car :from-end t))
-
 (defvar type-registry nil)
+
+(defun get-types ()
+  (remove-duplicates type-registry
+                     :key #'car
+                     :from-end t))
 
 (defun register-type (name override &rest args)
   "Register a new fossicker type. 
@@ -113,11 +116,28 @@ among possible matches in the data path."
 ;;;; Fossicker Projects
 
 (defvar projects nil
+  "The list of fossicker project paths.")
+
+(defvar project-definitions nil
   "The list of fossicker project definitions.")
 
+(defun get-data-from-file (path)
+  "Read s-expression from PATH."
+  (read (with-temp-buffer
+            (insert-file-contents path)
+          (buffer-string))))
+
+(defun load-projects ()
+  "Loads all projects in PROJECTS."
+  (setq project-definitions nil)
+  (dolist (path projects)
+    (push (get-data-from-file path)
+          project-definitions)))
+
 (defun projects-assert ()
-  (assert projects nil
+  (assert project-definitions nil
           "No fossicker projects defined. You need at least one."))
+
 
 ;;; Implementation
 
@@ -135,9 +155,12 @@ among possible matches in the data path."
 (defun find-project (projects)
   (when projects
     (let ((proj (car projects)))
-      (if (project-file-p (cdr (assoc 'root proj)))
+      (if (project-file-p (cadr proj))
           proj
           (find-project (cdr projects))))))
+
+(defun get-project ()
+  (assoc project project-definitions))
 
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
@@ -148,12 +171,12 @@ among possible matches in the data path."
   (projects-assert)
   (assert (or
            (null project)
-           (member project (mapcar 'car projects)))
+           (member project (mapcar 'car project-definitions)))
           nil "%S is not in project list." project)
   (setq project (or project
                     (completing-read
                      "Select Fossicker Project buffer belongs to: "
-                     (mapcar 'car projects)
+                     (mapcar 'car project-definitions)
                      nil t)))
   (show-current-project))
 
@@ -165,18 +188,17 @@ among possible matches in the data path."
 
 ;;;; Asset Generation
 
-(defun project-get (data)
-  (cdr (assq data (cdr (assoc project projects)))))
-
 (defun type-match-p (fname type)
   (some
-   (lambda (regexp) (string-match regexp fname))
+   (lambda (regexp)
+     (string-match regexp fname))
    (elt type 1)))
 
 (defun matching-types (fname)
   (mapcar 'car
           (remove-if-not
-           (lambda (type) (type-match-p fname type))
+           (lambda (type)
+             (type-match-p fname type))
            (get-types))))
 
 (defun matching-spec (types specs)
@@ -207,7 +229,9 @@ among possible matches in the data path."
       (let ((ndir (concat (file-name-as-directory dir) (car map))))
         (prospect
          (cdr map)
-         (if (file-exists-p ndir) ndir (file-name-as-directory dir))
+         (if (file-exists-p ndir)
+             ndir
+             (file-name-as-directory dir))
          formats
          (or (car (directory-files
                    dir t
@@ -235,7 +259,10 @@ among possible matches in the data path."
 
 (defun add-case-variations (formats)
   (apply 'append
-         (mapcar (lambda (elt) (list (downcase elt) (upcase elt))) formats)))
+         (mapcar (lambda (elt)
+                   (list (downcase elt)
+                         (upcase elt)))
+                 formats)))
 
 (defun get-extension-list (type ext)
   (let* ((formats (elt (assoc type type-registry) 3)))
@@ -246,8 +273,8 @@ among possible matches in the data path."
         nil)))
 
 (defun compile-path (spec)
-  (concat (file-name-as-directory (project-get 'root))
-          (file-name-as-directory (project-get 'path))
+  (concat (file-name-as-directory (elt (get-project) 1))
+          (file-name-as-directory (elt (get-project) 2))
           (file-name-as-directory (or (car spec) ""))))
 
 (defun report (result)
@@ -265,7 +292,7 @@ at current cursor position."
   (let* ((fname (or filename (get-text-inside-quotes)))
          (ext (file-name-extension fname nil))
          (types (matching-types fname))
-         (specs (project-get 'spec))
+         (specs (cdddr (get-project)))
          (type (matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
          (fn (elt (assoc type type-registry) 2))
