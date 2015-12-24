@@ -72,18 +72,18 @@ the Emacs Lisp package.")
 
 ;;;###autoload
 (defvar fossicker-libs '(fossicker-all)
-  "A list of lib packages to load with FOSSICKER.
+  "A list of packages to load with FOSSICKER.
 Defaults to FOSSICKER-ALL meta-package.")
 
 ;;;###autoload
-(defun fossicker-load-libs (&rest libs)
+(defun fossicker-load-libs (&rest libraries)
   "If supplied, load LIBS, else load libs supplied in FOSSICKER-LIBS variable."
-  (let ((ctr (or libs fossicker-libs)))
-    (when ctr
+  (let ((libs (or libraries fossicker-libs)))
+    (when libs
       (dolist (lib
-               ctr
+               libs
                (fossicker--message "Fossicker libraries loaded: %S"
-                        ctr))
+                        libs))
         (require lib)))))
 
 
@@ -305,7 +305,7 @@ quotes on each side of cursor."
                                                fossicker-legend)))
                         (lambda (l1 l2) (< (car l1) (car l2))))))))
 
-(defun fossicker--prospect (map dir extl &optional prospect)
+(defun fossicker--prospect (map dir formats &optional prospect)
   (if map
       (let ((ndir (concat (file-name-as-directory dir) (car map))))
         (fossicker--prospect
@@ -313,10 +313,10 @@ quotes on each side of cursor."
          (if (file-exists-p ndir)
              ndir
            (file-name-as-directory dir))
-         extl
+         formats
          (or (car (directory-files
                    dir t
-                   (concat (car map) "\\." (regexp-opt extl))))
+                   (concat (car map) "\\." (regexp-opt formats))))
              prospect)))
     prospect))
 
@@ -338,12 +338,12 @@ quotes on each side of cursor."
    (read-string "Context: "
                 (file-name-directory filename))))
 
-(defun fossicker--add-case-variations (extl)
+(defun fossicker--add-case-variations (formats)
   (apply 'append
          (mapcar (lambda (elt)
                    (list (downcase elt)
                          (upcase elt)))
-                 extl)))
+                 formats)))
 
 (defun fossicker--get-extension-list (type ext)
   (let* ((formats (elt (assoc type fossicker--type-registry) 3)))
@@ -354,8 +354,8 @@ quotes on each side of cursor."
       nil)))
 
 (defun fossicker--compile-path (spec)
-  (concat (file-name-as-directory (cadr (fossicker--get-project)))
-          (file-name-as-directory (cl-caddr (fossicker--get-project)))
+  (concat (file-name-as-directory (elt (fossicker--get-project) 1))
+          (file-name-as-directory (elt (fossicker--get-project) 2))
           (file-name-as-directory (or (car spec) ""))))
 
 (defun fossicker--report (result)
