@@ -127,7 +127,7 @@ to type using :WIDGETS."
         (widgets (plist-get args :widgets)))
     (cl-check-type regexp list)
     (cl-check-type fn function)
-    (cl-check-type formats (or boolean list))
+    (cl-check-type formats (or boolean list function))
     (cl-check-type widgets list)
     (when (or override (null (assq name fossicker--type-registry)))
       (push (list name regexp fn formats widgets) fossicker--type-registry))))

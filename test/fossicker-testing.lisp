@@ -7,7 +7,7 @@ fossicker::*PROJECT-DEFINITIONS*
 (fossicker::set-project "test")
 (fossicker::generate "test.png")
 
-(fossicker::register-type 'shader nil
+(fossicker::register-type 'shader t
                           :regexp '("\\.vert\\'"
                                     "\\.frag\\'"
                                     "\\.tesc\\'"
@@ -26,10 +26,13 @@ fossicker::*PROJECT-DEFINITIONS*
                                              '("tese" "tes")) '("tese" "tes"))
                                            (t nil))))
 
-(fossicker::register-type 'texture nil
+(fossicker::register-type 'texture t
                           :regexp
-                          '("\\.png\\'"
-                            "\\.jpg\\'"
-                            "\\.tiff\\'"
-                            "\\.tga\\'")
-                          :function 'fossicker-texture-handler)
+                          '("\\.png$"
+                            "\\.jpg$"
+                            "\\.tiff$"
+                            "\\.tga$")
+                          :function #'fossicker::ignore-function)
+
+(setq fossicker::*data-path* "~/dev/lisp/local-projects/fossicker/data/")
+

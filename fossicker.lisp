@@ -81,8 +81,8 @@ the type specification.
 :FORMATS defines which file format to pick
 among possible matches in the data path."
   (check-type regexp list)
-  (check-type function function)
-  (check-type formats (or boolean list))
+  (check-type function cl:function)
+  (check-type formats (or boolean list cl:function))
   (when (or override (null (assoc name *type-registry*)))
     (push (list name regexp function formats) *type-registry*)))
 
@@ -138,7 +138,7 @@ among possible matches in the data path."
   "Name of the fossicker project buffer belongs to.")
 
 (defun get-project ()
-  (assoc *project* *project-definitions*))
+  (assoc *project* *project-definitions* :test #'string=))
 
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
@@ -189,19 +189,22 @@ among possible matches in the data path."
           (map-to-vein string (cdr legend)))))
 
 (defun generate-vein-map (fname atype)
-  (cons (symbol-name atype)
+  (cons (string-downcase (symbol-name atype))
         (apply #'append
                (mapcar #'cdr
                        (stable-sort 
                         (delete-if #'null
-                                   (map-to-vein fname (copy-alist legend))
+                                   (map-to-vein fname (copy-alist *legend*))
                                    :key #'car)
                         #'< :key #'car)))))
 
 (defun prospect (map dir formats &optional prospect)
+  (format t "Map: ~a, Dir: ~a, Formats: ~a, Prospect: ~a"
+          map dir formats prospect)
   (if map
-      (let ((ndir (concat (cl-fad:pathname-as-directory dir)
-                          (car map))))
+      (let ((ndir (cl-fad:merge-pathnames-as-directory
+                   (cl-fad:pathname-as-directory dir)
+                   (cl-fad:pathname-as-directory (car map)))))
         (prospect
          (cdr map)
          (or (cl-fad:directory-exists-p ndir)
@@ -209,10 +212,9 @@ among possible matches in the data path."
          formats
          (or (find-if (lambda (file)
                         (cl-ppcre:scan
-                         (format nil "\\.(~{~a~^|~})" formats)
-                         file))
-                      (mapcar #'file-namestring
-                              (cl-fad:list-directory dir)))
+                         (format nil "~a\\.(~{~a~^|~})" (car map) formats)
+                         (file-namestring file)))
+                      (cl-fad:list-directory dir))
              prospect)))
       prospect))
 
@@ -265,11 +267,11 @@ among possible matches in the data path."
 (defun generate (filename)
   "Generates the asset according to the double-quoted text
 at current cursor position."
-  (assert (stringp filename) nil "%S is not a filename." filename)
+  (assert (stringp filename) nil "~a is not a filename." filename)
   (assert *project* nil "No fossicker project selected for current buffer.")
   (let* ((fname (pathname filename))
          (ext (pathname-type fname))
-         (types (matching-types fname))
+         (types (matching-types (namestring fname)))
          (specs (cdddr (get-project)))
          (type (matching-spec types (mapcar #'car specs)))
          (spec (cdr (assoc type specs)))
@@ -285,7 +287,7 @@ at current cursor position."
     (assert (listp formats) nil "Source dispatch function didn't return a list.")
     (setq source (prompt-source
                   (prospect
-                   (generate-vein-map fname type)
+                   (generate-vein-map (namestring fname) type)
                    (cl-fad:pathname-as-directory *data-path*)
                    (add-case-variations formats))))
     (assert (cl-fad:file-exists-p source) nil
@@ -297,5 +299,5 @@ at current cursor position."
      formats (pathname-type source))
     (report
      (funcall fn path context
-              (file-name-nondirectory fname)
+              (file-namestring fname)
               ext (cdr spec) source))))
