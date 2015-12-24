@@ -41,18 +41,11 @@
 ;;; Fossicker Libs
 
 ; REVISED
-(defvar *path* nil
+(defvar *path* (cl-fad:pathname-as-directory *load-truename*)
   "Directory containing the Fossicker package.
 This is used to load the supporting fossicker type libraries.
 The default value is automatically computed from the location of
 the Emacs Lisp package.")
-(setq path (file-name-directory (or load-file-name buffer-file-name)))
-(pushnew (expand-file-name path)
-         load-path
-         :test 'string=)
-(pushnew (expand-file-name "lib/" path)
-         load-path
-         :test 'string=)
 
 (defvar *libs* '(all)
   "A list of packages to load with FOSSICKER.
@@ -73,8 +66,8 @@ Defaults to ALL meta-package.")
 
 ;;;; Fossicker Data Path
 
-(defvar *data-path*
-  (file-name-as-directory (expand-file-name "data/" path))
+; REVISED
+(defvar *data-path* (cl-fad:merge-pathnames-as-directory *load-truename* "data")
   "Location of the fossicker data.")
 
 
@@ -245,18 +238,22 @@ among possible matches in the data path."
                                    :key #'car)
                         #'< :key #'car)))))
 
+; REVISED
 (defun prospect (map dir formats &optional prospect)
   (if map
       (let ((ndir (concat (cl-fad:pathname-as-directory dir)
                           (car map))))
         (prospect
          (cdr map)
-         (or (cl-fad:file-exists-p ndir)
+         (or (cl-fad:directory-exists-p ndir)
              (cl-fad:pathname-as-directory dir))
          formats
-         (or (car (directory-files
-                   dir t
-                   (concat (car map) "\\." (regexp-opt formats))))
+         (or (find-if (lambda (file)
+                        (cl-ppcre:scan
+                         (format nil "\\.(~{~a~^|~})" formats)
+                         file))
+                      (mapcar #'file-namestring
+                              (cl-fad:list-directory dir)))
              prospect)))
       prospect))
 
@@ -313,6 +310,7 @@ among possible matches in the data path."
                        (if result (length result) "No"))
                "Finished!")))
 
+; REVISED
 (defun generate (filename)
   "Generates the asset according to the double-quoted text
 at current cursor position."
@@ -342,7 +340,8 @@ at current cursor position."
     (assert (cl-fad:file-exists-p source) nil
             "Source ~a is not a regular file." source)
     (assert
-     (or (null formats) (cl-ppcre:scan (concat "\\." (regexp-opt formats) "\\'") source))
+     (or (null formats) (cl-ppcre:scan (format nil "\\.(~{~a~^|~})" formats)
+                                       source))
      nil "Source expected to be one of following formats: ~a. Got ~a."
      formats (pathname-type source))
     (report
