@@ -33,20 +33,20 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "fossicker" "fossicker.el" (22139 7507 879905
-;;;;;;  974000))
+;;;### (autoloads nil "fossicker" "fossicker.el" (22139 22415 932475
+;;;;;;  453000))
 ;;; Generated autoloads from fossicker.el
 
 (let ((loads (get 'fossicker 'custom-loads))) (if (member '"fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"fossicker" loads))))
 
 (defvar fossicker-libs '(fossicker-all) "\
-A list of lib packages to load with FOSSICKER.
+A list of packages to load with FOSSICKER.
 Defaults to FOSSICKER-ALL meta-package.")
 
 (autoload 'fossicker-load-libs "fossicker" "\
 If supplied, load LIBS, else load libs supplied in FOSSICKER-LIBS variable.
 
-\(fn &rest LIBS)" nil nil)
+\(fn &rest LIBRARIES)" nil nil)
 
 (autoload 'fossicker-register-type "fossicker" "\
 Register a new fossicker type. 
@@ -135,18 +135,23 @@ See `fossicker-mode' for more information on Fossicker mode.
 ;;;***
 
 ;;;### (autoloads nil "fossicker-project" "fossicker-project.el"
-;;;;;;  (22139 8807 782863 795000))
+;;;;;;  (22139 26214 520325 413000))
 ;;; Generated autoloads from fossicker-project.el
 
 (autoload 'fossicker-edit-project "fossicker-project" "\
-Create the widgets for asset generation.
+Edit one of the loaded Fossicker projects.
 
-\(fn)" t nil)
+\(fn FILE)" t nil)
+
+(autoload 'fossicker-new-project "fossicker-project" "\
+Create a new Fossicker project.
+
+\(fn FILE)" t nil)
 
 ;;;***
 
 ;;;### (autoloads nil "fossicker-widget" "fossicker-widget.el" (22139
-;;;;;;  7366 460672 107000))
+;;;;;;  21602 940213 143000))
 ;;; Generated autoloads from fossicker-widget.el
 
 (autoload 'fossicker "fossicker-widget" "\

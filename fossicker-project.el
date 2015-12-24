@@ -30,12 +30,16 @@
 ;;; Dependencies
 
 (require 'fossicker)
+(require 'fossicker-widget)
 
 (eval-when-compile
   (require 'wid-edit))
 (require 'widget)
 (require 'cus-edit)
 (require 'info)
+
+(defvar-local fossicker--edited-path nil
+  "Local variable holding the path of currently edited project.")
 
 (defvar-local fossicker--edited-project nil
   "Local variable holding the value of currently edited project.")
@@ -71,7 +75,21 @@
   :type '(sexp :format "%v" :size 20))
 
 ;;;###autoload
-(defun fossicker-edit-project ()
+(defun fossicker-edit-project (file)
+  "Edit one of the loaded Fossicker projects."
+  (interactive (list (completing-read
+                      "Select project to edit: "
+                      fossicker-projects
+                      nil t)))
+  (if file (fossicker--project-widget file)))
+
+;;;###autoload
+(defun fossicker-new-project (file)
+  "Create a new Fossicker project."
+  (interactive (list (read-file-name "Select project file: ")))
+  (fossicker--project-widget file))
+
+(defun fossicker--project-widget (file)
    "Create the widgets for fossicker project definition."
   (interactive)
   (switch-to-buffer "*FOSSICKER-EDIT-PROJECT*")
@@ -80,13 +98,19 @@
     (erase-buffer))
   (remove-overlays)
   (fossicker-load-libs)
+  (setq fossicker--edited-path file)
+  (if (file-readable-p file)
+      (setq fossicker--edited-project (fossicker--get-data-from-file file)))
+
+  (fossicker--widget-insert-logo)
+  (widget-insert "\n\n")
   
   (widget-create 'cons
                  :tag "Project"
                  :format "%v"
                  :notify (lambda (w &rest ignore)
                            (setq fossicker--edited-project (widget-value w)))
-                 :value (fossicker--get-data-from-file )
+                 :value fossicker--edited-project
                  '(string :size 41
                           :tag "Project Name "
                           :format "%t: %v\n\n"
@@ -112,11 +136,24 @@
   
   (widget-insert "\n\n")
   (widget-create 'push-button
-                 :tag "GENERATE"
-                 :format "%[            %t            %]"
+                 :tag "RESET"
+                 :format "%[          %t          %]"
                  :button-face 'custom-button
                  :notify (lambda (&rest ignore)
-                           (message "%s" fossicker--edited-project)))
+                           (fossicker--project-widget fossicker--edited-path)))
+  (widget-insert "  ")
+  (widget-create 'push-button
+                 :tag "GENERATE"
+                 :format "%[          %t          %]"
+                 :button-face 'custom-button
+                 :notify (lambda (&rest ignore)
+                           (if fossicker--edited-project
+                               (if  (y-or-n-p (format "Write project data to %S?"
+                                                      fossicker--edited-path))
+                                   (write-region
+                                    (format "%S" fossicker--edited-project)
+                                    nil
+                                    fossicker--edited-path nil)))))
   (use-local-map widget-keymap)
   (widget-setup))
 
