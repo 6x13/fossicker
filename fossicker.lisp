@@ -247,7 +247,8 @@ among possible matches in the data path."
 
 (defun prospect (map dir formats &optional prospect)
   (if map
-      (let ((ndir (concat (file-name-as-directory dir) (car map))))
+      (let ((ndir (concat (cl-fad:pathname-as-directory (pathname dir))
+                          (car map))))
         (prospect
          (cdr map)
          (if (cl-fad:file-exists-p ndir)
@@ -261,7 +262,7 @@ among possible matches in the data path."
       prospect))
 
 (defun prompt-source (prospect)
-  (expand-file-name
+  (pathname
    (if prospect
        (read-file-name "Source: "
                        (expand-file-name
@@ -274,9 +275,10 @@ among possible matches in the data path."
                        nil t))))
 
 (defun prompt-context (filename)
-  (file-name-as-directory
-   (read-string "Context: "
-                (file-name-directory filename))))
+  (cl-fad:pathname-as-directory
+   (pathname (read-string "Context: "
+                          (cl-fad:pathname-directory-pathname
+                           filename)))))
 
 ; REVISED
 (defun add-case-variations (formats)
@@ -295,10 +297,13 @@ among possible matches in the data path."
             (list ext))
         nil)))
 
+; REVISED
 (defun compile-path (spec)
-  (concat (file-name-as-directory (elt (get-project) 1))
-          (file-name-as-directory (elt (get-project) 2))
-          (file-name-as-directory (or (car spec) ""))))
+  (cl-fad:canonical-pathname
+   (cl-fad:merge-pathnames-as-directory
+    (cl-fad:pathname-as-directory (elt (get-project) 1))
+    (cl-fad:pathname-as-directory (elt (get-project) 2))
+    (cl-fad:pathname-as-directory (or (car spec) "")))))
 
 ; REVISED
 (defun report (result)
@@ -312,33 +317,34 @@ among possible matches in the data path."
 at current cursor position."
   (assert (stringp filename) nil "%S is not a filename." filename)
   (assert project nil "No fossicker project selected for current buffer.")
-  (let* ((ext (file-name-extension filename nil))
-         (types (matching-types filename))
+  (let* ((fname (pathname filename))
+         (ext (pathname-type fname))
+         (types (matching-types fname))
          (specs (cdddr (get-project)))
          (type (matching-spec types (mapcar #'car specs)))
          (spec (cdr (assoc type specs)))
          (fn (elt (assoc type type-registry) 2))
          (formats (get-extension-list type ext))
-         (context (prompt-context filename))
+         (context (prompt-context fname))
          (path (compile-path spec))
          source)
     (assert types nil
-            "Couldn't match file name %S to regexp list of any fossicker type."
-            filename)
-    (assert type nil "No matching type is included in project. Possible types: %S" types)
+            "Couldn't match file name ~a to regexp list of any fossicker type."
+            fname)
+    (assert type nil "No matching type is included in project. Possible types: ~a" types)
     (assert (listp formats) nil "Source dispatch function didn't return a list.")
     (setq source (prompt-source
                   (prospect
-                   (generate-vein-map filename type)
+                   (generate-vein-map fname type)
                    (file-name-as-directory data-path)
                    (add-case-variations formats))))
-    (assert (file-regular-p source) nil
-            "Source %S is not a regular file." source)
+    (assert (cl-fad:file-exists-p source) nil
+            "Source ~a is not a regular file." source)
     (assert
-     (or (null formats) (string-match (concat "\\." (regexp-opt formats) "\\'") source))
-     nil "Source expected to be one of following formats: %S. Got %S."
+     (or (null formats) (cl-ppcre:scan (concat "\\." (regexp-opt formats) "\\'") source))
+     nil "Source expected to be one of following formats: ~a. Got ~a."
      formats (file-name-extension source))
     (report
      (funcall fn path context
-              (file-name-nondirectory filename)
+              (file-name-nondirectory fname)
               ext (cdr spec) source))))
