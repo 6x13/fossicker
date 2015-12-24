@@ -62,8 +62,8 @@ Defaults to ALL meta-package.")
 
 (defvar *type-registry* nil)
 
-(defun ignore ()
-  "Default argument for register-type FN parameter."
+(defun ignore-function ()
+  "Default argument for register-type FUNCTION parameter."
   nil)
 
 (defun get-types ()
@@ -71,7 +71,7 @@ Defaults to ALL meta-package.")
                      :key #'car
                      :from-end t))
 
-(defun register-type (name override &key regexp (function #'ignore) formats)
+(defun register-type (name override &key regexp (function #'ignore-function) formats)
   "Register a new fossicker type. 
 Fossicker TYPE is determined according a :REGEXP,
 usually matching file extensions.
@@ -110,11 +110,6 @@ among possible matches in the data path."
   "Add path to *PROJECTS* if not already added."
   (delete path *projects* :test #'string=))
 
-; TESTING
-(add-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
-(add-project "~/dev/lisp/local-projects/fossicker/test/test.lisp")
-(remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
-
 (defvar *project-definitions* nil
   "The list of fossicker project definitions.")
 
@@ -143,7 +138,7 @@ among possible matches in the data path."
   "Name of the fossicker project buffer belongs to.")
 
 (defun get-project ()
-  (assoc *project* project-definitions))
+  (assoc *project* *project-definitions*))
 
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
@@ -247,7 +242,7 @@ among possible matches in the data path."
                  formats)))
 
 (defun get-extension-list (type ext)
-  (let* ((formats (elt (assoc type type-registry) 3)))
+  (let* ((formats (elt (assoc type *type-registry*) 3)))
     (if formats
         (if (functionp formats)
             (funcall formats ext)
@@ -271,14 +266,14 @@ among possible matches in the data path."
   "Generates the asset according to the double-quoted text
 at current cursor position."
   (assert (stringp filename) nil "%S is not a filename." filename)
-  (assert project nil "No fossicker project selected for current buffer.")
+  (assert *project* nil "No fossicker project selected for current buffer.")
   (let* ((fname (pathname filename))
          (ext (pathname-type fname))
          (types (matching-types fname))
          (specs (cdddr (get-project)))
          (type (matching-spec types (mapcar #'car specs)))
          (spec (cdr (assoc type specs)))
-         (fn (elt (assoc type type-registry) 2))
+         (fn (elt (assoc type *type-registry*) 2))
          (formats (get-extension-list type ext))
          (context (prompt-context fname))
          (path (compile-path spec))
