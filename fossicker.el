@@ -297,13 +297,13 @@ quotes on each side of cursor."
 (defun fossicker--generate-vein-map (fname atype)
   (cons (symbol-name atype)
         (apply 'append
-               (mapcar (lambda (x) (cdr x))
-                       (sort 
+               (mapcar 'cdr
+                       (cl-sort 
                         (assq-delete-all nil (fossicker--map-to-vein
                                               fname
                                               (copy-alist
                                                fossicker-legend)))
-                        (lambda (l1 l2) (< (car l1) (car l2))))))))
+                        '< :key 'car)))))
 
 (defun fossicker--prospect (map dir formats &optional prospect)
   (if map

@@ -4,5 +4,8 @@
 
 (defpackage #:fossicker
   (:use #:cl+qt)
+  ;; (:import-from :cl-fad #:file-exists-p)
+  ;; (:import-from :cl-ppcre #:scan-to-strings)
+  ;; (:import-from :cl-ppcre #:scan)
   (:export #:main))
 

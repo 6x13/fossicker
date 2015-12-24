@@ -29,6 +29,7 @@
 
 ;;; Dependencies
 
+(in-package :fossicker)
 
 ;;; Fossicker Message
 
@@ -149,7 +150,7 @@ among possible matches in the data path."
 ; REVISED
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
-  (assert (probe-file path) nil "File ~a doesn't exist." path)
+  (assert (cl-fad:file-exists-p path) nil "File ~a doesn't exist." path)
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
@@ -204,12 +205,14 @@ among possible matches in the data path."
 
 ;;;; Asset Generation
 
+; REVISED
 (defun type-match-p (fname type)
   (some
    (lambda (regexp)
-     (string-match regexp fname))
+     (cl-ppcre:scan regexp fname))
    (elt type 1)))
 
+; REVISED
 (defun matching-types (fname)
   (mapcar #'car
           (remove-if-not
@@ -217,28 +220,30 @@ among possible matches in the data path."
              (type-match-p fname type))
            (get-types))))
 
+; REVISED
 (defun matching-spec (types specs)
   (when specs
     (if (member (car specs) types)
         (car specs)
         (matching-spec types (cdr specs)))))
 
+; REVISED
 (defun map-to-vein (string legend)
   (when legend
-    (cons (cons (string-match (caar legend) string)
+    (cons (cons (cl-ppcre:scan (caar legend) string)
                 (cdar legend))
           (map-to-vein string (cdr legend)))))
 
+; REVISED
 (defun generate-vein-map (fname atype)
   (cons (symbol-name atype)
         (apply #'append
-               (mapcar (lambda (x) (cdr x))
+               (mapcar #'cdr
                        (sort 
-                        (assoc-delete-all nil (map-to-vein
-                                              fname
-                                              (copy-alist
-                                               legend)))
-                        (lambda (l1 l2) (< (car l1) (car l2))))))))
+                        (delete-if #'null
+                                   (map-to-vein fname (copy-alist legend))
+                                   :key #'car)
+                        #'< :key #'car)))))
 
 (defun prospect (map dir formats &optional prospect)
   (if map
