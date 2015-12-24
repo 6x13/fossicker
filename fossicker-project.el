@@ -31,6 +31,7 @@
 
 (require 'fossicker)
 (require 'fossicker-widget)
+(require 'cl-extra)
 
 (eval-when-compile
   (require 'wid-edit))
@@ -73,6 +74,16 @@
   :tag "UNDEFINED"
   :format "%t %v\n"
   :type '(sexp :format "%v" :size 20))
+
+(defun fossicker--project-generate-notify (&rest ignore)
+  (let ((data fossicker--edited-project) ;; So temp-buffer can see data.
+        (path fossicker--edited-path))
+    (if (and data (y-or-n-p (format "Write project data to %S?" path)))
+        (write-region
+         (with-temp-buffer
+           (cl-prettyprint data)
+           (buffer-string))
+         nil path nil))))
 
 ;;;###autoload
 (defun fossicker-edit-project (file)
@@ -146,14 +157,7 @@
                  :tag "GENERATE"
                  :format "%[          %t          %]"
                  :button-face 'custom-button
-                 :notify (lambda (&rest ignore)
-                           (if fossicker--edited-project
-                               (if  (y-or-n-p (format "Write project data to %S?"
-                                                      fossicker--edited-path))
-                                   (write-region
-                                    (format "%S" fossicker--edited-project)
-                                    nil
-                                    fossicker--edited-path nil)))))
+                 :notify 'fossicker--project-generate-notify)
   (use-local-map widget-keymap)
   (widget-setup))
 
