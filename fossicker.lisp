@@ -247,13 +247,12 @@ among possible matches in the data path."
 
 (defun prospect (map dir formats &optional prospect)
   (if map
-      (let ((ndir (concat (cl-fad:pathname-as-directory (pathname dir))
+      (let ((ndir (concat (cl-fad:pathname-as-directory dir)
                           (car map))))
         (prospect
          (cdr map)
-         (if (cl-fad:file-exists-p ndir)
-             ndir
-             (file-name-as-directory dir))
+         (or (cl-fad:file-exists-p ndir)
+             (cl-fad:pathname-as-directory dir))
          formats
          (or (car (directory-files
                    dir t
@@ -338,7 +337,7 @@ at current cursor position."
     (setq source (prompt-source
                   (prospect
                    (generate-vein-map fname type)
-                   (file-name-as-directory data-path)
+                   (cl-fad:pathname-as-directory *data-path*)
                    (add-case-variations formats))))
     (assert (cl-fad:file-exists-p source) nil
             "Source ~a is not a regular file." source)
