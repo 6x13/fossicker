@@ -239,20 +239,19 @@
       (fossicker--message "ERROR:\n Source %S is not a regular file." src))))
 
 (defun fossicker--widget-generate-notify (&rest ignore)
-  (fossicker--report
-   (let* ((fname (file-name-nondirectory
-                  (widget-value (fossicker--fget 'fname))))
-          (context (or (file-name-directory
-                        (widget-value (fossicker--fget 'fname)))
-                       (widget-value (fossicker--fget 'context))))
-          (ext (file-name-extension fname nil))
-          (specs (cl-cdddr (fossicker--get-project)))
-          (type (widget-value (fossicker--fget 'type)))
-          (spec (cdr (assq type specs)))
-          (fn (elt (assoc type fossicker--type-registry) 2))
-          (path (fossicker--compile-path spec)))
-     (fossicker--report
-      (funcall fn path context fname ext (cdr spec) fossicker--source)))))
+  (let* ((fname (file-name-nondirectory
+                 (widget-value (fossicker--fget 'fname))))
+         (context (or (file-name-directory
+                       (widget-value (fossicker--fget 'fname)))
+                      (widget-value (fossicker--fget 'context))))
+         (ext (file-name-extension fname nil))
+         (specs (cl-cdddr (fossicker--get-project)))
+         (type (widget-value (fossicker--fget 'type)))
+         (spec (cdr (assq type specs)))
+         (fn (elt (assoc type fossicker--type-registry) 2))
+         (path (fossicker--compile-path spec)))
+    (fossicker--report
+     (funcall fn path context fname ext (cdr spec) fossicker--source))))
 
 (defun fossicker--widget-create-types ()
   (apply 'widget-create
