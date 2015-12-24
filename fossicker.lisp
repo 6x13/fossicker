@@ -261,24 +261,26 @@ among possible matches in the data path."
              prospect)))
       prospect))
 
+; REVISED
+(defun prompt-read (prompt)
+  (format *query-io* "~a: " prompt)
+  (force-output *query-io*)
+  (read-line *query-io*))
+
+; REVISED
 (defun prompt-source (prospect)
   (pathname
-   (if prospect
-       (read-file-name "Source: "
-                       (expand-file-name
-                        (file-name-directory prospect))
-                       nil t
-                       (file-name-nondirectory prospect))
-       (read-file-name "Source: "
-                       (expand-file-name
-                        data-path)
-                       nil t))))
+   (if (and prospect (y-or-n-p "Source: ~a" prospect))
+       prospect
+       (prompt-read "Source"))))
 
+; REVISED
 (defun prompt-context (filename)
   (cl-fad:pathname-as-directory
-   (pathname (read-string "Context: "
-                          (cl-fad:pathname-directory-pathname
-                           filename)))))
+   (let ((context (cl-fad:pathname-directory-pathname filename)))
+     (if (y-or-n-p "Context: ~a" context)
+         context
+         (pathname (prompt-read "Context"))))))
 
 ; REVISED
 (defun add-case-variations (formats)
@@ -343,7 +345,7 @@ at current cursor position."
     (assert
      (or (null formats) (cl-ppcre:scan (concat "\\." (regexp-opt formats) "\\'") source))
      nil "Source expected to be one of following formats: ~a. Got ~a."
-     formats (file-name-extension source))
+     formats (pathname-type source))
     (report
      (funcall fn path context
               (file-name-nondirectory fname)
