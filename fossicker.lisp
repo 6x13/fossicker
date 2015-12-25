@@ -29,6 +29,9 @@
 
 ;;; Fossicker Config
 
+(defvar *config-path* nil
+  "Fossicker configuration file path.")
+
 (defvar *config* nil
   "Fossicker configuration plist.")
 
@@ -39,6 +42,19 @@ use the .fossickerrc in user home or lastly in repo."
                       (user-homedir-pathname) ".fossickerrc"))
         (repo-config (cl-fad:merge-pathnames-as-file
                       fossicker-conf:*basedir* ".fossickerrc")))
+    (if config-path
+        (if (not (cl-fad:directory-exists-p (pathname config-path)))
+            (progn
+              (message "Config file save location set to ~a.~%" config-path)
+              (setf *config-path* (cl-fad:pathname-as-file config-path)))
+            (progn
+              (message "~a is a directory, using ~a as config save location instead.~%"
+                       config-path
+                       home-config)
+              (setf *config-path* home-config)))
+        (progn
+          (message "Config file save location set to ~a~%" home-config)
+          (setf *config-path* home-config)))
     (cond ((and config-path (cl-fad:file-exists-p (pathname config-path)))
            (pathname config-path))
           ((cl-fad:file-exists-p home-config) home-config)
@@ -66,7 +82,7 @@ use the .fossickerrc in user home or lastly in repo."
     (when libs
       (dolist (lib
                libs
-               (message "Fossicker libraries loaded: %S"
+               (message "Fossicker libraries loaded: ~a.~%"
                         libs))
         (require lib)))))
 
@@ -162,7 +178,7 @@ among possible matches in the data path."
 
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
-  (message "Fossicker Project currently set to ~a." (or *project* "nothing")))
+  (message "Fossicker Project currently set to ~a.~%" (or *project* "nothing")))
 
 (defun set-project (project)
   "Manually select a project among fossicker projects list."
@@ -289,9 +305,9 @@ belongs to."
 
 (defun report (result)
   (message (if (listp result)
-               (format nil "~a assets generated!"
+               (format nil "~a assets generated!~%"
                        (if result (length result) "No"))
-               "Finished!")))
+               "Finished!~%")))
 
 (defun generate (filename)
   "Generates the asset according to the double-quoted text
