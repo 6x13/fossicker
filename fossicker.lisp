@@ -67,7 +67,7 @@ use the .fossickerrc in user home or lastly in repo."
   (setf fossicker-conf:*basedir*
         (or (getf *config* :base-path)
             fossicker-conf:*basedir*))
-  ;; load libs
+  (load-libs)
   (load-projects)
   (if (getf *config* :default)
       (set-project (getf *config* :default))
@@ -76,15 +76,24 @@ use the .fossickerrc in user home or lastly in repo."
 
 ;;; Fossicker Libs
 
+(defun load-library (name)
+  "Given a plugin, NAME, compile and load it."
+  (let ((file (cl-fad:merge-pathnames-as-file
+               fossicker-conf:*basedir*
+               (format nil "lib/~(~A~)" name))))
+    (multiple-value-bind (output-file error)
+        (ignore-errors (compile-file file :verbose nil :print nil))
+      (when error
+        (warn "Error while compiling library ~A: ~A.~%" name error))
+      (load (or output-file file) :verbose t))))
+
+
 (defun load-libs (&rest libraries)
   "If supplied, load LIBS, else load libs supplied in LIBS variable."
   (let ((libs (or libraries (getf *config* :libs))))
     (when libs
-      (dolist (lib
-               libs
-               (message "Fossicker libraries loaded: ~a.~%"
-                        libs))
-        (require lib)))))
+      (dolist (lib libs (message "Fossicker libraries loaded: ~a.~%" libs))
+        (load-library lib)))))
 
 
 ;;; Settings
