@@ -36,6 +36,4 @@
                             "\\.tga$")
                           :function #'fossicker::ignore-function)
 
-(setq fossicker::*data-path* "~/dev/lisp/local-projects/fossicker/data/")
-
 (fossicker::generate "meh/bla/test_b_p_.png")

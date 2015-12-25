@@ -29,12 +29,6 @@
 
 ;;; Fossicker Libs
 
-(defvar *path* (cl-fad:pathname-as-directory *load-truename*)
-  "Directory containing the Fossicker package.
-This is used to load the supporting fossicker type libraries.
-The default value is automatically computed from the location of
-the Emacs Lisp package.")
-
 (defvar *libs* '(all)
   "A list of packages to load with FOSSICKER.
 Defaults to ALL meta-package.")
@@ -54,7 +48,9 @@ Defaults to ALL meta-package.")
 
 ;;;; Fossicker Data Path
 
-(defvar *data-path* (cl-fad:merge-pathnames-as-directory *load-truename* "data")
+(defvar *data-path* (cl-fad:merge-pathnames-as-directory
+                     fossicker-conf:*basedir*
+                     "data/")
   "Location of the fossicker data.")
 
 
