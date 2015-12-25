@@ -11,7 +11,10 @@
   (setf (q+:fixed-size main) (values 480 360)))
 
 (define-subwidget (main logo) (q+:make-qlabel)
-  (setf (q+:pixmap logo) (q+:make-qpixmap "etc/fossicker-logo.png")))
+  (setf (q+:pixmap logo) (q+:make-qpixmap (namestring
+                                           (cl-fad:merge-pathnames-as-file
+                                            fossicker-conf:*basedir*
+                                            "etc/fossicker-logo.png")))))
 
 (define-subwidget (main info) (q+:make-qlabel "Select project, type file name, press GENERATE. That's it! Check out our website and follow us on Twitter for more libraries and games.")
   (setf (q+:word-wrap info) t))
