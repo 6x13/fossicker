@@ -62,7 +62,7 @@ Defaults to ALL meta-package.")
 
 (defvar *type-registry* nil)
 
-(defun ignore-function ()
+(defun ignore-function (&rest args)
   "Default argument for register-type FUNCTION parameter."
   nil)
 
@@ -166,7 +166,9 @@ among possible matches in the data path."
 (defun type-match-p (fname type)
   (some
    (lambda (regexp)
-     (cl-ppcre:scan regexp fname))
+     (cl-ppcre:scan (cl-ppcre:create-scanner
+                     regexp
+                     :case-insensitive-mode t) fname))
    (elt type 1)))
 
 (defun matching-types (fname)
@@ -199,8 +201,6 @@ among possible matches in the data path."
                         #'< :key #'car)))))
 
 (defun prospect (map dir formats &optional prospect)
-  (format t "Map: ~a, Dir: ~a, Formats: ~a, Prospect: ~a"
-          map dir formats prospect)
   (if map
       (let ((ndir (cl-fad:merge-pathnames-as-directory
                    (cl-fad:pathname-as-directory dir)
@@ -294,7 +294,7 @@ at current cursor position."
             "Source ~a is not a regular file." source)
     (assert
      (or (null formats) (cl-ppcre:scan (format nil "\\.(~{~a~^|~})" formats)
-                                       source))
+                                       (file-namestring source)))
      nil "Source expected to be one of following formats: ~a. Got ~a."
      formats (pathname-type source))
     (report

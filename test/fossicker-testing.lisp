@@ -8,22 +8,25 @@ fossicker::*PROJECT-DEFINITIONS*
 (fossicker::generate "test.png")
 
 (fossicker::register-type 'shader t
-                          :regexp '("\\.vert\\'"
-                                    "\\.frag\\'"
-                                    "\\.tesc\\'"
-                                    "\\.tese\\'"
-                                    "\\.geom\\'"
-                                    "\\.comp\\'")
+                          :regexp '("\\.vert\$"
+                                    "\\.frag\$"
+                                    "\\.tesc\$"
+                                    "\\.tese\$"
+                                    "\\.geom\$"
+                                    "\\.comp\$")
                           :formats (lambda (ext)
-                                     (cond ((member-ignore-case
-                                             ext
-                                             '("vert" "vrt")) '("vrt" "vert"))
-                                           ((member-ignore-case
-                                             ext
-                                             '("frag" "frg")) '("frag" "frg"))
-                                           ((member-ignore-case
-                                             ext
-                                             '("tese" "tes")) '("tese" "tes"))
+                                     (cond ((member ext
+                                                    '("vert" "vrt")
+                                                    :test #'string-equal)
+                                            '("vrt" "vert"))
+                                           ((member ext
+                                                    '("frag" "frg")
+                                                    :test #'string-equal)
+                                            '("frag" "frg"))
+                                           ((member ext
+                                                    '("tese" "tes")
+                                                    :test #'string-equal)
+                                            '("tese" "tes"))
                                            (t nil))))
 
 (fossicker::register-type 'texture t
