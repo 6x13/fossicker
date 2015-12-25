@@ -54,7 +54,8 @@ use the .fossickerrc in user home or lastly in repo."
   ;; load libs
   (load-projects)
   (if (getf *config* :default)
-      (set-project (getf *config* :default))))
+      (set-project (getf *config* :default))
+    (auto-select-project)))
 
 
 ;;; Fossicker Libs
@@ -138,6 +139,24 @@ among possible matches in the data path."
 (defvar *project* nil
   "Name of the fossicker project buffer belongs to.")
 
+(defun project-path-p (project-path)
+  (when *default-pathname-defaults*
+    (let ((project
+            (namestring
+             (truename (cl-fad:pathname-as-file project-path))))
+          (current
+            (namestring (truename *default-pathname-defaults*))))
+      (cl-ppcre:scan
+       (cl-ppcre:create-scanner (format nil "^~a" project)
+                                :case-insensitive-mode t) current))))
+
+(defun find-project (projects)
+  (when projects
+    (let ((proj (car projects)))
+      (if (project-path-p (cadr proj))
+          proj
+          (find-project (cdr projects))))))
+
 (defun get-project ()
   (assoc *project* *project-definitions* :test #'string=))
 
@@ -159,6 +178,15 @@ among possible matches in the data path."
 (defun unset-project ()
   "Set project to nil."
   (setf *project* nil)
+  (show-current-project))
+
+(defun auto-select-project ()
+  "Automatically select a project among fossicker projects list.
+Checks the project root of each fossicker project against
+the current working directory path to find the project buffer
+belongs to."
+  (projects-assert)
+  (setf *project* (car (find-project *project-definitions*)))
   (show-current-project))
 
 
