@@ -33,12 +33,6 @@
 (require 'fossicker-widget)
 (require 'cl-extra)
 
-(eval-when-compile
-  (require 'wid-edit))
-(require 'widget)
-(require 'cus-edit)
-(require 'info)
-
 (defvar-local fossicker--edited-path nil
   "Local variable holding the path of currently edited project.")
 

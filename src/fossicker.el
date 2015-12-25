@@ -62,8 +62,15 @@
 This is used to load the supporting fossicker type libraries.
 The default value is automatically computed from the location of
 the Emacs Lisp package.")
-(setq fossicker--path (file-name-directory (or load-file-name buffer-file-name)))
+(setq fossicker--path
+      (file-name-as-directory
+       (concat (file-name-directory
+                (or load-file-name buffer-file-name))
+               "../")))
 (cl-pushnew (expand-file-name fossicker--path)
+            load-path
+            :test 'string=)
+(cl-pushnew (expand-file-name "src/" fossicker--path)
             load-path
             :test 'string=)
 (cl-pushnew (expand-file-name "lib/" fossicker--path)

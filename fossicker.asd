@@ -8,8 +8,13 @@
   :version "0.1"
   :maintainer "Kenan Bölükbaşı <kenanbolukbasi@gmail.com>"
   :licence "GPL"
+  :pathname "src/"
+  :depends-on (#:cl-fad
+               #:cl-ppcre
+               #:qtools
+               #:qtcore
+               #:qtgui)
   :serial t
-  :depends-on (#:cl-fad #:cl-ppcre #:qtools #:qtcore #:qtgui)
   :components ((:file "package")
                (:file "fossicker")
                (:file "widget")))

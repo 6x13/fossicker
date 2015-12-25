@@ -33,22 +33,22 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "fossicker" "fossicker.el" (22139 22415 932475
-;;;;;;  453000))
-;;; Generated autoloads from fossicker.el
+;;;### (autoloads nil "src/fossicker" "src/fossicker.el" (22141 44474
+;;;;;;  895271 596000))
+;;; Generated autoloads from src/fossicker.el
 
-(let ((loads (get 'fossicker 'custom-loads))) (if (member '"fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"fossicker" loads))))
+(let ((loads (get 'fossicker 'custom-loads))) (if (member '"src/fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"src/fossicker" loads))))
 
 (defvar fossicker-libs '(fossicker-all) "\
 A list of packages to load with FOSSICKER.
 Defaults to FOSSICKER-ALL meta-package.")
 
-(autoload 'fossicker-load-libs "fossicker" "\
+(autoload 'fossicker-load-libs "src/fossicker" "\
 If supplied, load LIBS, else load libs supplied in FOSSICKER-LIBS variable.
 
 \(fn &rest LIBRARIES)" nil nil)
 
-(autoload 'fossicker-register-type "fossicker" "\
+(autoload 'fossicker-register-type "src/fossicker" "\
 Register a new fossicker type. 
 Fossicker TYPE is determined according a :REGEXP,
 usually matching file extensions.
@@ -65,34 +65,34 @@ to type using :WIDGETS.
 (defvar fossicker-legend '(("_b_" "button") ("_n_" "normal") ("_p_" "pressed") ("_e_" "enabled")) "\
 List of regular expressions and the directory names they map to.")
 
-(custom-autoload 'fossicker-legend "fossicker" t)
+(custom-autoload 'fossicker-legend "src/fossicker" t)
 
 (defvar fossicker-projects nil "\
 The list of fossicker project paths.")
 
-(custom-autoload 'fossicker-projects "fossicker" t)
+(custom-autoload 'fossicker-projects "src/fossicker" t)
 
-(autoload 'fossicker-load-projects "fossicker" "\
+(autoload 'fossicker-load-projects "src/fossicker" "\
 Loads all projects in FOSSICKER-PROJECTS.
 
 \(fn)" nil nil)
 
-(autoload 'fossicker-customize "fossicker" "\
+(autoload 'fossicker-customize "src/fossicker" "\
 Customize fossicker group.
 
 \(fn)" t nil)
 
-(autoload 'fossicker-set-project "fossicker" "\
+(autoload 'fossicker-set-project "src/fossicker" "\
 Manually select a project among fossicker projects list.
 
 \(fn &optional PROJECT)" t nil)
 
-(autoload 'fossicker-unset-project "fossicker" "\
+(autoload 'fossicker-unset-project "src/fossicker" "\
 Set fossicker-project to nil.
 
 \(fn)" t nil)
 
-(autoload 'fossicker-auto-select-project "fossicker" "\
+(autoload 'fossicker-auto-select-project "src/fossicker" "\
 Automatically select a project among fossicker projects list.
 Checks the project root of each fossicker project against
 the current buffer path to find the project buffer
@@ -100,13 +100,13 @@ belongs to.
 
 \(fn)" t nil)
 
-(autoload 'fossicker-generate "fossicker" "\
+(autoload 'fossicker-generate "src/fossicker" "\
 Generates the asset according to the double-quoted text
 at current cursor position.
 
 \(fn &optional FILENAME)" t nil)
 
-(autoload 'fossicker-mode "fossicker" "\
+(autoload 'fossicker-mode "src/fossicker" "\
 Toggle Fossicker mode.
 
 \(fn &optional ARG)" t nil)
@@ -118,9 +118,9 @@ Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
 or call the function `global-fossicker-mode'.")
 
-(custom-autoload 'global-fossicker-mode "fossicker" nil)
+(custom-autoload 'global-fossicker-mode "src/fossicker" nil)
 
-(autoload 'global-fossicker-mode "fossicker" "\
+(autoload 'global-fossicker-mode "src/fossicker" "\
 Toggle Fossicker mode in all buffers.
 With prefix ARG, enable Global-Fossicker mode if ARG is positive;
 otherwise, disable it.  If called from Lisp, enable the mode if
@@ -134,27 +134,27 @@ See `fossicker-mode' for more information on Fossicker mode.
 
 ;;;***
 
-;;;### (autoloads nil "fossicker-project" "fossicker-project.el"
-;;;;;;  (22139 26214 520325 413000))
-;;; Generated autoloads from fossicker-project.el
+;;;### (autoloads nil "src/fossicker-project" "src/fossicker-project.el"
+;;;;;;  (22141 29533 238943 251000))
+;;; Generated autoloads from src/fossicker-project.el
 
-(autoload 'fossicker-edit-project "fossicker-project" "\
+(autoload 'fossicker-edit-project "src/fossicker-project" "\
 Edit one of the loaded Fossicker projects.
 
 \(fn FILE)" t nil)
 
-(autoload 'fossicker-new-project "fossicker-project" "\
+(autoload 'fossicker-new-project "src/fossicker-project" "\
 Create a new Fossicker project.
 
 \(fn FILE)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil "fossicker-widget" "fossicker-widget.el" (22139
-;;;;;;  21602 940213 143000))
-;;; Generated autoloads from fossicker-widget.el
+;;;### (autoloads nil "src/fossicker-widget" "src/fossicker-widget.el"
+;;;;;;  (22141 29533 248943 197000))
+;;; Generated autoloads from src/fossicker-widget.el
 
-(autoload 'fossicker "fossicker-widget" "\
+(autoload 'fossicker "src/fossicker-widget" "\
 Create the widgets for asset generation.
 
 \(fn)" t nil)
