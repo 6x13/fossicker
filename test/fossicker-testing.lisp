@@ -1,11 +1,10 @@
 (ql:quickload :fossicker)
 (fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
 (fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/test.lisp")
-(fossicker::remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
+;; (fossicker::remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
 (fossicker::load-projects)
-fossicker::*PROJECT-DEFINITIONS*
+;; fossicker::*PROJECT-DEFINITIONS*
 (fossicker::set-project "test")
-(fossicker::generate "test.png")
 
 (fossicker::register-type 'shader t
                           :regexp '("\\.vert\$"
@@ -39,3 +38,4 @@ fossicker::*PROJECT-DEFINITIONS*
 
 (setq fossicker::*data-path* "~/dev/lisp/local-projects/fossicker/data/")
 
+(fossicker::generate "meh/bla/test_b_p_.png")

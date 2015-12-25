@@ -260,7 +260,7 @@ among possible matches in the data path."
 
 (defun report (result)
   (message (if (listp result)
-               (format "%s assets generated!"
+               (format nil "~a assets generated!"
                        (if result (length result) "No"))
                "Finished!")))
 
