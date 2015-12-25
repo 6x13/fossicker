@@ -3,5 +3,5 @@
           ("_p_" "pressed")
           ("_e_" "enabled"))
  :libs (texture shader)
- :projects ("~/dev/lisp/local-projects/fossicker/test/test.lisp"
-            "~/dev/lisp/local-projects/fossicker/test/6x13.lisp"))
+ :projects ("~/dev/lisp/local-projects/fossicker/test/test.proj"
+            "~/dev/lisp/local-projects/fossicker/test/6x13.proj"))
