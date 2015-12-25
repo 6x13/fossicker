@@ -27,15 +27,41 @@
   (apply #'format (cons t args)))
 
 
-;;; Fossicker Libs
+;;; Fossicker Config
 
-(defvar *libs* '(all)
-  "A list of packages to load with FOSSICKER.
-Defaults to ALL meta-package.")
+(defvar *config* nil
+  "Fossicker configuration plist.")
+
+(defun get-config-path (config-path)
+  "Check the supplied CONFIG-PATH and if one doesn't exist,
+use the .fossickerrc in user home or lastly in repo."
+  (let ((home-config (cl-fad:merge-pathnames-as-file
+                      (user-homedir-pathname) ".fossickerrc"))
+        (repo-config (cl-fad:merge-pathnames-as-file
+                      fossicker-conf:*basedir* ".fossickerrc")))
+    (cond ((and config-path (cl-fad:file-exists-p (pathname config-path)))
+           (pathname config-path))
+          ((cl-fad:file-exists-p home-config) home-config)
+          (t repo-config))))
+
+(defun load-config (&optional config-path)
+  "Find and load the fossicker configuration."
+  (with-open-file (in (get-config-path config-path) :external-format :utf-8)
+                  (setf *config* (read in)))
+  (setf fossicker-conf:*basedir*
+        (or (getf *config* :base-path)
+            fossicker-conf:*basedir*))
+  ;; load libs
+  (load-projects)
+  (if (getf *config* :default)
+      (set-project (getf *config* :default))))
+
+
+;;; Fossicker Libs
 
 (defun load-libs (&rest libraries)
   "If supplied, load LIBS, else load libs supplied in LIBS variable."
-  (let ((libs (or libraries *libs*)))
+  (let ((libs (or libraries (getf *config* :libs))))
     (when libs
       (dolist (lib
                libs
@@ -45,14 +71,6 @@ Defaults to ALL meta-package.")
 
 
 ;;; Settings
-
-;;;; Fossicker Data Path
-
-(defvar *data-path* (cl-fad:merge-pathnames-as-directory
-                     fossicker-conf:*basedir*
-                     "data/")
-  "Location of the fossicker data.")
-
 
 ;;;; Fossicker Types
 
@@ -83,28 +101,15 @@ among possible matches in the data path."
     (push (list name regexp function formats) *type-registry*)))
 
 
-;;;; Fossicker Vein Mappings
-
-(defvar *legend*
-  '(("_b_" "button")
-    ("_n_" "normal")
-    ("_p_" "pressed")
-    ("_e_" "enabled"))
-  "List of regular expressions and the directory names they map to.")
-
-
 ;;;; Fossicker Projects
 
-(defvar *projects* nil
-  "The list of fossicker project paths.")
-
 (defun add-project (path)
-  "Add path to *PROJECTS* if not already added."
-  (pushnew path *projects* :test #'string=))
+  "Add path to projects if not already added."
+  (pushnew path (getf *config* :projects) :test #'string=))
 
 (defun remove-project (path)
-  "Add path to *PROJECTS* if not already added."
-  (delete path *projects* :test #'string=))
+  "Remove path from projects if not already added."
+  (delete path (getf *config* :projects) :test #'string=))
 
 (defvar *project-definitions* nil
   "The list of fossicker project definitions.")
@@ -117,8 +122,8 @@ among possible matches in the data path."
 
 (defun load-projects ()
   "Loads all projects in PROJECTS."
-  (setq *project-definitions* nil)
-  (dolist (path *projects*)
+  (setf *project-definitions* nil)
+  (dolist (path (getf *config* :projects))
     (push (get-data-from-file path)
           *project-definitions*)))
 
@@ -148,12 +153,12 @@ among possible matches in the data path."
                   :key #'car
                   :test #'string=)
           nil "~a is not in project list." project)
-  (setq *project* project)
+  (setf *project* project)
   (show-current-project))
 
 (defun unset-project ()
   "Set project to nil."
-  (setq *project* nil)
+  (setf *project* nil)
   (show-current-project))
 
 
@@ -192,7 +197,7 @@ among possible matches in the data path."
                (mapcar #'cdr
                        (stable-sort 
                         (delete-if #'null
-                                   (map-to-vein fname (copy-alist *legend*))
+                                   (map-to-vein fname (copy-alist (getf *config* :legend)))
                                    :key #'car)
                         #'< :key #'car)))))
 
@@ -281,10 +286,14 @@ at current cursor position."
             fname)
     (assert type nil "No matching type is included in project. Possible types: ~a" types)
     (assert (listp formats) nil "Source dispatch function didn't return a list.")
-    (setq source (prompt-source
+    (setf source (prompt-source
                   (prospect
                    (generate-vein-map (namestring fname) type)
-                   (cl-fad:pathname-as-directory *data-path*)
+                   (if (getf *config* :data-path)
+                       (cl-fad:pathname-as-directory (getf *config* :data-path))
+                     (cl-fad:merge-pathnames-as-directory
+                      fossicker-conf:*basedir*
+                      "data/"))
                    (add-case-variations formats))))
     (assert (cl-fad:file-exists-p source) nil
             "Source ~a is not a regular file." source)
