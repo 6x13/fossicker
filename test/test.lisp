@@ -1,11 +1,9 @@
-("test"
- "~/dev/test/"
- "Resources/"
- (texture "textures/"
-          (("ldpi/" . 32)
-           ("mdpi/" . 64)
-           ("hdpi/" . 128)
-           ("retina/" . 256)))
- (model "models/")
- (bla "meh")
- (shader "shaders/"))
+(ql:quickload :fossicker)
+(fossicker::load-config)
+(fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
+(fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/test.lisp")
+;; (fossicker::remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
+;; fossicker::*PROJECT-DEFINITIONS*
+(fossicker::set-project "test")
+
+(fossicker::generate "meh/bla/test_b_p_.png")
