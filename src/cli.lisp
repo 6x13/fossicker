@@ -55,7 +55,7 @@ at current cursor position."
   (let* ((fname (pathname filename))
          (ext (pathname-type fname))
          (types (matching-types (namestring fname)))
-         (specs (cdddr (get-project)))
+         (specs (project-specs (get-project)))
          (type (matching-spec types (mapcar #'car specs)))
          (spec (cdr (assoc type specs)))
          (fn (elt (assoc type *type-registry*) 2))

@@ -52,12 +52,30 @@
 (defun load-projects ()
   "Loads all projects in PROJECTS."
   (setf *project-registry* nil)
-  (dolist (path (getf *config* :projects))
-    (push (get-data-from-file path)
-          *project-registry*)))
+  (dolist (proj (getf *config* :projects))
+    (let ((data (get-data-from-file (car proj))))
+      (push (cons
+             (car data)
+             (cons
+              (or (cadr proj)
+                  (pathname-directory-pathname (car proj)))
+              (cdr data)))
+            *project-registry*))))
 
 (defun get-project ()
   (assoc *project* *project-registry* :test #'string=))
+
+(defun project-name (project)
+  (elt project 0))
+
+(defun project-root (project)
+  (elt project 1))
+
+(defun project-path (project)
+  (elt project 2))
+
+(defun project-specs (project)
+  (cdddr project))
 
 ;;
 ;;;; Current Project
@@ -82,7 +100,7 @@
   (projects-assert)
   (assert (member project
                   *project-registry*
-                  :key #'car
+                  :key #'project-name
                   :test #'string=)
           nil "~a is not in project list." project)
   (setf *project* project)
@@ -98,11 +116,11 @@
 ;;
 ;;
 
-(defun project-path-p (project-path)
+(defun project-root-p (project-root)
   (when *default-pathname-defaults*
     (let ((project
             (namestring
-             (truename (pathname-as-file project-path))))
+             (truename (pathname-as-file project-root))))
           (current
             (namestring (truename *default-pathname-defaults*))))
       (scan (create-scanner (format nil "^~a" project)
@@ -111,7 +129,7 @@
 (defun find-project (projects)
   (when projects
     (let ((proj (car projects)))
-      (if (project-path-p (cadr proj))
+      (if (project-root-p (project-root proj))
           proj
           (find-project (cdr projects))))))
 
