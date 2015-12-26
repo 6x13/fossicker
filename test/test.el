@@ -6,8 +6,8 @@
 (setq fossicker-libs '(fossicker-all fossicker-model))
 (fossicker-load-libs 'fossicker-all)
 
-(add-to-list 'fossicker-projects "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
-(add-to-list 'fossicker-projects "~/dev/lisp/local-projects/fossicker/test/test.lisp")
+(add-to-list 'fossicker-projects "~/dev/lisp/local-projects/fossicker/test/6x13.proj")
+(add-to-list 'fossicker-projects "~/dev/lisp/local-projects/fossicker/test/test.proj")
 
 ;;; "test.png"
 ;;; 'test.png'

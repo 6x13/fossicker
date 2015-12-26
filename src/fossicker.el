@@ -27,35 +27,24 @@
 
 ;;; Code:
 
+
+;;;;;;;;;;;;;;;;
 ;;; Dependencies
+;;
+;;
 
 (require 'cl-lib)
+(require 'cl-extra)
+(require 'wid-edit)
+(require 'widget)
+(require 'cus-edit)
+(require 'info)
 
 
-;;; Fossicker Group
-
-;;;###autoload
-(defgroup fossicker nil
-  "On-the-fly asset generation for development."
-  :tag "Fossicker"
-  :prefix "fossicker-"
-  :group 'extensions
-  :group 'convenience
-  :link '(url-link :tag "Website" ...)
-  :link '(url-link :tag "Libraries by 6x13" ...)
-  :link '(url-link :tag "Libraries by Kenan Bölükbaşı" ...)
-  :link '(url-link :tag "Download" ...)
-  :link '(url-link :tag "Description" ...)
-  :link '(url-link :tag "Send Bug Report" ...))
-
-
-;;; Fossicker Message
-
-(defun fossicker--message (&rest args)
-  (apply 'message args))
-
-
-;;; Fossicker Libs
+;;;;;;;;
+;;; Path
+;;
+;;
 
 (defvar fossicker--path nil
   "Directory containing the Fossicker package.
@@ -77,10 +66,82 @@ the Emacs Lisp package.")
             load-path
             :test 'string=)
 
+
+
+;;;;;;;;;
+;;; Group
+;;
+;;
+
 ;;;###autoload
-(defvar fossicker-libs '(fossicker-all)
+(defgroup fossicker nil
+  "On-the-fly asset generation for development."
+  :tag "Fossicker"
+  :prefix "fossicker-"
+  :group 'extensions
+  :group 'convenience
+  :link '(url-link :tag "Website" ...)
+  :link '(url-link :tag "Libraries by 6x13" ...)
+  :link '(url-link :tag "Libraries by Kenan Bölükbaşı" ...)
+  :link '(url-link :tag "Download" ...)
+  :link '(url-link :tag "Description" ...)
+  :link '(url-link :tag "Send Bug Report" ...))
+
+(defcustom fossicker-data-path
+  (file-name-as-directory (expand-file-name "data/" fossicker--path))
+  "Location of the fossicker data."
+  :group 'fossicker
+  :type '(directory :tag "Path"
+                    :size 30
+                    :format "%t: %v\n"))
+
+;;;###autoload
+(defcustom fossicker-legend
+  '(("_b_" "button")
+    ("_n_" "normal")
+    ("_p_" "pressed")
+    ("_e_" "enabled"))
+  "List of regular expressions and the directory names they map to."
+  :group 'fossicker
+  :type '(repeat (cons :format "%v"
+                       (regexp :size 24
+                               :format "%t: %v\n")
+                       (repeat :tag "Map To" :value ("")
+                               (string :size 20
+                                       :format "%v\n")))))
+
+;;;###autoload
+(defcustom fossicker-projects
+  nil
+  "The list of fossicker project paths."
+  :group 'fossicker
+  :type '(repeat :tag "Fossicker Projects"
+                 (file :must-match t
+                       :tag "Project File")))
+
+;;;###autoload
+(defcustom fossicker-libs
+  '(fossicker-all)
   "A list of packages to load with FOSSICKER.
-Defaults to FOSSICKER-ALL meta-package.")
+Defaults to FOSSICKER-ALL meta-package."
+  :group 'fossicker
+  :type '(repeat :tag "Fossicker Libraries"
+                 (symbol :tag "Library Name")))
+
+;;;###autoload
+(defun fossicker-customize ()
+  "Customize fossicker group."
+  (interactive)
+  (customize-group 'fossicker))
+
+
+;;;;;;;;;;;
+;;; Utility
+;;
+;;
+
+(defun fossicker--message (&rest args)
+  (apply 'message args))
 
 ;;;###autoload
 (defun fossicker-load-libs (&rest libraries)
@@ -94,20 +155,11 @@ Defaults to FOSSICKER-ALL meta-package.")
         (require lib)))))
 
 
-;;; Settings
-
-;;;; Fossicker Data Path
-
-(defcustom fossicker-data-path
-  (file-name-as-directory (expand-file-name "data/" fossicker--path))
-  "Location of the fossicker data."
-  :group 'fossicker
-  :type '(directory :tag "Path"
-                    :size 30
-                    :format "%t: %v\n"))
-
-
-;;;; Fossicker Types
+
+;;;;;;;;;
+;;; Types
+;;
+;;
 
 (defvar fossicker--type-registry nil)
 
@@ -140,38 +192,20 @@ to type using :WIDGETS."
       (push (list name regexp fn formats widgets) fossicker--type-registry))))
 
 
-;;;; Fossicker Vein Mappings
+;;;;;;;;;;;;
+;;; Projects
+;;
+;;
+;;;; Load Projects
+;;
+;;
 
-;;;###autoload
-(defcustom fossicker-legend
-  '(("_b_" "button")
-    ("_n_" "normal")
-    ("_p_" "pressed")
-    ("_e_" "enabled"))
-  "List of regular expressions and the directory names they map to."
-  :group 'fossicker
-  :type '(repeat (cons :format "%v"
-                       (regexp :size 24
-                               :format "%t: %v\n")
-                       (repeat :tag "Map To" :value ("")
-                               (string :size 20
-                                       :format "%v\n")))))
-
-
-;;;; Fossicker Projects
-
-;;;###autoload
-(defcustom fossicker-projects
-  nil
-  "The list of fossicker project paths."
-  :group 'fossicker
-  :type '(repeat :tag "Fossicker Projects"
-                 (file :must-match t
-                       :tag "Project File")))
-
-(defvar fossicker--project-definitions
+(defvar fossicker--project-registry
   nil
   "The list of fossicker project definitions.")
+
+(defvar-local fossicker-project nil
+  "Name of the fossicker project buffer belongs to.")
 
 (defun fossicker--get-data-from-file (path)
   "Read s-expression from PATH."
@@ -182,22 +216,60 @@ to type using :WIDGETS."
 ;;;###autoload
 (defun fossicker-load-projects ()
   "Loads all projects in FOSSICKER-PROJECTS."
-  (setq fossicker--project-definitions nil)
+  (setq fossicker--project-registry nil)
   (dolist (path fossicker-projects)
     (push (fossicker--get-data-from-file path)
-          fossicker--project-definitions)))
+          fossicker--project-registry)))
+
+(defun fossicker--get-project ()
+  (assoc fossicker-project fossicker--project-registry))
+
+;;
+;;;; Current Project
+;;
+;;
+
+(defun fossicker-show-current-project ()
+  "Shows the current fossicker project in minibuffer."
+  (interactive)
+  (fossicker--message "Fossicker Project currently set to %s." (or fossicker-project "nothing")))
+
+;;
+;;;; Selection
+;;
+;;
 
 (defun fossicker--projects-assert ()
-  (cl-assert fossicker--project-definitions nil
+  (cl-assert fossicker--project-registry nil
              "No fossicker projects defined. You need at least one."))
 
+;;;###autoload
+(defun fossicker-set-project (&optional project)
+  "Manually select a project among fossicker projects list."
+  (interactive)
+  (fossicker--projects-assert)
+  (cl-assert (or
+              (null project)
+              (member project (mapcar 'car fossicker--project-registry)))
+             nil "%S is not in project list." project)
+  (setq fossicker-project (or project
+                              (completing-read
+                               "Select Fossicker Project buffer belongs to: "
+                               (mapcar 'car fossicker--project-registry)
+                               nil t)))
+  (fossicker-show-current-project))
 
-;;; Implementation
+;;;###autoload
+(defun fossicker-unset-project ()
+  "Set fossicker-project to nil."
+  (interactive)
+  (setq fossicker-project nil)
+  (fossicker-show-current-project))
 
-;;;; Fossicker Project Setting
-
-(defvar-local fossicker-project nil
-  "Name of the fossicker project buffer belongs to.")
+;;
+;;;; Auto-Selection
+;;
+;;
 
 (defun fossicker--project-file-p (projectpath)
   (when (buffer-file-name) 
@@ -212,43 +284,6 @@ to type using :WIDGETS."
           proj
         (fossicker--find-project (cdr projects))))))
 
-(defun fossicker--get-project ()
-  (assoc fossicker-project fossicker--project-definitions))
-
-(defun fossicker-show-current-project ()
-  "Shows the current fossicker project in minibuffer."
-  (interactive)
-  (fossicker--message "Fossicker Project currently set to %s." (or fossicker-project "nothing")))
-
-;;;###autoload
-(defun fossicker-customize ()
-  "Customize fossicker group."
-  (interactive)
-  (customize-group 'fossicker))
-
-;;;###autoload
-(defun fossicker-set-project (&optional project)
-  "Manually select a project among fossicker projects list."
-  (interactive)
-  (fossicker--projects-assert)
-  (cl-assert (or
-              (null project)
-              (member project (mapcar 'car fossicker--project-definitions)))
-             nil "%S is not in project list." project)
-  (setq fossicker-project (or project
-                              (completing-read
-                               "Select Fossicker Project buffer belongs to: "
-                               (mapcar 'car fossicker--project-definitions)
-                               nil t)))
-  (fossicker-show-current-project))
-
-;;;###autoload
-(defun fossicker-unset-project ()
-  "Set fossicker-project to nil."
-  (interactive)
-  (setq fossicker-project nil)
-  (fossicker-show-current-project))
-
 ;;;###autoload
 (defun fossicker-auto-select-project ()
   "Automatically select a project among fossicker projects list.
@@ -258,23 +293,15 @@ belongs to."
   (interactive)
   (fossicker--projects-assert)
   (setq fossicker-project (car (fossicker--find-project
-                                fossicker--project-definitions)))
+                                fossicker--project-registry)))
   (fossicker-show-current-project))
 
 
-;;;; Asset Generation
-
-(defun fossicker--get-text-inside-quotes ()
-  "Return text between double straight
-quotes on each side of cursor."
-  (let (p0 p1 p2)
-    (setq p0 (point))
-    (skip-chars-backward "^\"\'")
-    (setq p1 (point))
-    (skip-chars-forward "^\"\'")
-    (setq p2 (point))
-    (goto-char p0)
-    (buffer-substring-no-properties p1 p2)))
+
+;;;;;;;;;;;;
+;;; Prospect
+;;
+;;
 
 (defun fossicker--type-match-p (fname type)
   (cl-some
@@ -327,24 +354,6 @@ quotes on each side of cursor."
              prospect)))
     prospect))
 
-(defun fossicker--prompt-source (prospect)
-  (expand-file-name
-   (if prospect
-       (read-file-name "Source: "
-                       (expand-file-name
-                        (file-name-directory prospect))
-                       nil t
-                       (file-name-nondirectory prospect))
-     (read-file-name "Source: "
-                     (expand-file-name
-                      fossicker-data-path)
-                     nil t))))
-
-(defun fossicker--prompt-context (filename)
-  (file-name-as-directory
-   (read-string "Context: "
-                (file-name-directory filename))))
-
 (defun fossicker--add-case-variations (formats)
   (apply 'append
          (mapcar (lambda (elt)
@@ -370,6 +379,45 @@ quotes on each side of cursor."
                (format "%s assets generated!"
                        (if result (length result) "No"))
              "Finished!")))
+
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Minibuffer Interface
+;;
+;;
+
+(defun fossicker--get-text-inside-quotes ()
+  "Return text between double straight
+quotes on each side of cursor."
+  (let (p0 p1 p2)
+    (setq p0 (point))
+    (skip-chars-backward "^\"\'")
+    (setq p1 (point))
+    (skip-chars-forward "^\"\'")
+    (setq p2 (point))
+    (goto-char p0)
+    (buffer-substring-no-properties p1 p2)))
+
+(defun fossicker--prompt-source (prospect)
+  (expand-file-name
+   (if prospect
+       (read-file-name "Source: "
+                       (expand-file-name
+                        (file-name-directory prospect))
+                       nil t
+                       (file-name-nondirectory prospect))
+     (read-file-name "Source: "
+                     (expand-file-name
+                      fossicker-data-path)
+                     nil t))))
+
+(defun fossicker--prompt-context (filename)
+  (file-name-as-directory
+   (read-string "Context: "
+                (file-name-directory filename))))
 
 ;;;###autoload
 (defun fossicker-generate (&optional filename)
@@ -411,8 +459,533 @@ at current cursor position."
               (file-name-nondirectory fname)
               ext (cdr spec) source))))
 
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;
+;;; Fossicker Widget
+;;
+;;
 
+(defvar fossicker--logo (find-image '((:type xpm :file "etc/fossicker-logo.xpm")
+                                      (:type pbm :file "etc/fossicker-logo.pbm"))))
+
+(defvar-local fossicker--source nil
+  "Holds the source data.")
+
+(defvar-local fossicker--formats nil
+  "Holds the acceptable source format list.")
+
+;;
+;;;; Utility
+;;
+;;
+
+(defun fossicker--widget-message (fn &rest args)
+  (if (and (boundp 'fossicker--form) fossicker--form)
+      (let ((log (fossicker--fget 'log)))
+        (when log
+          (save-excursion
+            (widget-value-set log (apply 'format args))))
+        (widget-setup))
+    (apply 'message args)))
+
+
+;;
+;;;; Widget Form
+;;
+;;
+
+(defvar-local fossicker--form nil
+  "Holds the form data.")
+
+(defun fossicker--fget (id)
+  (cdr (assoc id fossicker--form)))
+
+(defun fossicker--fset (id widget)
+  (let ((old (assoc id fossicker--form)))
+    (if old
+        (setcdr old widget)
+      (push (cons id widget) fossicker--form))))
+
+(defun fossicker--ftag (string)
+  (format " %-10s" string))
+
+(defun fossicker--ffmt-src (src)
+  (let ((maxlen 50) (len (length src)))
+    (if (< len maxlen)
+        (format (format " %%-%ss" maxlen) src)
+      (concat " ..." (substring src (- len (- maxlen 4))) " "))))
+
+(defun fossicker--ffmt-inf (str)
+  (widget-insert (propertize str 'face 'widget-inactive)))
+
+(defun fossicker--ffmt-doc (str)
+  (widget-insert (propertize str 'face 'widget-documentation)))
+
+(defun fossicker--ffmt-emp (str)
+  (widget-insert (propertize str 'face 'success)))
+
+;;
+;;;; Widget Insertions
+;;
+;;
+
+(defun fossicker--widget-insert-logo ()
+  (if fossicker--logo
+      (insert-image fossicker--logo)
+    (widget-insert
+     (propertize "Fossicker" 'face 'info-title-1)
+     (propertize " 6x13" 'face '(:foreground "red")))))
+
+(defun fossicker--widget-insert-header ()
+  (widget-create 'url-link
+                 :tag "Website"
+                 :format "%[%t%]  "
+                 :button-face 'info-xref
+                 "http://www.6x13.com")
+  (widget-create 'url-link
+                 :tag "Github"
+                 :format "%[%t%]  "
+                 :button-face 'info-xref
+                 "http://www.6x13.com")
+  (widget-create 'url-link
+                 :tag "Download"
+                 :format "%[%t%]  "
+                 :button-face 'info-xref
+                 "http://www.6x13.com")
+  (widget-create 'url-link
+                 :tag "Description"
+                 :format "%[%t%]  "
+                 :button-face 'info-xref
+                 "http://www.6x13.com")
+  (widget-create 'url-link
+                 :tag "Send Bug Report"
+                 :format "%[%t%]"
+                 :button-face 'info-xref
+                 "http://www.6x13.com"))
+
+(defun fossicker--widget-insert-info ()
+  (fossicker--ffmt-inf "Select ")
+  (fossicker--ffmt-doc "project") 
+  (fossicker--ffmt-inf ". Type a ") 
+  (fossicker--ffmt-doc "file name") 
+  (fossicker--ffmt-inf ". Then press ") 
+  (fossicker--ffmt-doc "GENERATE") 
+  (fossicker--ffmt-inf ". That's it!\n ")
+  (fossicker--ffmt-inf "Check out ")
+  (widget-create 'url-link
+                 :tag "our website"
+                 :button-prefix ""
+                 :button-suffix ""
+                 :format "%[%t%]"
+                 :button-face 'info-xref
+                 "http://www.6x13.com")
+  (fossicker--ffmt-inf " and ")
+  (widget-create 'url-link
+                 :tag "follow us"
+                 :button-prefix ""
+                 :button-suffix ""
+                 :format "%[%t%]"
+                 :button-face 'info-xref
+                 "http://www.6x13.com")
+  (fossicker--ffmt-inf " on Twitter for more libraries\n and games.\n\n"))
+
+(defun fossicker--widget-list-projects ()
+  (let ((value nil)
+        (projlist (mapcar 'car fossicker--project-registry))
+        name)
+    (dolist (proj projlist)
+      (setq name (capitalize proj))
+      (cl-pushnew
+       (list 'choice-item
+             :format "%[%t%]"
+             :tag (format "[ %-14s]" name)
+             :menu-tag name
+             :value proj)
+       value))
+    (push
+     (list 'choice-item
+           :format "%[%t%]"
+           :tag (format "[ %-14s]" "NONE SELECTED")
+           :menu-tag "Select None"
+           :value nil)
+     value)))
+
+(defun fossicker--widget-create-types ()
+  (apply 'widget-create
+         'choice
+         :size 17
+         :format "%v   "
+         (mapcar
+          (lambda (type)
+            (list 'const
+                  :format "%t"
+                  :tag (format "%-17s"
+                               (if type
+                                   (capitalize (symbol-name type))
+                                 "NONE"))
+                  type))
+          (cons nil (mapcar 'car (fossicker--get-types))))))
+
+;;
+;;;; Widget Callbacks
+;;
+;;
+
+(defun fossicker--widget-fname-notify (w &rest ignore)
+  (let* ((fname (concat
+                 (or (file-name-as-directory
+                      (widget-value (fossicker--fget 'context))) "")
+                 (or (widget-value w) "")))
+         (ext (file-name-extension fname nil))
+         (types (fossicker--matching-types fname))
+         (specs (cl-cdddr (fossicker--get-project)))
+         (type (fossicker--matching-spec types (mapcar 'car specs)))
+         (spec (cdr (assq type specs)))
+         (formats (fossicker--get-extension-list type ext))
+         (path (fossicker--compile-path spec))
+         prospect)
+    (widget-value-set (fossicker--fget 'type) type)
+    (if types
+        (if type
+            (progn
+              (setq fossicker--formats formats)
+              (fossicker--message "SUCCESS:\n Found match for filename %S." fname)
+              (widget-apply (fossicker--fget 'gen) :activate)
+              (setq prospect (fossicker--prospect
+                              (fossicker--generate-vein-map fname type)
+                              (file-name-as-directory fossicker-data-path)
+                              (fossicker--add-case-variations formats)))
+              (when prospect
+                (fossicker--message "SUCCESS:\n Found match for filename %S.\n Prospect: %s" fname prospect)
+                (widget-value-set (fossicker--fget 'source)
+                                  (fossicker--ffmt-src prospect))))
+          (progn
+            (widget-apply (fossicker--fget 'gen) :deactivate)
+            (fossicker--message "WARNING:\n No matching type is included in project.\n Possible types: %S" types)))   
+      (progn
+        (widget-apply (fossicker--fget 'gen) :deactivate)
+        (fossicker--message "WARNING:\n Couldn't match file name %S to regexp list of\n any fossicker type." fname)))
+    (widget-setup)))
+
+(defun fossicker--widget-fname-action (w &rest ignore)
+  (let* ((fname (widget-value w))
+         (fl (file-name-nondirectory fname))
+         (cn (file-name-directory fname)))
+    (when cn
+      (widget-value-set (fossicker--fget 'context) cn))
+    (widget-value-set w fl)
+    (widget-setup)))
+
+(defun fossicker--widget-source-notify (w &rest ignore)
+  (let ((src (read-file-name "Source: " "~/dev" nil t)))
+    (if (file-regular-p src)
+        (if (or (null fossicker--formats) (string-match (concat "\\." (regexp-opt fossicker--formats) "\\'") src))
+            (progn
+              (setq fossicker--source src)
+              (widget-value-set w (fossicker--ffmt-src src))
+              (fossicker--message "SUCCESS:\n Successfully set the source to %S" src))
+          (fossicker--message
+           "ERROR:\n Source expected to be one of following formats: %S.\n Got %S." fossicker--formats (file-name-extension src)))
+      (fossicker--message "ERROR:\n Source %S is not a regular file." src))))
+
+(defun fossicker--widget-generate-notify (&rest ignore)
+  (let* ((fname (file-name-nondirectory
+                 (widget-value (fossicker--fget 'fname))))
+         (context (or (file-name-directory
+                       (widget-value (fossicker--fget 'fname)))
+                      (widget-value (fossicker--fget 'context))))
+         (ext (file-name-extension fname nil))
+         (specs (cl-cdddr (fossicker--get-project)))
+         (type (widget-value (fossicker--fget 'type)))
+         (spec (cdr (assq type specs)))
+         (fn (elt (assoc type fossicker--type-registry) 2))
+         (path (fossicker--compile-path spec)))
+    (fossicker--report
+     (funcall fn path context fname ext (cdr spec) fossicker--source))))
+
+;;
+;;;; Widget Definition
+;;
+;;
+
+;;;###autoload
+(defun fossicker ()
+  "Create the widgets for asset generation."
+  (interactive)
+  (switch-to-buffer "*FOSSICKER*")
+  (kill-all-local-variables)
+  (let ((inhibit-read-only t))
+    (erase-buffer))
+  (remove-overlays)
+  (fossicker-load-libs)
+  (fossicker-load-projects)
+  
+  (widget-insert "\n ")
+  (fossicker--widget-insert-logo)
+  (widget-insert "\n\n ")
+  (fossicker--widget-insert-header)
+  (widget-insert "\n\n ")
+  (fossicker--widget-insert-info)
+  
+  (fossicker--fset
+   'project
+   (widget-create 'menu-choice
+                  :tag (fossicker--ftag "Project")
+                  :format "%t: %v   "
+                  :value nil
+                  :help-echo "Select a project."
+                  :notify (lambda (w &rest ignore)
+                            (if (widget-value w)
+                                (progn
+                                  (fossicker-set-project (widget-value w))
+                                  (widget-apply (fossicker--fget 'fname) :activate)
+                                  (widget-apply (fossicker--fget 'context) :activate)
+                                  (widget-apply (fossicker--fget 'source) :activate))
+                              (progn
+                                (fossicker-unset-project)
+                                (widget-apply (fossicker--fget 'fname) :deactivate)
+                                  (widget-apply (fossicker--fget 'context) :activate)
+                                  (widget-apply (fossicker--fget 'source) :activate)
+                                (widget-apply (fossicker--fget 'gen) :deactivate))))
+                  :args (fossicker--widget-list-projects)))
+  
+  (fossicker--fset
+   'fname
+   (widget-create 'editable-field
+                  :size 20
+                  :tag (fossicker--ftag "File Name")
+                  :format "%t: %v\n"
+                  :notify 'fossicker--widget-fname-notify
+                  :action 'fossicker--widget-fname-action
+                  "test.png"))
+  (widget-apply (fossicker--fget 'fname) :deactivate)
+
+  (widget-insert "\n")
+
+  (widget-insert (fossicker--ftag "Type") ": ")
+
+  (fossicker--fset
+   'type
+   (fossicker--widget-create-types))
+  
+  (fossicker--fset
+   'context
+   (widget-create 'editable-field
+                  :size 20
+                  :tag (fossicker--ftag "Context")
+                  :format "%t: %v\n"
+                  "ui/buttons/"))
+  (widget-apply (fossicker--fget 'context) :deactivate)
+
+  (widget-insert "\n")
+
+  (widget-insert (fossicker--ftag "Source") ": ")
+
+  (fossicker--fset
+   'source
+   (widget-create 'push-button
+                  :size 20
+                  :format "%[%v%]"
+                  :notify 'fossicker--widget-source-notify
+                  (fossicker--ffmt-src "~/")))
+  (widget-apply (fossicker--fget 'source) :deactivate)
+
+  (widget-insert "\n\n ")
+  
+  (widget-create 'push-button
+                 :tag "SETTINGS"
+                 :format "%[  %t  %]"
+                 :button-face 'custom-button
+                 :notify (lambda (&rest ignore)
+                           (fossicker-customize)))
+
+  (widget-insert "   ")
+  (widget-create 'push-button
+                 :tag "RESET"
+                 :format "%[    %t    %]"
+                 :button-face 'custom-button
+                 :notify (lambda (&rest ignore)
+                           (fossicker)))
+  (widget-insert "   ")
+  (fossicker--fset
+   'gen
+   (widget-create 'push-button
+                  :tag "GENERATE"
+                  :format "%[            %t            %]"
+                  :button-face 'custom-button
+                  :notify 'fossicker--widget-generate-notify))
+  (widget-apply (fossicker--fget 'gen) :deactivate)
+
+  (widget-insert "\n\n")
+    
+  (fossicker--fset
+   'log
+   (widget-create 'editable-field
+                  :format " %v"
+                  :value-face 'default
+                  "WELCOME:\n Please select a project first.\n You can define a new project from settings menu."))
+
+  (advice-add 'fossicker--message :around #'fossicker--widget-message)
+  (use-local-map widget-keymap)
+  (widget-setup))
+
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Fossicker Project Editor
+;;
+;;
+
+(defvar-local fossicker--edited-path nil
+  "Local variable holding the path of currently edited project.")
+
+(defvar-local fossicker--edited-project nil
+  "Local variable holding the value of currently edited project.")
+
+;;
+;;;; Type Widgets
+;;
+;;
+
+(defun fossicker--list-type-widgets ()
+  "List of type widgets to choose."
+  (let (value)
+    (dolist (element
+             (fossicker--get-types)
+             value)
+      (let* ((atsym (elt element 0))
+             (atwidget (elt element 4))
+             (atname (symbol-name atsym))
+             (wbase (list 'list :tag (format "%-10s" (upcase atname))
+                          :format "%t\n%v\n"
+                          (list 'const :format "" atsym)
+                          (list 'menu-choice :tag "PATH"
+                                '(const :tag "Asset Path" nil)
+                                (list 'directory
+                                      :size 20
+                                      :format "%v\n"
+                                      :value
+                                      (file-name-as-directory atname))))))
+        (setq value
+              (cons
+               (if atwidget (append wbase atwidget) wbase)
+               value))))))
+
+(define-widget 'fossicker--type-undefined-widget 'lazy
+  "Fallback to sexp when there is no associated type definition."
+  :tag "UNDEFINED"
+  :format "%t %v\n"
+  :type '(sexp :format "%v" :size 20))
+
+;;
+;;;; Editor Widget
+;;
+;;
+
+(defun fossicker--project-generate-notify (&rest ignore)
+  (let ((data fossicker--edited-project) ;; So temp-buffer can see data.
+        (path fossicker--edited-path))
+    (if (and data (y-or-n-p (format "Write project data to %S?" path)))
+        (write-region
+         (with-temp-buffer
+           (cl-prettyprint data)
+           (buffer-string))
+         nil path nil))))
+
+(defun fossicker--project-widget (file)
+   "Create the widgets for fossicker project definition."
+  (interactive)
+  (switch-to-buffer "*FOSSICKER-EDIT-PROJECT*")
+  (kill-all-local-variables)
+  (let ((inhibit-read-only t))
+    (erase-buffer))
+  (remove-overlays)
+  (fossicker-load-libs)
+  (setq fossicker--edited-path file)
+  (if (file-readable-p file)
+      (setq fossicker--edited-project (fossicker--get-data-from-file file)))
+
+  (fossicker--widget-insert-logo)
+  (widget-insert "\n\n")
+  
+  (widget-create 'cons
+                 :tag "Project"
+                 :format "%v"
+                 :notify (lambda (w &rest ignore)
+                           (setq fossicker--edited-project (widget-value w)))
+                 :value fossicker--edited-project
+                 '(string :size 41
+                          :tag "Project Name "
+                          :format "%t: %v\n\n"
+                          :value "")
+                 (list 'cons :format "%v"
+                       '(directory :size 41
+                                         :format "%t: %v\n\n"
+                                         :tag "Project Root "
+                                         :value "~/")
+                       (list 'cons :format "%v"
+                             '(directory :size 41
+                                         :format "%t: %v\n\n"
+                                         :tag "Asset Path   "
+                                         :value "Resources/")
+                             (list 'repeat
+                                   :tag "Specification"
+                                   :offset 12
+                                   (list 'menu-choice
+                                         :tag "TYPE"
+                                         :args (append
+                                                (fossicker--list-type-widgets)
+                                                '(fossicker--type-undefined-widget)))))))
+  
+  (widget-insert "\n\n")
+  (widget-create 'push-button
+                 :tag "RESET"
+                 :format "%[          %t          %]"
+                 :button-face 'custom-button
+                 :notify (lambda (&rest ignore)
+                           (fossicker--project-widget fossicker--edited-path)))
+  (widget-insert "  ")
+  (widget-create 'push-button
+                 :tag "GENERATE"
+                 :format "%[          %t          %]"
+                 :button-face 'custom-button
+                 :notify 'fossicker--project-generate-notify)
+  (use-local-map widget-keymap)
+  (widget-setup))
+
+;;
+;;;; Editor Functions
+;;
+;;
+
+;;;###autoload
+(defun fossicker-edit-project (file)
+  "Edit one of the loaded Fossicker projects."
+  (interactive (list (completing-read
+                      "Select project to edit: "
+                      fossicker-projects
+                      nil t)))
+  (if file (fossicker--project-widget file)))
+
+;;;###autoload
+(defun fossicker-new-project (file)
+  "Create a new Fossicker project."
+  (interactive (list (read-file-name "Select project file: ")))
+  (fossicker--project-widget file))
+
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Fossicker Minor Mode
+;;
+;;
 
 ;;;###autoload
 (define-minor-mode fossicker-mode
@@ -465,7 +1038,10 @@ at current cursor position."
   :group 'fossicker)
 
 
+;;;;;;;;;;;;;;;;;;;;;
 ;;; Fossicker Provide
+;;
+;;
 
 (provide 'fossicker)
 

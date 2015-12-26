@@ -33,15 +33,32 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "src/fossicker" "src/fossicker.el" (22141 44474
-;;;;;;  895271 596000))
+;;;### (autoloads nil "src/fossicker" "src/fossicker.el" (22141 62325
+;;;;;;  521899 783000))
 ;;; Generated autoloads from src/fossicker.el
 
 (let ((loads (get 'fossicker 'custom-loads))) (if (member '"src/fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"src/fossicker" loads))))
 
+(defvar fossicker-legend '(("_b_" "button") ("_n_" "normal") ("_p_" "pressed") ("_e_" "enabled")) "\
+List of regular expressions and the directory names they map to.")
+
+(custom-autoload 'fossicker-legend "src/fossicker" t)
+
+(defvar fossicker-projects nil "\
+The list of fossicker project paths.")
+
+(custom-autoload 'fossicker-projects "src/fossicker" t)
+
 (defvar fossicker-libs '(fossicker-all) "\
 A list of packages to load with FOSSICKER.
 Defaults to FOSSICKER-ALL meta-package.")
+
+(custom-autoload 'fossicker-libs "src/fossicker" t)
+
+(autoload 'fossicker-customize "src/fossicker" "\
+Customize fossicker group.
+
+\(fn)" t nil)
 
 (autoload 'fossicker-load-libs "src/fossicker" "\
 If supplied, load LIBS, else load libs supplied in FOSSICKER-LIBS variable.
@@ -62,25 +79,10 @@ to type using :WIDGETS.
 
 \(fn NAME OVERRIDE &rest ARGS)" nil nil)
 
-(defvar fossicker-legend '(("_b_" "button") ("_n_" "normal") ("_p_" "pressed") ("_e_" "enabled")) "\
-List of regular expressions and the directory names they map to.")
-
-(custom-autoload 'fossicker-legend "src/fossicker" t)
-
-(defvar fossicker-projects nil "\
-The list of fossicker project paths.")
-
-(custom-autoload 'fossicker-projects "src/fossicker" t)
-
 (autoload 'fossicker-load-projects "src/fossicker" "\
 Loads all projects in FOSSICKER-PROJECTS.
 
 \(fn)" nil nil)
-
-(autoload 'fossicker-customize "src/fossicker" "\
-Customize fossicker group.
-
-\(fn)" t nil)
 
 (autoload 'fossicker-set-project "src/fossicker" "\
 Manually select a project among fossicker projects list.
@@ -105,6 +107,21 @@ Generates the asset according to the double-quoted text
 at current cursor position.
 
 \(fn &optional FILENAME)" t nil)
+
+(autoload 'fossicker "src/fossicker" "\
+Create the widgets for asset generation.
+
+\(fn)" t nil)
+
+(autoload 'fossicker-edit-project "src/fossicker" "\
+Edit one of the loaded Fossicker projects.
+
+\(fn FILE)" t nil)
+
+(autoload 'fossicker-new-project "src/fossicker" "\
+Create a new Fossicker project.
+
+\(fn FILE)" t nil)
 
 (autoload 'fossicker-mode "src/fossicker" "\
 Toggle Fossicker mode.
@@ -131,33 +148,6 @@ Fossicker mode is enabled in all buffers where
 See `fossicker-mode' for more information on Fossicker mode.
 
 \(fn &optional ARG)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "src/fossicker-project" "src/fossicker-project.el"
-;;;;;;  (22141 29533 238943 251000))
-;;; Generated autoloads from src/fossicker-project.el
-
-(autoload 'fossicker-edit-project "src/fossicker-project" "\
-Edit one of the loaded Fossicker projects.
-
-\(fn FILE)" t nil)
-
-(autoload 'fossicker-new-project "src/fossicker-project" "\
-Create a new Fossicker project.
-
-\(fn FILE)" t nil)
-
-;;;***
-
-;;;### (autoloads nil "src/fossicker-widget" "src/fossicker-widget.el"
-;;;;;;  (22141 29533 248943 197000))
-;;; Generated autoloads from src/fossicker-widget.el
-
-(autoload 'fossicker "src/fossicker-widget" "\
-Create the widgets for asset generation.
-
-\(fn)" t nil)
 
 ;;;***
 
