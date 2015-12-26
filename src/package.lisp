@@ -2,7 +2,7 @@
 
 (in-package :cl-user)
 (defpackage #:fossicker
-  (:use #:cl+qt)
+  (:use #:cl)
   (:import-from :cl-fad #:canonical-pathname)
   (:import-from :cl-fad #:list-directory)
   (:import-from :cl-fad #:file-exists-p)
@@ -27,6 +27,10 @@
            #:set-project
            #:unset-project
            #:auto-select-project
-           #:generate
-           #:main))
+           #:generate))
 
+(defpackage #:fossicker-widget
+  (:use #:cl+qt
+        #:fossicker)
+  (:import-from :cl-fad #:merge-pathnames-as-file)
+  (:export #:main))
