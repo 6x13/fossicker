@@ -88,7 +88,7 @@ use the .fossickerrc in user home or lastly in repo."
 (defun load-config (&optional config-path)
   "Find and load the fossicker configuration."
   (with-open-file (in (get-config-path config-path) :external-format :utf-8)
-                  (setf *config* (read in)))
+    (setf *config* (read in)))
   (setf fossicker-conf:*basedir*
         (or (getf *config* :base-path)
             fossicker-conf:*basedir*))
@@ -96,4 +96,4 @@ use the .fossickerrc in user home or lastly in repo."
   (load-projects)
   (if (getf *config* :default)
       (set-project (getf *config* :default))
-    (auto-select-project)))
+      (auto-select-project)))

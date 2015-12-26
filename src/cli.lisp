@@ -73,15 +73,15 @@ at current cursor position."
                    (generate-vein-map (namestring fname) type)
                    (if (getf *config* :data-path)
                        (pathname-as-directory (getf *config* :data-path))
-                     (merge-pathnames-as-directory
-                      fossicker-conf:*basedir*
-                      "data/"))
+                       (merge-pathnames-as-directory
+                        fossicker-conf:*basedir*
+                        "data/"))
                    (add-case-variations formats))))
     (assert (file-exists-p source) nil
             "Source ~a is not a regular file." source)
     (assert
      (or (null formats) (scan (format nil "\\.(~{~a~^|~})" formats)
-                                       (file-namestring source)))
+                              (file-namestring source)))
      nil "Source expected to be one of following formats: ~a. Got ~a."
      formats (pathname-type source))
     (report

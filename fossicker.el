@@ -148,7 +148,7 @@ FOSSICKER-LIBS variable."
       (dolist (lib
                libs
                (fossicker--message "Fossicker libraries loaded: %S"
-                        libs))
+                                   libs))
         (require lib)))))
 
 
@@ -304,10 +304,10 @@ the current buffer path to find the project buffer belongs to."
 
 (defun fossicker--matching-types (fname)
   (mapcar 'car
-   (cl-remove-if-not
-    (lambda (type)
-      (fossicker--type-match-p fname type))
-    (fossicker--get-types))))
+          (cl-remove-if-not
+           (lambda (type)
+             (fossicker--type-match-p fname type))
+           (fossicker--get-types))))
 
 (defun fossicker--matching-spec (types specs)
   (when specs
@@ -369,9 +369,9 @@ the current buffer path to find the project buffer belongs to."
 
 (defun fossicker--report (result)
   (fossicker--message (if (listp result)
-               (format "%s assets generated!"
-                       (if result (length result) "No"))
-             "Finished!")))
+                          (format "%s assets generated!"
+                                  (if result (length result) "No"))
+                        "Finished!")))
 
 ;;
 ;;
@@ -759,8 +759,8 @@ current cursor position."
                               (progn
                                 (fossicker-unset-project)
                                 (widget-apply (fossicker--fget 'fname) :deactivate)
-                                  (widget-apply (fossicker--fget 'context) :activate)
-                                  (widget-apply (fossicker--fget 'source) :activate)
+                                (widget-apply (fossicker--fget 'context) :activate)
+                                (widget-apply (fossicker--fget 'source) :activate)
                                 (widget-apply (fossicker--fget 'gen) :deactivate))))
                   :args (fossicker--widget-list-projects)))
   
@@ -832,7 +832,7 @@ current cursor position."
   (widget-apply (fossicker--fget 'gen) :deactivate)
 
   (widget-insert "\n\n")
-    
+  
   (fossicker--fset
    'log
    (widget-create 'editable-field
@@ -910,7 +910,7 @@ current cursor position."
          nil path nil))))
 
 (defun fossicker--project-widget (file)
-   "Create the widgets for fossicker project definition."
+  "Create the widgets for fossicker project definition."
   (interactive)
   (switch-to-buffer "*FOSSICKER-EDIT-PROJECT*")
   (kill-all-local-variables)
@@ -937,9 +937,9 @@ current cursor position."
                           :value "")
                  (list 'cons :format "%v"
                        '(directory :size 41
-                                         :format "%t: %v\n\n"
-                                         :tag "Project Root "
-                                         :value "~/")
+                                   :format "%t: %v\n\n"
+                                   :tag "Project Root "
+                                   :value "~/")
                        (list 'cons :format "%v"
                              '(directory :size 41
                                          :format "%t: %v\n\n"
