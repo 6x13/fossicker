@@ -1,5 +1,4 @@
 ("test"
- "~/dev/test/"
  "Resources/"
  (texture "textures/"
           (("ldpi/" . 32)

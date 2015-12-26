@@ -6,8 +6,9 @@
 (setq fossicker-libs '(fossicker-all fossicker-model))
 (fossicker-load-libs 'fossicker-all)
 
-(add-to-list 'fossicker-projects "~/dev/lisp/local-projects/fossicker/test/6x13.proj")
-(add-to-list 'fossicker-projects "~/dev/lisp/local-projects/fossicker/test/test.proj")
+(add-to-list 'fossicker-projects '("~/dev/lisp/local-projects/fossicker/test/6x13.proj"
+                                   "~/dev/lisp/local-projects/fossicker/"))
+(add-to-list 'fossicker-projects '("~/dev/lisp/local-projects/fossicker/test/test.proj"))
 
 ;;; "test.png"
 ;;; 'test.png'
@@ -16,3 +17,4 @@
 ;;; "game/ui/test_b_p_n_e.vert"
 ;;; "game/ui/test_b_p_n_e.VERT"
 ;;; "game/test_b_p_n_e.3ds"
+

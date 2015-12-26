@@ -112,8 +112,14 @@ to."
   "The list of fossicker project paths."
   :group 'fossicker
   :type '(repeat :tag "Fossicker Projects"
-                 (file :must-match t
-                       :tag "Project File")))
+                 :offset 9
+                 (list :format "%v"
+                       (file :must-match t
+                             :tag "Project File")
+                       (menu-choice :tag "Project Root"
+                                    (const :tag "Project File Path" nil)
+                                    (directory :must-match t
+                                               :menu-tag "Custom Path")))))
 
 ;;;###autoload
 (defcustom fossicker-libs
@@ -210,9 +216,15 @@ add customizations parameeters to type using :WIDGETS."
 (defun fossicker-load-projects ()
   "Loads all projects in FOSSICKER-PROJECTS."
   (setq fossicker--project-registry nil)
-  (dolist (path fossicker-projects)
-    (push (fossicker--get-data-from-file path)
-          fossicker--project-registry)))
+  (dolist (proj fossicker-projects)
+    (let ((data (fossicker--get-data-from-file (car proj))))
+      (push (cons
+             (car data)
+             (cons
+              (or (cadr proj)
+                  (file-name-directory (car proj)))
+              (cdr data)))
+            fossicker--project-registry))))
 
 (defun fossicker--get-project ()
   (assoc fossicker-project fossicker--project-registry))
@@ -953,21 +965,16 @@ current cursor position."
                  (list 'cons :format "%v"
                        '(directory :size 41
                                    :format "%t: %v\n\n"
-                                   :tag "Project Root "
-                                   :value "~/")
-                       (list 'cons :format "%v"
-                             '(directory :size 41
-                                         :format "%t: %v\n\n"
-                                         :tag "Asset Path   "
-                                         :value "Resources/")
-                             (list 'repeat
-                                   :tag "Specification"
-                                   :offset 12
-                                   (list 'menu-choice
-                                         :tag "TYPE"
-                                         :args (append
-                                                (fossicker--list-type-widgets)
-                                                '(fossicker--type-undefined-widget)))))))
+                                   :tag "Asset Path   "
+                                   :value "Resources/")
+                       (list 'repeat
+                             :tag "Specification"
+                             :offset 12
+                             (list 'menu-choice
+                                   :tag "TYPE"
+                                   :args (append
+                                          (fossicker--list-type-widgets)
+                                          '(fossicker--type-undefined-widget))))))
   
   (widget-insert "\n\n")
   (widget-create 'push-button

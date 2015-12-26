@@ -1,5 +1,4 @@
 ("6x13"
- "~/dev/lisp/local-projects/fossicker/"
  "Resources/"
  (texture "textures/"
           (("ldpi/" . 32)
