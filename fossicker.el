@@ -166,11 +166,6 @@ FOSSICKER-LIBS variable."
 
 (defvar fossicker--type-registry nil)
 
-(defun fossicker--get-types ()
-  (cl-remove-duplicates fossicker--type-registry
-                        :key #'car
-                        :from-end t))
-
 ;;;###autoload
 (defun fossicker-register-type (name override &rest args)
   "Register a  new fossicker  type. Fossicker TYPE  is determined
@@ -189,6 +184,26 @@ add customizations parameeters to type using :WIDGETS."
     (cl-check-type widgets list)
     (when (or override (null (assq name fossicker--type-registry)))
       (push (list name regexp fn formats widgets) fossicker--type-registry))))
+
+(defun fossicker--type-name (type)
+  (elt type 0))
+
+(defun fossicker--type-regexp (type)
+  (elt type 1))
+
+(defun fossicker--type-function (type)
+  (elt type 2))
+
+(defun fossicker--type-formats (type)
+  (elt type 3))
+
+(defun fossicker--type-widgets (type)
+  (elt type 4))
+
+(defun fossicker--get-types ()
+  (cl-remove-duplicates fossicker--type-registry
+                        :key #'fossicker--type-name
+                        :from-end t))
 
 
 ;;;;;;;;;;;;
@@ -327,10 +342,10 @@ the current buffer path to find the project buffer belongs to."
   (cl-some
    (lambda (regexp)
      (string-match regexp fname))
-   (elt type 1)))
+   (fossicker--type-regexp type)))
 
 (defun fossicker--matching-types (fname)
-  (mapcar 'car
+  (mapcar 'fossicker--type-name
           (cl-remove-if-not
            (lambda (type)
              (fossicker--type-match-p fname type))
@@ -382,7 +397,8 @@ the current buffer path to find the project buffer belongs to."
                  formats)))
 
 (defun fossicker--get-extension-list (type ext)
-  (let* ((formats (elt (assoc type fossicker--type-registry) 3)))
+  (let* ((formats (fossicker--type-formats
+                   (assoc type fossicker--type-registry))))
     (if formats
         (if (functionp formats)
             (funcall formats ext)
@@ -454,7 +470,7 @@ current cursor position."
          (specs (fossicker--project-specs (fossicker--get-project)))
          (type (fossicker--matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
-         (fn (elt (assoc type fossicker--type-registry) 2))
+         (fn (fossicker--type-function (assoc type fossicker--type-registry)))
          (formats (fossicker--get-extension-list type ext))
          (context (fossicker--prompt-context fname))
          (path (fossicker--compile-path spec))
@@ -653,7 +669,7 @@ current cursor position."
                                    (capitalize (symbol-name type))
                                  "NONE"))
                   type))
-          (cons nil (mapcar 'car (fossicker--get-types))))))
+          (cons nil (mapcar 'fossicker--type-name (fossicker--get-types))))))
 
 ;;
 ;;;; Widget Callbacks
@@ -740,7 +756,7 @@ current cursor position."
          (specs (fossicker--project-specs (fossicker--get-project)))
          (type (widget-value (fossicker--fget 'type)))
          (spec (cdr (assq type specs)))
-         (fn (elt (assoc type fossicker--type-registry) 2))
+         (fn (fossicker--type-function (assoc type fossicker--type-registry)))
          (path (fossicker--compile-path spec)))
     (fossicker--report
      (funcall fn path context fname ext (cdr spec) fossicker--source))))
@@ -897,8 +913,8 @@ current cursor position."
     (dolist (element
              (fossicker--get-types)
              value)
-      (let* ((atsym (elt element 0))
-             (atwidget (elt element 4))
+      (let* ((atsym (fossicker--type-name element))
+             (atwidget (fossicker--type-widgets element))
              (atname (symbol-name atsym))
              (wbase (list 'list :tag (format "%-10s" (upcase atname))
                           :format "%t\n%v\n"
