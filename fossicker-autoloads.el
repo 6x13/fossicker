@@ -33,14 +33,15 @@
 ;;; Code:
 
 
-;;;### (autoloads nil "src/fossicker" "src/fossicker.el" (22141 62325
-;;;;;;  521899 783000))
+;;;### (autoloads nil "src/fossicker" "src/fossicker.el" (22141 63461
+;;;;;;  985743 30000))
 ;;; Generated autoloads from src/fossicker.el
 
 (let ((loads (get 'fossicker 'custom-loads))) (if (member '"src/fossicker" loads) nil (put 'fossicker 'custom-loads (cons '"src/fossicker" loads))))
 
 (defvar fossicker-legend '(("_b_" "button") ("_n_" "normal") ("_p_" "pressed") ("_e_" "enabled")) "\
-List of regular expressions and the directory names they map to.")
+List of regular  expressions and the directory  names they map
+to.")
 
 (custom-autoload 'fossicker-legend "src/fossicker" t)
 
@@ -50,8 +51,8 @@ The list of fossicker project paths.")
 (custom-autoload 'fossicker-projects "src/fossicker" t)
 
 (defvar fossicker-libs '(fossicker-all) "\
-A list of packages to load with FOSSICKER.
-Defaults to FOSSICKER-ALL meta-package.")
+A  list  of  packages  to load  with  FOSSICKER.  Defaults  to
+FOSSICKER-ALL meta-package.")
 
 (custom-autoload 'fossicker-libs "src/fossicker" t)
 
@@ -61,21 +62,18 @@ Customize fossicker group.
 \(fn)" t nil)
 
 (autoload 'fossicker-load-libs "src/fossicker" "\
-If supplied, load LIBS, else load libs supplied in FOSSICKER-LIBS variable.
+If   supplied,  load   LIBS,  else   load  libs   supplied  in
+FOSSICKER-LIBS variable.
 
 \(fn &rest LIBRARIES)" nil nil)
 
 (autoload 'fossicker-register-type "src/fossicker" "\
-Register a new fossicker type. 
-Fossicker TYPE is determined according a :REGEXP,
-usually matching file extensions.
-The asset picked from fossicker data path is
-processed by :FUNCTION in order to fit
-the type specification.
-:FORMATS defines which file format to pick
-among possible matches in the data path.
-You can add customizations parameeters
-to type using :WIDGETS.
+Register a  new fossicker  type. Fossicker TYPE  is determined
+according a :REGEXP, usually  matching file extensions. The asset
+picked  from fossicker  data path  is processed  by :FUNCTION  in
+order to fit the type  specification. :FORMATS defines which file
+format to pick  among possible matches in the data  path. You can
+add customizations parameeters to type using :WIDGETS.
 
 \(fn NAME OVERRIDE &rest ARGS)" nil nil)
 
@@ -95,16 +93,15 @@ Set fossicker-project to nil.
 \(fn)" t nil)
 
 (autoload 'fossicker-auto-select-project "src/fossicker" "\
-Automatically select a project among fossicker projects list.
-Checks the project root of each fossicker project against
-the current buffer path to find the project buffer
-belongs to.
+Automatically  select  a   project  among  fossicker  projects
+list. Checks the  project root of each  fossicker project against
+the current buffer path to find the project buffer belongs to.
 
 \(fn)" t nil)
 
 (autoload 'fossicker-generate "src/fossicker" "\
-Generates the asset according to the double-quoted text
-at current cursor position.
+Generates  the asset  according to  the double-quoted  text at
+current cursor position.
 
 \(fn &optional FILENAME)" t nil)
 

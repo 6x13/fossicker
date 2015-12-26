@@ -47,10 +47,10 @@
 ;;
 
 (defvar fossicker--path nil
-  "Directory containing the Fossicker package.
-This is used to load the supporting fossicker type libraries.
-The default value is automatically computed from the location of
-the Emacs Lisp package.")
+  "Directory containing  the Fossicker  package. This is  used to
+  load the supporting fossicker type libraries. The default value
+  is automatically computed  from the location of  the Emacs Lisp
+  package.")
 (setq fossicker--path
       (file-name-as-directory
        (concat (file-name-directory
@@ -101,7 +101,8 @@ the Emacs Lisp package.")
     ("_n_" "normal")
     ("_p_" "pressed")
     ("_e_" "enabled"))
-  "List of regular expressions and the directory names they map to."
+  "List of regular  expressions and the directory  names they map
+to."
   :group 'fossicker
   :type '(repeat (cons :format "%v"
                        (regexp :size 24
@@ -122,8 +123,8 @@ the Emacs Lisp package.")
 ;;;###autoload
 (defcustom fossicker-libs
   '(fossicker-all)
-  "A list of packages to load with FOSSICKER.
-Defaults to FOSSICKER-ALL meta-package."
+  "A  list  of  packages  to load  with  FOSSICKER.  Defaults  to
+FOSSICKER-ALL meta-package."
   :group 'fossicker
   :type '(repeat :tag "Fossicker Libraries"
                  (symbol :tag "Library Name")))
@@ -145,7 +146,8 @@ Defaults to FOSSICKER-ALL meta-package."
 
 ;;;###autoload
 (defun fossicker-load-libs (&rest libraries)
-  "If supplied, load LIBS, else load libs supplied in FOSSICKER-LIBS variable."
+  "If   supplied,  load   LIBS,  else   load  libs   supplied  in
+FOSSICKER-LIBS variable."
   (let ((libs (or libraries fossicker-libs)))
     (when libs
       (dolist (lib
@@ -170,16 +172,12 @@ Defaults to FOSSICKER-ALL meta-package."
 
 ;;;###autoload
 (defun fossicker-register-type (name override &rest args)
-  "Register a new fossicker type. 
-Fossicker TYPE is determined according a :REGEXP,
-usually matching file extensions.
-The asset picked from fossicker data path is
-processed by :FUNCTION in order to fit
-the type specification.
-:FORMATS defines which file format to pick
-among possible matches in the data path.
-You can add customizations parameeters
-to type using :WIDGETS."
+  "Register a  new fossicker  type. Fossicker TYPE  is determined
+according a :REGEXP, usually  matching file extensions. The asset
+picked  from fossicker  data path  is processed  by :FUNCTION  in
+order to fit the type  specification. :FORMATS defines which file
+format to pick  among possible matches in the data  path. You can
+add customizations parameeters to type using :WIDGETS."
   (let ((regexp (plist-get args :regexp))
         (fn (or (plist-get args :function) 'ignore))
         (formats (plist-get args :formats))
@@ -232,7 +230,8 @@ to type using :WIDGETS."
 (defun fossicker-show-current-project ()
   "Shows the current fossicker project in minibuffer."
   (interactive)
-  (fossicker--message "Fossicker Project currently set to %s." (or fossicker-project "nothing")))
+  (fossicker--message "Fossicker Project currently set to %s."
+                      (or fossicker-project "nothing")))
 
 ;;
 ;;;; Selection
@@ -286,10 +285,9 @@ to type using :WIDGETS."
 
 ;;;###autoload
 (defun fossicker-auto-select-project ()
-  "Automatically select a project among fossicker projects list.
-Checks the project root of each fossicker project against
-the current buffer path to find the project buffer
-belongs to."  
+  "Automatically  select  a   project  among  fossicker  projects
+list. Checks the  project root of each  fossicker project against
+the current buffer path to find the project buffer belongs to."
   (interactive)
   (fossicker--projects-assert)
   (setq fossicker-project (car (fossicker--find-project
@@ -421,12 +419,13 @@ quotes on each side of cursor."
 
 ;;;###autoload
 (defun fossicker-generate (&optional filename)
-  "Generates the asset according to the double-quoted text
-at current cursor position."
+  "Generates  the asset  according to  the double-quoted  text at
+current cursor position."
   (interactive)
-  (cl-assert (or (null filename)
-                 (stringp filename)) nil "%S is not a filename." filename)
-  (cl-assert fossicker-project nil "No fossicker project selected for current buffer.")
+  (cl-assert (or (null filename) (stringp filename)) nil
+             "%S is not a filename." filename)
+  (cl-assert fossicker-project nil
+             "No fossicker project selected for current buffer.")
   (let* ((fname (or filename (fossicker--get-text-inside-quotes)))
          (ext (file-name-extension fname nil))
          (types (fossicker--matching-types fname))
@@ -441,8 +440,10 @@ at current cursor position."
     (cl-assert types nil
                "Couldn't match file name %S to regexp list of any fossicker type."
                fname)
-    (cl-assert type nil "No matching type is included in project. Possible types: %S" types)
-    (cl-assert (listp formats) nil "Source dispatch function didn't return a list.")
+    (cl-assert type nil
+               "No matching type is included in project. Possible types: %S" types)
+    (cl-assert (listp formats) nil
+               "Source dispatch function didn't return a list.")
     (setq source (fossicker--prompt-source
                   (fossicker--prospect
                    (fossicker--generate-vein-map fname type)
@@ -450,10 +451,12 @@ at current cursor position."
                    (fossicker--add-case-variations formats))))
     (cl-assert (file-regular-p source) nil
                "Source %S is not a regular file." source)
-    (cl-assert
-     (or (null formats) (string-match (concat "\\." (regexp-opt formats) "\\'") source))
-     nil "Source expected to be one of following formats: %S. Got %S."
-     formats (file-name-extension source))
+    (cl-assert (or (null formats)
+                   (string-match
+                    (concat "\\." (regexp-opt formats) "\\'")
+                    source))
+               nil "Source expected to be one of following formats: %S. Got %S."
+               formats (file-name-extension source))
     (fossicker--report
      (funcall fn path context
               (file-name-nondirectory fname)
@@ -468,8 +471,9 @@ at current cursor position."
 ;;
 ;;
 
-(defvar fossicker--logo (find-image '((:type xpm :file "etc/fossicker-logo.xpm")
-                                      (:type pbm :file "etc/fossicker-logo.pbm"))))
+(defvar fossicker--logo
+  (find-image '((:type xpm :file "etc/fossicker-logo.xpm")
+                (:type pbm :file "etc/fossicker-logo.pbm"))))
 
 (defvar-local fossicker--source nil
   "Holds the source data.")
@@ -652,22 +656,29 @@ at current cursor position."
         (if type
             (progn
               (setq fossicker--formats formats)
-              (fossicker--message "SUCCESS:\n Found match for filename %S." fname)
+              (fossicker--message
+               "SUCCESS:\n Found match for filename %S." fname)
               (widget-apply (fossicker--fget 'gen) :activate)
               (setq prospect (fossicker--prospect
                               (fossicker--generate-vein-map fname type)
                               (file-name-as-directory fossicker-data-path)
                               (fossicker--add-case-variations formats)))
               (when prospect
-                (fossicker--message "SUCCESS:\n Found match for filename %S.\n Prospect: %s" fname prospect)
+                (fossicker--message
+                 "SUCCESS:\n Found match for filename %S.\n Prospect: %s"
+                 fname prospect)
                 (widget-value-set (fossicker--fget 'source)
                                   (fossicker--ffmt-src prospect))))
           (progn
             (widget-apply (fossicker--fget 'gen) :deactivate)
-            (fossicker--message "WARNING:\n No matching type is included in project.\n Possible types: %S" types)))   
+            (fossicker--message
+             "WARNING:\n No matching type is included in project.\n Possible types: %S"
+             types)))   
       (progn
         (widget-apply (fossicker--fget 'gen) :deactivate)
-        (fossicker--message "WARNING:\n Couldn't match file name %S to regexp list of\n any fossicker type." fname)))
+        (fossicker--message
+         "WARNING:\n Couldn't match file name %S to regexp list of\n any fossicker type."
+         fname)))
     (widget-setup)))
 
 (defun fossicker--widget-fname-action (w &rest ignore)
@@ -682,14 +693,20 @@ at current cursor position."
 (defun fossicker--widget-source-notify (w &rest ignore)
   (let ((src (read-file-name "Source: " "~/dev" nil t)))
     (if (file-regular-p src)
-        (if (or (null fossicker--formats) (string-match (concat "\\." (regexp-opt fossicker--formats) "\\'") src))
+        (if (or (null fossicker--formats)
+                (string-match
+                 (concat "\\." (regexp-opt fossicker--formats) "\\'")
+                 src))
             (progn
               (setq fossicker--source src)
               (widget-value-set w (fossicker--ffmt-src src))
-              (fossicker--message "SUCCESS:\n Successfully set the source to %S" src))
+              (fossicker--message
+               "SUCCESS:\n Successfully set the source to %S" src))
           (fossicker--message
-           "ERROR:\n Source expected to be one of following formats: %S.\n Got %S." fossicker--formats (file-name-extension src)))
-      (fossicker--message "ERROR:\n Source %S is not a regular file." src))))
+           "ERROR:\n Source expected to be one of following formats: %S.\n Got %S."
+           fossicker--formats (file-name-extension src)))
+      (fossicker--message
+       "ERROR:\n Source %S is not a regular file." src))))
 
 (defun fossicker--widget-generate-notify (&rest ignore)
   (let* ((fname (file-name-nondirectory
