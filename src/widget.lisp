@@ -61,12 +61,12 @@
 (define-subwidget (main website) (q+:make-qpushbutton "6x13 Website"))
 (define-subwidget (main twitter) (q+:make-qpushbutton "Twitter"))
 (define-subwidget (main documentation) (q+:make-qpushbutton "Documentation"))
-(define-subwidget (main report) (q+:make-qpushbutton "Report Bugs"))
+(define-subwidget (main bug-report) (q+:make-qpushbutton "Report Bugs"))
 (define-subwidget (main navbar) (q+:make-qhboxlayout)
   (q+:add-widget navbar website)
   (q+:add-widget navbar twitter)
   (q+:add-widget navbar documentation)
-  (q+:add-widget navbar report))
+  (q+:add-widget navbar bug-report))
 
 ;;
 ;;;; Navbar
@@ -149,11 +149,11 @@
 ;;
 ;;
 
-(define-subwidget (main panel) (q+:make-qvboxlayout main)
-  (q+:add-layout panel header)
-  (q+:add-layout panel navbar)
-  (q+:add-widget panel tabs)
-  (q+:add-widget panel log))
+(define-subwidget (main layout) (q+:make-qvboxlayout main)
+  (q+:add-layout layout header)
+  (q+:add-layout layout navbar)
+  (q+:add-widget layout tabs)
+  (q+:add-widget layout log))
 
 ;;
 ;;;; Slots
