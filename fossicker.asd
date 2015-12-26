@@ -16,8 +16,13 @@
                #:qtgui)
   :serial t
   :components ((:file "package")
-               (:file "fossicker")
-               (:file "widget")))
+               (:file "config")
+               (:file "types")
+               (:file "projects")
+               (:file "prospect")
+               (:file "cli")
+               (:file "widget")
+               (:file "fossicker")))
 
 (defpackage #:fossicker-conf (:export #:*basedir*))
 (defparameter fossicker-conf:*basedir*

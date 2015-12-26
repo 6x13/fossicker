@@ -1,18 +1,48 @@
 ;;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: FOSSICKER -*-
+;; Copyright (C) 2015 Kenan Bölükbaşı
+
+;; Author: Kenan Bölükbaşı <kenanbolukbasi@gmail.com>
+;; Created: 20 October 2015
+
+;; This file is part of Fossicker.
+
+;; Fossicker is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; Fossicker is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
 (in-package #:fossicker)
 (in-readtable :qtools)
 
+;;;;;;;;;;;;;;;;;;;;
+;;; Fossicker Widget
+;;
+;;
+
 (define-widget main (qwidget)
   ((angle :initform 0)
    (angle-delta :initform 1)))
+
 (define-initializer (main main-setup)
   (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
   (setf (q+:fixed-size main) (values 480 360)))
 
+;;
+;;;; Header
+;;
+;;
+
 (define-subwidget (main logo) (q+:make-qlabel)
   (setf (q+:pixmap logo) (q+:make-qpixmap (namestring
-                                           (cl-fad:merge-pathnames-as-file
+                                           (merge-pathnames-as-file
                                             fossicker-conf:*basedir*
                                             "etc/fossicker-logo.png")))))
 
@@ -23,6 +53,11 @@
   (q+:add-widget header logo)
   (q+:add-widget header info))
 
+;;
+;;;; Navbar
+;;
+;;
+
 (define-subwidget (main website) (q+:make-qpushbutton "6x13 Website"))
 (define-subwidget (main twitter) (q+:make-qpushbutton "Twitter"))
 (define-subwidget (main documentation) (q+:make-qpushbutton "Documentation"))
@@ -32,6 +67,11 @@
   (q+:add-widget navbar twitter)
   (q+:add-widget navbar documentation)
   (q+:add-widget navbar report))
+
+;;
+;;;; Navbar
+;;
+;;
 
 (define-subwidget (main project) (q+:make-qcombobox)
   (q+:add-item project "6x13")
@@ -50,6 +90,11 @@
   (q+:add-widget grid (q+:make-qlabel "Context") 1 2)
   (q+:add-widget grid context) 1 3)
 
+;;
+;;;; Source
+;;
+;;
+
 (define-subwidget (main source) (q+:make-qlineedit "source"))
 (define-subwidget (main browse) (q+:make-qpushbutton "Browse"))
 (define-subwidget (main srcbar) (q+:make-qhboxlayout)
@@ -57,11 +102,21 @@
   (q+:add-widget srcbar source)
   (q+:add-widget srcbar browse))
 
+;;
+;;;; Buttons
+;;
+;;
+
 (define-subwidget (main reset) (q+:make-qpushbutton "RESET"))
 (define-subwidget (main generate) (q+:make-qpushbutton "GENERATE"))
 (define-subwidget (main buttons) (q+:make-qhboxlayout)
   (q+:add-widget buttons reset)
   (q+:add-widget buttons generate))
+
+;;
+;;;; Tabs
+;;
+;;
 
 (define-subwidget (main general) (q+:make-qwidget))
 
@@ -79,10 +134,20 @@
 ;; (define-subwidget (main group) (q+:make-qgroupbox "Asset Generation")
 ;;   (setf (q+:layout group) asset))
 
+;;
+;;;; Log
+;;
+;;
+
 (define-subwidget (main log) (q+:make-qlabel "Report: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: Success")
   (setf (q+:word-wrap log) t)
   (setf (q+:frame-style log)
         (logior (q+:qframe.styled-panel) (q+:qframe.sunken))))
+
+;;
+;;;; Layout
+;;
+;;
 
 (define-subwidget (main panel) (q+:make-qvboxlayout main)
   (q+:add-layout panel header)
@@ -90,12 +155,20 @@
   (q+:add-widget panel tabs)
   (q+:add-widget panel log))
 
+;;
+;;;; Slots
+;;
+;;
+
 ;; (define-slot (main inc) ()
 ;;   (declare (connected increase (pressed))))
 ;; (define-slot (main dec) ()
 ;;   (declare (connected decrease (pressed))))
 
+;;
+;;;; Widget
+;;
+;;
+
 (defun main ()
   (with-main-window (window (make-instance 'main))))
-
-(main)
