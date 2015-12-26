@@ -137,7 +137,7 @@ among possible matches in the data path."
   "Remove path from projects if not already added."
   (delete path (getf *config* :projects) :test #'string=))
 
-(defvar *project-definitions* nil
+(defvar *project-registry* nil
   "The list of fossicker project definitions.")
 
 (defun get-data-from-file (path)
@@ -148,13 +148,13 @@ among possible matches in the data path."
 
 (defun load-projects ()
   "Loads all projects in PROJECTS."
-  (setf *project-definitions* nil)
+  (setf *project-registry* nil)
   (dolist (path (getf *config* :projects))
     (push (get-data-from-file path)
-          *project-definitions*)))
+          *project-registry*)))
 
 (defun projects-assert ()
-  (assert *project-definitions* nil
+  (assert *project-registry* nil
           "No fossicker projects defined. You need at least one."))
 
 ;;; Implementation
@@ -183,7 +183,7 @@ among possible matches in the data path."
           (find-project (cdr projects))))))
 
 (defun get-project ()
-  (assoc *project* *project-definitions* :test #'string=))
+  (assoc *project* *project-registry* :test #'string=))
 
 (defun show-current-project ()
   "Shows the current fossicker project in minibuffer."
@@ -193,7 +193,7 @@ among possible matches in the data path."
   "Manually select a project among fossicker projects list."
   (projects-assert)
   (assert (member project
-                  *project-definitions*
+                  *project-registry*
                   :key #'car
                   :test #'string=)
           nil "~a is not in project list." project)
@@ -211,7 +211,7 @@ Checks the project root of each fossicker project against
 the current working directory path to find the project buffer
 belongs to."
   (projects-assert)
-  (setf *project* (car (find-project *project-definitions*)))
+  (setf *project* (car (find-project *project-registry*)))
   (show-current-project))
 
 
