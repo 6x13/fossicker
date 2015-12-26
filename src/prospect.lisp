@@ -31,10 +31,10 @@
    (lambda (regexp)
      (scan (create-scanner regexp :case-insensitive-mode t)
            fname))
-   (elt type 1)))
+   (type-regexp type)))
 
 (defun matching-types (fname)
-  (mapcar #'car
+  (mapcar #'type-name
           (remove-if-not
            (lambda (type)
              (type-match-p fname type))
@@ -88,7 +88,7 @@
                  formats)))
 
 (defun get-extension-list (type ext)
-  (let* ((formats (elt (assoc type *type-registry*) 3)))
+  (let* ((formats (type-formats (assoc type *type-registry*))))
     (if formats
         (if (functionp formats)
             (funcall formats ext)

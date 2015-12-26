@@ -185,6 +185,11 @@ add customizations parameeters to type using :WIDGETS."
     (when (or override (null (assq name fossicker--type-registry)))
       (push (list name regexp fn formats widgets) fossicker--type-registry))))
 
+;;
+;;;; Type Accessors
+;;
+;;
+
 (defun fossicker--type-name (type)
   (elt type 0))
 
@@ -240,6 +245,11 @@ add customizations parameeters to type using :WIDGETS."
                   (file-name-directory (car proj)))
               (cdr data)))
             fossicker--project-registry))))
+
+;;
+;;;; Project Accessors
+;;
+;;
 
 (defun fossicker--get-project ()
   (assoc fossicker-project fossicker--project-registry))

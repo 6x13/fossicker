@@ -58,7 +58,7 @@ at current cursor position."
          (specs (project-specs (get-project)))
          (type (matching-spec types (mapcar #'car specs)))
          (spec (cdr (assoc type specs)))
-         (fn (elt (assoc type *type-registry*) 2))
+         (fn (type-function (assoc type *type-registry*)))
          (formats (get-extension-list type ext))
          (context (prompt-context fname))
          (path (compile-path spec))

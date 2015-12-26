@@ -28,19 +28,14 @@
 
 (defvar *type-registry* nil)
 
-(defun get-types ()
-  (remove-duplicates *type-registry*
-                     :key #'car
-                     :from-end t))
-
-(defun ignore-function (&rest args)
-  "Default argument for register-type FUNCTION parameter."
-  nil)
-
 ;;
 ;;;; Register Type
 ;;
 ;;
+
+(defun ignore-function (&rest args)
+  "Default argument for register-type FUNCTION parameter."
+  nil)
 
 (defun register-type (name
                       override
@@ -61,3 +56,25 @@ among possible matches in the data path."
   (check-type formats (or boolean list cl:function))
   (when (or override (null (assoc name *type-registry*)))
     (push (list name regexp function formats) *type-registry*)))
+
+;;
+;;;; Type Accessors
+;;
+;;
+
+(defun type-name (type)
+  (elt type 0))
+
+(defun type-regexp (type)
+  (elt type 1))
+
+(defun type-function (type)
+  (elt type 2))
+
+(defun type-formats (type)
+  (elt type 3))
+
+(defun get-types ()
+  (remove-duplicates *type-registry*
+                     :key #'type-name
+                     :from-end t))

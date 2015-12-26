@@ -62,6 +62,11 @@
               (cdr data)))
             *project-registry*))))
 
+;;
+;;;; Project Accessors
+;;
+;;
+
 (defun get-project ()
   (assoc *project* *project-registry* :test #'string=))
 
