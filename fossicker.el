@@ -217,6 +217,18 @@ add customizations parameeters to type using :WIDGETS."
 (defun fossicker--get-project ()
   (assoc fossicker-project fossicker--project-registry))
 
+(defun fossicker--project-name (project)
+  (elt project 0))
+
+(defun fossicker--project-root (project)
+  (elt project 1))
+
+(defun fossicker--project-path (project)
+  (elt project 2))
+
+(defun fossicker--project-specs (project)
+  (cl-cdddr project))
+
 ;;
 ;;;; Current Project
 ;;
@@ -244,12 +256,14 @@ add customizations parameeters to type using :WIDGETS."
   (fossicker--projects-assert)
   (cl-assert (or
               (null project)
-              (member project (mapcar 'car fossicker--project-registry)))
+              (member project (mapcar 'fossicker--project-name
+                                      fossicker--project-registry)))
              nil "%S is not in project list." project)
   (setq fossicker-project (or project
                               (completing-read
                                "Select Fossicker Project buffer belongs to: "
-                               (mapcar 'car fossicker--project-registry)
+                               (mapcar 'fossicker--project-name
+                                       fossicker--project-registry)
                                nil t)))
   (fossicker-show-current-project))
 
@@ -274,7 +288,7 @@ add customizations parameeters to type using :WIDGETS."
 (defun fossicker--find-project (projects)
   (when projects
     (let ((proj (car projects)))
-      (if (fossicker--project-file-p (cadr proj))
+      (if (fossicker--project-file-p (fossicker--project-root proj))
           proj
         (fossicker--find-project (cdr projects))))))
 
@@ -285,8 +299,9 @@ list. Checks the  project root of each  fossicker project against
 the current buffer path to find the project buffer belongs to."
   (interactive)
   (fossicker--projects-assert)
-  (setq fossicker-project (car (fossicker--find-project
-                                fossicker--project-registry)))
+  (setq fossicker-project (fossicker--project-name
+                           (fossicker--find-project
+                            fossicker--project-registry)))
   (fossicker-show-current-project))
 
 
@@ -363,8 +378,8 @@ the current buffer path to find the project buffer belongs to."
       nil)))
 
 (defun fossicker--compile-path (spec)
-  (concat (file-name-as-directory (elt (fossicker--get-project) 1))
-          (file-name-as-directory (elt (fossicker--get-project) 2))
+  (concat (file-name-as-directory (fossicker--project-root (fossicker--get-project)))
+          (file-name-as-directory (fossicker--project-path (fossicker--get-project)))
           (file-name-as-directory (or (car spec) ""))))
 
 (defun fossicker--report (result)
@@ -424,7 +439,7 @@ current cursor position."
   (let* ((fname (or filename (fossicker--get-text-inside-quotes)))
          (ext (file-name-extension fname nil))
          (types (fossicker--matching-types fname))
-         (specs (cl-cdddr (fossicker--get-project)))
+         (specs (fossicker--project-specs (fossicker--get-project)))
          (type (fossicker--matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
          (fn (elt (assoc type fossicker--type-registry) 2))
@@ -593,7 +608,7 @@ current cursor position."
 
 (defun fossicker--widget-list-projects ()
   (let ((value nil)
-        (projlist (mapcar 'car fossicker--project-registry))
+        (projlist (mapcar 'fossicker--project-name fossicker--project-registry))
         name)
     (dolist (proj projlist)
       (setq name (capitalize proj))
@@ -640,7 +655,7 @@ current cursor position."
                  (or (widget-value w) "")))
          (ext (file-name-extension fname nil))
          (types (fossicker--matching-types fname))
-         (specs (cl-cdddr (fossicker--get-project)))
+         (specs (fossicker--project-specs (fossicker--get-project)))
          (type (fossicker--matching-spec types (mapcar 'car specs)))
          (spec (cdr (assq type specs)))
          (formats (fossicker--get-extension-list type ext))
@@ -710,7 +725,7 @@ current cursor position."
                        (widget-value (fossicker--fget 'fname)))
                       (widget-value (fossicker--fget 'context))))
          (ext (file-name-extension fname nil))
-         (specs (cl-cdddr (fossicker--get-project)))
+         (specs (fossicker--project-specs (fossicker--get-project)))
          (type (widget-value (fossicker--fget 'type)))
          (spec (cdr (assq type specs)))
          (fn (elt (assoc type fossicker--type-registry) 2))
