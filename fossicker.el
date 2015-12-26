@@ -191,19 +191,19 @@ add customizations parameeters to type using :WIDGETS."
 ;;
 
 (defun fossicker--type-name (type)
-  (elt type 0))
+  (nth 0 type))
 
 (defun fossicker--type-regexp (type)
-  (elt type 1))
+  (nth 1 type))
 
 (defun fossicker--type-function (type)
-  (elt type 2))
+  (nth 2 type))
 
 (defun fossicker--type-formats (type)
-  (elt type 3))
+  (nth 3 type))
 
 (defun fossicker--type-widgets (type)
-  (elt type 4))
+  (nth 4 type))
 
 (defun fossicker--get-types ()
   (cl-remove-duplicates fossicker--type-registry
@@ -255,13 +255,13 @@ add customizations parameeters to type using :WIDGETS."
   (assoc fossicker-project fossicker--project-registry))
 
 (defun fossicker--project-name (project)
-  (elt project 0))
+  (nth 0 project))
 
 (defun fossicker--project-root (project)
-  (elt project 1))
+  (nth 1 project))
 
 (defun fossicker--project-path (project)
-  (elt project 2))
+  (nth 2 project))
 
 (defun fossicker--project-specs (project)
   (cl-cdddr project))

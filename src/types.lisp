@@ -62,17 +62,20 @@ among possible matches in the data path."
 ;;
 ;;
 
+;; Do not use ELT for access, use NTH.
+;; Otherwise type dispatch will error when type is not included in project.
+
 (defun type-name (type)
-  (elt type 0))
+  (nth 0 type))
 
 (defun type-regexp (type)
-  (elt type 1))
+  (nth 1 type))
 
 (defun type-function (type)
-  (elt type 2))
+  (nth 2 type))
 
 (defun type-formats (type)
-  (elt type 3))
+  (nth 3 type))
 
 (defun get-types ()
   (remove-duplicates *type-registry*

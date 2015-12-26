@@ -67,17 +67,20 @@
 ;;
 ;;
 
+;; Do not use ELT for access, use NTH.
+;; Otherwise type dispatch will error when type is not included in project.
+
 (defun get-project ()
   (assoc *project* *project-registry* :test #'string=))
 
 (defun project-name (project)
-  (elt project 0))
+  (nth 0 project))
 
 (defun project-root (project)
-  (elt project 1))
+  (nth 1 project))
 
 (defun project-path (project)
-  (elt project 2))
+  (nth 2 project))
 
 (defun project-specs (project)
   (cdddr project))
