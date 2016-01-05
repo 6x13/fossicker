@@ -25,23 +25,57 @@
 ;;; Projects
 ;;
 ;;
+
+(defvar *project-registry* nil
+  "List of fossicker project instances.")
+
+(defvar *project* nil
+  "Name of the currently selected fossicker project.")
+
+(defclass project ()
+  ((name
+    :initarg :name
+    :reader project-name
+    :documentation "The name of the project. It has to be unique.")
+   (file
+    :initarg :file
+    :reader project-file
+    :documentation "Path to loaded project configuration file.")
+   (root
+    :initarg :root
+    :reader project-root
+    :documentation "Project root directory. It is either explicitly defined in project file or the directory project file resides in is used. ")
+   (path
+    :initarg :path
+    :reader project-path
+    :documentation "The path to the project resource directory.")
+   (specs
+    :initarg :specs
+    :reader project-specs
+    :documentation "Association list of asset type specifications.")
+   (assets
+    :initform nil
+    :reader project-assets
+    :documentation "The list of asset instances generated in current session. The CAR is the latest generated asset.")))
+
+;;
 ;;;; Load Projects
 ;;
 ;;
 
-(defvar *project-registry* nil
-  "The list of fossicker project definitions.")
-
-(defvar *project* nil
-  "Name of the fossicker project buffer belongs to.")
-
-(defun add-project (path)
+(defun add-project (path &optional root)
   "Add path to projects if not already added."
-  (pushnew path (getf *config* :projects) :test #'string=))
+  (pushnew (list path root)
+           (getf *config* :projects)
+           :key #'car
+           :test #'string=))
 
 (defun remove-project (path)
   "Remove path from projects if not already added."
-  (delete path (getf *config* :projects) :test #'string=))
+  (delete path
+          (getf *config* :projects)
+          :key #'car
+          :test #'string=))
 
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
@@ -54,36 +88,22 @@
   (setf *project-registry* nil)
   (dolist (proj (getf *config* :projects))
     (let ((data (get-data-from-file (car proj))))
-      (push (cons
-             (car data)
-             (cons
-              (or (cadr proj)
-                  (pathname-directory-pathname (car proj)))
-              (cdr data)))
+      (push (make-instance 'project
+                           :name (car data)
+                           :file (car proj)
+                           :root (or (cadr proj)
+                                     (pathname-directory-pathname (car proj)))
+                           :path (cadr data)
+                           :specs (cddr data))
             *project-registry*))))
 
 ;;
-;;;; Project Accessors
+;;;; Get Project
 ;;
 ;;
-
-;; Do not use ELT for access, use NTH.
-;; Otherwise type dispatch will error when type is not included in project.
 
 (defun get-project ()
-  (assoc *project* *project-registry* :test #'string=))
-
-(defun project-name (project)
-  (nth 0 project))
-
-(defun project-root (project)
-  (nth 1 project))
-
-(defun project-path (project)
-  (nth 2 project))
-
-(defun project-specs (project)
-  (cdddr project))
+  (find *project* *project-registry* :key #'project-name :test #'string=))
 
 ;;
 ;;;; Current Project
@@ -144,8 +164,7 @@
 (defun auto-select-project ()
   "Automatically select a project among fossicker projects list.
 Checks the project root of each fossicker project against
-the current working directory path to find the project buffer
-belongs to."
+the current working directory path to select the project."
   (projects-assert)
-  (setf *project* (car (find-project *project-registry*)))
+  (setf *project* (project-name (find-project *project-registry*)))
   (show-current-project))

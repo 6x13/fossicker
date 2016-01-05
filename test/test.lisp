@@ -1,9 +1,8 @@
 (ql:quickload :fossicker)
 (fossicker::load-config)
-(fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
-(fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/test.lisp")
-;; (fossicker::remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.lisp")
-;; fossicker::*PROJECT-DEFINITIONS*
+(fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/6x13.proj")
+(fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/test.proj" nil)
+(fossicker::remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.proj")
+(inspect fossicker::*project-registry*)
 (fossicker::set-project "test")
-
 (fossicker::generate "meh/bla/test_b_p_.png")

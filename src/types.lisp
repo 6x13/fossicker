@@ -81,3 +81,11 @@ among possible matches in the data path."
   (remove-duplicates *type-registry*
                      :key #'type-name
                      :from-end t))
+
+
+(defclass asset ()
+  ((source)
+   (exports)
+   (spec)
+   (date)
+   (info)))
