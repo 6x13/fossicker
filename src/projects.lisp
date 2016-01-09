@@ -35,47 +35,38 @@
 (defclass project ()
   ((name
     :initarg :name
+    :initform (error "Project doesn't have a name")
+    :type string
     :reader project-name
     :documentation "The name of the project. It has to be unique.")
    (file
     :initarg :file
+    :initform (error "Project doesn't have a file")
+    :type pathname
     :reader project-file
     :documentation "Path to loaded project configuration file.")
    (root
     :initarg :root
+    :type pathname
     :reader project-root
     :documentation "Project root directory. It is either explicitly defined in project file or the directory project file resides in is used. ")
    (path
     :initarg :path
+    :initform nil
+    :type pathname
     :reader project-path
     :documentation "The path to the project resource directory.")
    (specs
     :initarg :specs
+    :initform nil
+    :type list
     :reader project-specs
     :documentation "Association list of asset type specifications.")
    (assets
+    :type list
     :initform nil
     :reader project-assets
     :documentation "The list of asset instances generated in current session. The CAR is the latest generated asset.")))
-
-;;
-;;;; Load Projects
-;;
-;;
-
-(defun add-project (path &optional root)
-  "Add path to projects if not already added."
-  (pushnew (list path root)
-           (getf *config* :projects)
-           :key #'car
-           :test #'string=))
-
-(defun remove-project (path)
-  "Remove path from projects if not already added."
-  (delete path
-          (getf *config* :projects)
-          :key #'car
-          :test #'string=))
 
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
@@ -83,64 +74,21 @@
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
-(defun load-projects ()
-  "Loads all projects in PROJECTS."
-  (setf *project-registry* nil)
-  (dolist (proj (getf *config* :projects))
-    (let ((data (get-data-from-file (car proj))))
-      (push (make-instance 'project
-                           :name (car data)
-                           :file (car proj)
-                           :root (or (cadr proj)
-                                     (pathname-directory-pathname (car proj)))
-                           :path (cadr data)
-                           :specs (cddr data))
-            *project-registry*))))
+(defmethod initialize-instance :before ((proj project) &key file importp)
+  (when importp
+    (let ((data (get-data-from-file file)))
+      (with-slots (name path specs) proj
+        (setf name (car data)
+              path (cadr data)
+              specs (cddr data))))))
 
-;;
-;;;; Get Project
-;;
-;;
-
-(defun get-project ()
-  (find *project* *project-registry* :key #'project-name :test #'string=))
-
-;;
-;;;; Current Project
-;;
-;;
-
-(defun show-current-project ()
-  "Shows the current fossicker project in minibuffer."
-  (message "Fossicker Project currently set to ~a.~%" (or *project* "nothing")))
+(defmethod initialize-instance :after ((proj project) &key)
+  (with-slots (root file) proj
+    (unless (boundp 'root)
+      (setf root (pathname-directory-pathname file)))))
 
 ;;
 ;;;; Selection
-;;
-;;
-
-(defun projects-assert ()
-  (assert *project-registry* nil
-          "No fossicker projects defined. You need at least one."))
-
-(defun set-project (project)
-  "Manually select a project among fossicker projects list."
-  (projects-assert)
-  (assert (member project
-                  *project-registry*
-                  :key #'project-name
-                  :test #'string=)
-          nil "~a is not in project list." project)
-  (setf *project* project)
-  (show-current-project))
-
-(defun unset-project ()
-  "Set project to nil."
-  (setf *project* nil)
-  (show-current-project))
-
-;;
-;;;; Auto-Selection
 ;;
 ;;
 
@@ -161,10 +109,65 @@
           proj
           (find-project (cdr projects))))))
 
-(defun auto-select-project ()
-  "Automatically select a project among fossicker projects list.
-Checks the project root of each fossicker project against
-the current working directory path to select the project."
-  (projects-assert)
-  (setf *project* (project-name (find-project *project-registry*)))
-  (show-current-project))
+(defun get-project (name)
+  (find name *project-registry* :key #'project-name :test #'string=))
+
+(defun set-project (&optional name)
+  "If  NAME is  supplied, manually  select a  project by  name among  fossicker
+projects  list.  Otherwise  automatically  select  a  project  among  fossicker
+projects list.  Checks the project root  of each fossicker project  against the
+current working directory path to select the project."
+  (assert *project-registry* nil
+          "No fossicker projects defined. You need at least one.")
+  (assert (or (null name)
+              (member name
+                      *project-registry*
+                      :key #'project-name
+                      :test #'string=))
+          nil "~a is not in project list." project)
+  (setf *project* (if name
+                      (get-project name)
+                      (find-project *project-registry*)))
+  (message "Fossicker Project currently set to ~a.~%"
+           (if *project*
+               (project-name *project*)
+               "nothing")))
+
+;;
+;;;; Load Projects
+;;
+;;
+
+(defun load-project (file &optional root)
+  (push (apply #'make-instance
+               'project
+               :import t
+               :file file
+               (if root (list :root root)))
+        *project-registry*))
+
+(defun unload-project (name)
+  (delete (get-project name) *project-registry*))
+
+(defun load-projects ()
+  "Loads all projects in PROJECTS."
+  (setf *project-registry* nil)
+  (dolist (project (getf *config* :projects))
+    (assert (and project (listp project)))
+    (apply #'load-project project)))
+
+(defun add-project (file &optional root)
+  "Add path and root to projects if not already added."
+  (pushnew (if root (list file root) (list file))
+           (getf *config* :projects)
+           :key #'car
+           :test #'string=)
+  (load-project file root))
+
+(defun remove-project (name)
+  "Remove project from projects if exists."
+  (delete name
+          (getf *config* :projects)
+          :key #'car
+          :test #'string=)
+  (unload-project name))

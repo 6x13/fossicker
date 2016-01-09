@@ -98,8 +98,8 @@
 (defun compile-path (spec)
   (canonical-pathname
    (merge-pathnames-as-directory
-    (pathname-as-directory (project-root (get-project)))
-    (pathname-as-directory (project-path (get-project)))
+    (pathname-as-directory (project-root *project*))
+    (pathname-as-directory (project-path *project*))
     (pathname-as-directory (or (car spec) "")))))
 
 (defun report (result)

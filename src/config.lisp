@@ -94,6 +94,4 @@ use the .fossickerrc in user home or lastly in repo."
             fossicker-conf:*basedir*))
   (load-libs)
   (load-projects)
-  (if (getf *config* :default)
-      (set-project (getf *config* :default))
-      (auto-select-project)))
+  (set-project (getf *config* :default)))

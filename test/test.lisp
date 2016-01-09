@@ -2,7 +2,7 @@
 (fossicker::load-config)
 (fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/6x13.proj")
 (fossicker::add-project "~/dev/lisp/local-projects/fossicker/test/test.proj" nil)
-(fossicker::remove-project "~/dev/lisp/local-projects/fossicker/test/6x13.proj")
+(fossicker::remove-project "6x13")
 (inspect fossicker::*project-registry*)
 (fossicker::set-project "test")
 (fossicker::generate "meh/bla/test_b_p_.png")

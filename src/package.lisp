@@ -19,14 +19,13 @@
            #:load-config
            #:register-type
            #:*project*
+           #:get-project
+           #:set-project
+           #:load-project
+           #:unload-project
+           #:load-projects
            #:add-project
            #:remove-project
-           #:load-projects
-           #:get-project
-           #:show-current-project
-           #:set-project
-           #:unset-project
-           #:auto-select-project
            #:generate))
 
 (defpackage #:fossicker-widget
