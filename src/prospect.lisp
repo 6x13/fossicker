@@ -26,13 +26,6 @@
 ;;
 ;;
 
-(defun type-match-p (fname type)
-  (some
-   (lambda (regexp)
-     (scan (create-scanner regexp :case-insensitive-mode t)
-           fname))
-   (type-regexp type)))
-
 (defun matching-types (fname)
   (mapcar #'type-name
           (remove-if-not

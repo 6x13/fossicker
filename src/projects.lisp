@@ -62,11 +62,21 @@
     :type list
     :reader project-specs
     :documentation "Association list of asset type specifications.")
+   (current
+    :type asset
+    :initform nil
+    :accessor current-asset
+    :documentation "Asset that is currently edited. Same as the CAR of generated assets.")
    (assets
     :type list
     :initform nil
-    :reader project-assets
-    :documentation "The list of asset instances generated in current session. The CAR is the latest generated asset.")))
+    :accessor project-assets
+    :documentation "The list of asset instances generated in current session. The CAR is the latest GENERATED asset.")
+   (log
+    :type list
+    :initform nil
+    :reader project-log
+    :documentation "Reports of project related actions.")))
 
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
@@ -74,10 +84,10 @@
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
-(defmethod initialize-instance :before ((proj project) &key file importp)
+(defmethod initialize-instance :before ((project project) &key file importp)
   (when importp
     (let ((data (get-data-from-file file)))
-      (with-slots (name path specs) proj
+      (with-slots (name path specs) project
         (setf name (car data)
               path (cadr data)
               specs (cddr data))))))
@@ -86,6 +96,12 @@
   (with-slots (root file) proj
     (unless (boundp 'root)
       (setf root (pathname-directory-pathname file)))))
+
+(defgeneric generate (project)
+  "Generates asset, pushes it to ASSETS and sets it as CURRENT.")
+
+(defmethod generate ((project project))
+  )
 
 ;;
 ;;;; Selection

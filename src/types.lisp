@@ -62,30 +62,60 @@ among possible matches in the data path."
 ;;
 ;;
 
-;; Do not use ELT for access, use NTH.
-;; Otherwise type dispatch will error when type is not included in project.
-
-(defun type-name (type)
-  (nth 0 type))
-
-(defun type-regexp (type)
-  (nth 1 type))
-
-(defun type-function (type)
-  (nth 2 type))
-
-(defun type-formats (type)
-  (nth 3 type))
-
 (defun get-types ()
   (remove-duplicates *type-registry*
                      :key #'type-name
                      :from-end t))
 
-
 (defclass asset ()
-  ((source)
-   (exports)
-   (spec)
-   (date)
-   (info)))
+  ((formats
+    :type (or null t list)
+    :allocation 'class
+    :documentation "List of possible file formats that can be used as asset source.")
+   (namestring
+    :type string
+    :initarg :namestring
+    :initform (error "Asset doesn't have a namestring.")
+    :accessor asset-namestring
+    :documentation "")
+   (source
+    :type pathname
+    :initarg :source
+    :accessor asset-source
+    :documentation "")
+   (exports
+    :type list
+    :documenatation "")
+   (date
+    :type string
+    :documentation "")
+   (description
+    :type string
+    :documentation "")
+   (benchmark
+    :type string
+    :documentation "The data reported by TIME macro for measuring asset processor performance."))
+  (:documentation ""))
+
+(defgeneric export (asset)
+  "")
+
+(defmethod export ((asset asset)))
+
+(defclass asset-dispatcher ()
+     ((class :initarg :class :accessor asset-dispatcher-class)
+      (match :initarg :match :accessor asset-dispatcher-match))
+  (:documentation ""))
+
+(defmethod initialize-instance :after ((dispatcher asset-dispatcher))
+  (push dispatcher *asset-dispatcher-registry*))
+
+(defgeneric dispatch (dispatcher namestring)
+  "")
+
+(defmethod dispatch ((dispatcher asset-dispatcher) (namestring string))
+  (some
+   (lambda (regexp)
+     (scan (create-scanner regexp :case-insensitive-mode t)
+           namestring))
+   (asset-dispatcher-match dispatcher)))
