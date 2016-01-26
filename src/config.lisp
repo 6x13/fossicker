@@ -19,20 +19,22 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :fossicker)
+(in-package :fossicker-configuration)
 
 ;;;;;;;;;;
 ;;; Config
 ;;
 ;;
 
-(defvar *config-path* nil
-  "Fossicker configuration file path.")
-
 (defvar *config* nil
-  "Fossicker configuration plist.")
+  "System object that holds configuration data.")
 
-(defclass config-system (asdf:package-inferred-system)
+(defvar *repository* nil
+  "Directory containing the  Fossicker package.  It is used to  load extra data
+  distributed with the source.  Its value  is computed from the location of the
+  Fossicker system.")
+
+(defclass system (asdf:package-inferred-system)
   ((projects :initarg :projects)
    (legend :initarg :legend)))
 

@@ -1,9 +1,15 @@
 ;;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER -*-
 
 (in-package :cl-user)
+
+(defpackage :fossicker-configuration
+  (:nicknames :fckcfg)
+  (:use :cl)
+  (:export #:*config* #:*repository* #:system))
+
 (defpackage :fossicker
   (:nicknames :fck)
-  (:use #:cl)
+  (:use :cl)
   ;; (:import-from :cl-fad #:canonical-pathname)
   ;; (:import-from :cl-fad #:list-directory)
   ;; (:import-from :cl-fad #:file-exists-p)
@@ -36,3 +42,7 @@
 ;;         #:fossicker)
 ;;   (:import-from :cl-fad #:merge-pathnames-as-file)
 ;;   (:export #:main))
+
+;; (defpackage :fossicker-user
+;;   (:nicknames :fcku)
+;;   (:use :fossicker :fossicker-widget))

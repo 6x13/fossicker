@@ -1,6 +1,6 @@
 (defsystem #:fossicker-user
   :defsystem-depends-on ("fossicker")
-  :class fossicker:config-system
+  :class fossicker-configuration:system
 
   ;; CONFIGURATION
   
