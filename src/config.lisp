@@ -32,66 +32,70 @@
 (defvar *config* nil
   "Fossicker configuration plist.")
 
+(defclass config-system (asdf:package-inferred-system)
+  ((projects :initarg :projects)
+   (legend :initarg :legend)))
+
 ;;
 ;;;; Load Libraries
 ;;
 ;;
 
-(defun load-library (name)
-  "Given a plugin, NAME, compile and load it."
-  (let ((file (merge-pathnames-as-file
-               fossicker-conf:*basedir*
-               (format nil "lib/~(~A~)" name))))
-    (multiple-value-bind (output-file error)
-        (ignore-errors (compile-file file :verbose nil :print nil))
-      (when error
-        (warn "Error while compiling library ~A: ~A.~%" name error))
-      (load (or output-file file) :verbose t))))
+;; (defun load-library (name)
+;;   "Given a plugin, NAME, compile and load it."
+;;   (let ((file (merge-pathnames-as-file
+;;                fossicker-conf:*basedir*
+;;                (format nil "lib/~(~A~)" name))))
+;;     (multiple-value-bind (output-file error)
+;;         (ignore-errors (compile-file file :verbose nil :print nil))
+;;       (when error
+;;         (warn "Error while compiling library ~A: ~A.~%" name error))
+;;       (load (or output-file file) :verbose t))))
 
-(defun load-libs (&rest libraries)
-  "If supplied, load LIBS, else load libs supplied in LIBS variable."
-  (let ((libs (or libraries (getf *config* :libs))))
-    (when libs
-      (dolist (lib libs (message "Fossicker libraries loaded: ~a.~%" libs))
-        (load-library lib)))))
+;; (defun load-libs (&rest libraries)
+;;   "If supplied, load LIBS, else load libs supplied in LIBS variable."
+;;   (let ((libs (or libraries (getf *config* :libs))))
+;;     (when libs
+;;       (dolist (lib libs (message "Fossicker libraries loaded: ~a.~%" libs))
+;;         (load-library lib)))))
 
 ;;
 ;;;; Load Config
 ;;
 ;;
 
-(defun get-config-path (config-path)
-  "Check the supplied CONFIG-PATH and if one doesn't exist,
-use the .fossickerrc in user home or lastly in repo."
-  (let ((home-config (merge-pathnames-as-file
-                      (user-homedir-pathname) ".fossickerrc"))
-        (repo-config (merge-pathnames-as-file
-                      fossicker-conf:*basedir* ".fossickerrc")))
-    (if config-path
-        (if (not (directory-exists-p (pathname config-path)))
-            (progn
-              (message "Config file save location set to ~a.~%" config-path)
-              (setf *config-path* (pathname-as-file config-path)))
-            (progn
-              (message "~a is a directory, using ~a as config save location instead.~%"
-                       config-path
-                       home-config)
-              (setf *config-path* home-config)))
-        (progn
-          (message "Config file save location set to ~a~%" home-config)
-          (setf *config-path* home-config)))
-    (cond ((and config-path (file-exists-p (pathname config-path)))
-           (pathname config-path))
-          ((file-exists-p home-config) home-config)
-          (t repo-config))))
+;; (defun get-config-path (config-path)
+;;   "Check the supplied CONFIG-PATH and if one doesn't exist,
+;; use the .fossickerrc in user home or lastly in repo."
+;;   (let ((home-config (merge-pathnames-as-file
+;;                       (user-homedir-pathname) ".fossickerrc"))
+;;         (repo-config (merge-pathnames-as-file
+;;                       fossicker-conf:*basedir* ".fossickerrc")))
+;;     (if config-path
+;;         (if (not (directory-exists-p (pathname config-path)))
+;;             (progn
+;;               (message "Config file save location set to ~a.~%" config-path)
+;;               (setf *config-path* (pathname-as-file config-path)))
+;;             (progn
+;;               (message "~a is a directory, using ~a as config save location instead.~%"
+;;                        config-path
+;;                        home-config)
+;;               (setf *config-path* home-config)))
+;;         (progn
+;;           (message "Config file save location set to ~a~%" home-config)
+;;           (setf *config-path* home-config)))
+;;     (cond ((and config-path (file-exists-p (pathname config-path)))
+;;            (pathname config-path))
+;;           ((file-exists-p home-config) home-config)
+;;           (t repo-config))))
 
-(defun load-config (&optional config-path)
-  "Find and load the fossicker configuration."
-  (with-open-file (in (get-config-path config-path) :external-format :utf-8)
-    (setf *config* (read in)))
-  (setf fossicker-conf:*basedir*
-        (or (getf *config* :base-path)
-            fossicker-conf:*basedir*))
-  (load-libs)
-  (load-projects)
-  (set-project (getf *config* :default)))
+;; (defun load-config (&optional config-path)
+;;   "Find and load the fossicker configuration."
+;;   (with-open-file (in (get-config-path config-path) :external-format :utf-8)
+;;     (setf *config* (read in)))
+;;   (setf fossicker-conf:*basedir*
+;;         (or (getf *config* :base-path)
+;;             fossicker-conf:*basedir*))
+;;   (load-libs)
+;;   (load-projects)
+;;   (set-project (getf *config* :default)))
