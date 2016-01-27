@@ -98,10 +98,10 @@
       (setf root (pathname-directory-pathname file)))))
 
 (defgeneric generate (project)
-  "Generates asset, pushes it to ASSETS and sets it as CURRENT.")
+  (:documentation
+   "Generates asset, pushes it to ASSETS and sets it as CURRENT."))
 
-(defmethod generate ((project project))
-  )
+(defmethod generate ((project project)))
 
 ;;
 ;;;; Selection
@@ -149,41 +149,16 @@ current working directory path to select the project."
                (project-name *project*)
                "nothing")))
 
-;;
-;;;; Load Projects
-;;
-;;
-
 (defun load-project (file &optional root)
+  "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
                'project
-               :import t
+               :importp t
                :file file
                (if root (list :root root)))
         *project-registry*))
 
 (defun unload-project (name)
+  "Unloads the project with the NAME from *PROJECT-REGISTRY*."
   (delete (get-project name) *project-registry*))
 
-(defun load-projects ()
-  "Loads all projects in PROJECTS."
-  (setf *project-registry* nil)
-  (dolist (project (getf *config* :projects))
-    (assert (and project (listp project)))
-    (apply #'load-project project)))
-
-(defun add-project (file &optional root)
-  "Add path and root to projects if not already added."
-  (pushnew (if root (list file root) (list file))
-           (getf *config* :projects)
-           :key #'car
-           :test #'string=)
-  (load-project file root))
-
-(defun remove-project (name)
-  "Remove project from projects if exists."
-  (delete name
-          (getf *config* :projects)
-          :key #'car
-          :test #'string=)
-  (unload-project name))

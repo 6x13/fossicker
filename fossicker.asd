@@ -9,8 +9,8 @@
   :maintainer "Kenan Bölükbaşı <kenanbolukbasi@gmail.com>"
   :licence "GPL"
   :depends-on ((:version #:asdf "3.1.2")
+               #:uiop
                #:contextl
-               ;; #:cl-fad
                #:cl-ppcre
                ;; #:qtools
                ;; #:qtcore
@@ -20,9 +20,9 @@
   :components ((:file "packages")
                (:module core
                 :components
-                ((:file "config")
-                 ;; (:file "types")
-                 ;; (:file "projects")
+                ((:file "project")
+                 (:file "config")
+                 ;; (:file "asset")
                  ;; (:file "prospect")
                  ;; (:file "interface")
                  (:file "fossicker")))

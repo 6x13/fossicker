@@ -10,34 +10,28 @@
                 #:require-system
                 #:find-system
                 #:system-source-directory)
-  ;; (:import-from :cl-fad #:canonical-pathname)
-  ;; (:import-from :cl-fad #:list-directory)
-  ;; (:import-from :cl-fad #:file-exists-p)
-  ;; (:import-from :cl-fad #:directory-exists-p)
-  ;; (:import-from :cl-fad #:pathname-as-file)
-  ;; (:import-from :cl-fad #:pathname-as-directory)
-  ;; (:import-from :cl-fad #:merge-pathnames-as-file)
-  ;; (:import-from :cl-fad #:merge-pathnames-as-directory)
-  ;; (:import-from :cl-fad #:pathname-directory-pathname)
-  ;; (:import-from :cl-ppcre #:create-scanner)
-  ;; (:import-from :cl-ppcre #:scan)
+  (:import-from :uiop
+                #:file-exists-p
+                #:pathname-directory-pathname
+                #:directory-exists-p
+                #:directory-files)
+  (:import-from :cl-ppcre
+                #:create-scanner
+                #:scan)
   (:export #:*config*
            #:*repository*
            #:configuration
            #:configure
-           ;; #:load-libs
-           ;; #:load-config
-           ;; #:register-type
-           ;; #:*project*
-           ;; #:get-project
-           ;; #:set-project
-           ;; #:load-project
-           ;; #:unload-project
-           ;; #:load-projects
-           ;; #:add-project
-           ;; #:remove-project
-           ;; #:generate
-           ))
+           #:add-project
+           #:remove-project
+           #:load-projects
+           #:*project*
+           #:*project-registry*
+           #:get-project
+           #:set-project
+           #:load-project
+           #:unload-project
+           #:generate))
 
 ;; (defpackage #:fossicker-widget
 ;;   (:use #:cl+qt

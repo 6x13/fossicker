@@ -27,13 +27,20 @@
 ;;
 
 (defclass configuration (asdf:package-inferred-system)
-  ((projects :initarg :projects :accessor projects)
-   (default-project :initarg :default :accessor default-project)
-   (legend :initarg :legend :accessor legend))
+  ((projects :initarg :projects
+             :initform nil
+             :accessor projects)
+   (default  :initarg :default
+             :initform nil
+             :accessor default-project)
+   (legend   :initarg :legend
+             :initform nil
+             :accessor legend))
   (:documentation
    "System definition class for Fossicker configuration."))
 
 (declaim (type (or null configuration) *config*))
+
 (defvar *config* nil
   "System object that holds configuration data.")
 
@@ -47,5 +54,41 @@
   (funcall (if force-reload #'load-system #'require-system) system)
   (setf *config* (find-system system))
   (setf *repository* (system-source-directory '#:fossicker))
-  (load-projects)
-  (set-project (getf *config* :default)))
+  (load-projects *config*)
+  (set-project (default-project *config*)))
+
+;;
+;;;; Project Operations
+;;
+;;
+
+(defgeneric load-projects (config)
+  (:documentation "Loads all projects listed in PROJECT slot of CONFIG."))
+
+(defmethod load-projects ((config configuration))
+  (setf *project-registry* nil)
+  (dolist (project (projects config))
+    (assert (and project (listp project)))
+    (load-project (getf project :file) (getf project :root))))
+
+(defgeneric add-project (config file &optional root)
+  (:documentation
+   "Add path and root to PROJECTS slot of CONFIG if not already added."))
+
+(defmethod add-project ((config configuration) file &optional root)
+  (pushnew (if root (list file root) (list file))
+           (projects config)
+           :key #'car
+           :test #'string=)
+  (load-project file root))
+
+(defgeneric remove-project (config name)
+  (:documentation
+   "Remove project from PROJECTS slot of CONFIG if exists."))
+
+(defmethod remove-project ((config configuration) name)
+  (delete name
+          (projects config)
+          :key #'car
+          :test #'string=)
+  (unload-project name))
