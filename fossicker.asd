@@ -8,27 +8,30 @@
   :version "0.1"
   :maintainer "Kenan Bölükbaşı <kenanbolukbasi@gmail.com>"
   :licence "GPL"
-  :depends-on ((:version "asdf" "3.1.2")
+  :depends-on ((:version #:asdf "3.1.2")
+               #:contextl
                ;; #:cl-fad
-               ;; #:cl-ppcre
+               #:cl-ppcre
                ;; #:qtools
                ;; #:qtcore
                ;; #:qtgui
                )
   :serial t
-  :components ((:module core
+  :components ((:file "packages")
+               (:module core
                 :components
-                ((:file "package")
-                 (:file "config")
+                ((:file "config")
                  ;; (:file "types")
                  ;; (:file "projects")
                  ;; (:file "prospect")
+                 ;; (:file "interface")
                  (:file "fossicker")))
-               (:module interface
+               (:module interfaces
                 :components
                 (
                  ;; (:file "cli")
-                 ;; (:file "widget")
+                 ;; (:file "gui")
+                 ;; (:file "srv")
                  )))
   :perform (load-op :after (o s)
                     (let* ((package "FOSSICKER-CONFIGURATION")
@@ -48,6 +51,9 @@
 
 (register-system-packages "fossicker"
                           '(:fck))
+
+(register-system-packages "fossicker-configuration"
+                          '(:fckcfg))
 
 (register-system-packages "fossicker-user"
                           '(:fcku))
