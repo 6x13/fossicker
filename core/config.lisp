@@ -54,10 +54,10 @@
   distributed with the source.  Its value  is computed from the location of the
   Fossicker system.")
 
-(defun configure (&key (system *default-config-system*) reload)
+(defun configure (&key (system *default-config-system*) reloadp)
   "Loads the configuration system"
   (check-type system (or symbol string))
-  (funcall (if reload #'load-system #'require-system) system)
+  (funcall (if reloadp #'load-system #'require-system) system)
   (setf *config* (find-system system))
   (setf *repository* (system-source-directory '#:fossicker))
   (load-projects *config*)
@@ -69,32 +69,30 @@
 ;;
 
 (defgeneric load-projects (config)
-  (:documentation "Loads all projects listed in PROJECT slot of CONFIG."))
-
-(defmethod load-projects ((config configuration))
-  (setf *project-registry* nil)
-  (dolist (project (projects config))
-    (assert (and project (listp project)))
-    (load-project (getf project :file) (getf project :root))))
+  (:documentation
+   "Loads all projects listed in PROJECT slot of CONFIG.")
+  (:method ((config configuration))
+    (setf *project-registry* nil)
+    (dolist (project (projects config))
+      (assert (and project (listp project)))
+      (load-project (getf project :file) (getf project :root)))))
 
 (defgeneric add-project (config file &optional root)
   (:documentation
-   "Add path and root to PROJECTS slot of CONFIG if not already added."))
-
-(defmethod add-project ((config configuration) file &optional root)
-  (pushnew (if root (list file root) (list file))
-           (projects config)
-           :key #'car
-           :test #'string=)
-  (load-project file root))
+   "Add path and root to PROJECTS slot of CONFIG if not already added.")
+  (:method ((config configuration) file &optional root)
+    (pushnew (if root (list file root) (list file))
+             (projects config)
+             :key #'car
+             :test #'string=)
+    (load-project file root)))
 
 (defgeneric remove-project (config name)
   (:documentation
-   "Remove project from PROJECTS slot of CONFIG if exists."))
-
-(defmethod remove-project ((config configuration) name)
-  (delete name
-          (projects config)
-          :key #'car
-          :test #'string=)
-  (unload-project name))
+   "Remove project from PROJECTS slot of CONFIG if exists.")
+  (:method ((config configuration) name)
+    (delete name
+            (projects config)
+            :key #'car
+            :test #'string=)
+    (unload-project name)))

@@ -26,8 +26,12 @@
 ;;
 ;;
 
+(declaim (type (or null project) *project*))
+
 (defvar *project-registry* nil
   "List of fossicker project instances.")
+
+(declaim (type (or null project) *project*))
 
 (defvar *project* nil
   "Name of the currently selected fossicker project.")
@@ -35,13 +39,13 @@
 (defclass project ()
   ((name
     :initarg :name
-    :initform (error "Project doesn't have a name")
+    :initform (error "Project doesn't have a name.")
     :type string
     :reader project-name
     :documentation "The name of the project. It has to be unique.")
    (file
     :initarg :file
-    :initform (error "Project doesn't have a file")
+    :initform (error "Project doesn't have a file.")
     :type pathname
     :reader project-file
     :documentation "Path to loaded project configuration file.")
@@ -92,16 +96,15 @@
               path (cadr data)
               specs (cddr data))))))
 
-(defmethod initialize-instance :after ((proj project) &key)
-  (with-slots (root file) proj
-    (unless (boundp 'root)
-      (setf root (pathname-directory-pathname file)))))
+(defmethod initialize-instance :after ((project project) &key)
+  (with-slots (file) project
+    (unless (slot-boundp project 'root)
+      (setf (slot-value project 'root) (pathname-directory-pathname file)))))
 
 (defgeneric generate (project)
   (:documentation
-   "Generates asset, pushes it to ASSETS and sets it as CURRENT."))
-
-(defmethod generate ((project project)))
+   "Generates asset, pushes it to ASSETS and sets it as CURRENT.")
+  (:method ((project project))))
 
 ;;
 ;;;; Selection
