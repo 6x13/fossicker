@@ -110,9 +110,7 @@
 
 (defun project-root-p (project-root)
   (when *default-pathname-defaults*
-    (let ((project
-            (namestring
-             (truename (pathname-as-file project-root))))
+    (let ((project (namestring (truename project-root)))
           (current
             (namestring (truename *default-pathname-defaults*))))
       (scan (create-scanner (format nil "^~a" project)

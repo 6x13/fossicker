@@ -26,6 +26,11 @@
 ;;
 ;;
 
+(declaim (type (or symbol string) *default-config-system*))
+
+(defvar *default-config-system* '#:fossickerrc
+  "Configuration system name to be used when no system name is supplied as an argument to the SYSTEM parameter in a call to CONFIGURE.")
+
 (defclass configuration (asdf:package-inferred-system)
   ((projects :initarg :projects
              :initform nil
@@ -49,9 +54,10 @@
   distributed with the source.  Its value  is computed from the location of the
   Fossicker system.")
 
-(defun configure (system &key force-reload)
+(defun configure (&key (system *default-config-system*) reload)
   "Loads the configuration system"
-  (funcall (if force-reload #'load-system #'require-system) system)
+  (check-type system (or symbol string))
+  (funcall (if reload #'load-system #'require-system) system)
   (setf *config* (find-system system))
   (setf *repository* (system-source-directory '#:fossicker))
   (load-projects *config*)

@@ -24,7 +24,7 @@
                  (:file "config")
                  ;; (:file "asset")
                  ;; (:file "prospect")
-                 ;; (:file "interface")
+                 (:file "interface")
                  (:file "fossicker")))
                (:module interfaces
                 :components
@@ -34,8 +34,7 @@
                  ;; (:file "srv")
                  )))
   :perform (load-op :after (o s)
-                    (funcall (find-symbol "CONFIGURE" "FOSSICKER")
-                             '#:fossickerrc)))
+                    (funcall (find-symbol "CONFIGURE" "FOSSICKER"))))
 
 (register-system-packages "closer-mop"
                           '(:c2mop
