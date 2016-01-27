@@ -19,13 +19,21 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package :fossicker-configuration)
+(in-package :fossicker)
 
 ;;;;;;;;;;
 ;;; Config
 ;;
 ;;
 
+(defclass configuration (asdf:package-inferred-system)
+  ((projects :initarg :projects :accessor projects)
+   (default-project :initarg :default :accessor default-project)
+   (legend :initarg :legend :accessor legend))
+  (:documentation
+   "System definition class for Fossicker configuration."))
+
+(declaim (type (or null configuration) *config*))
 (defvar *config* nil
   "System object that holds configuration data.")
 
@@ -34,70 +42,10 @@
   distributed with the source.  Its value  is computed from the location of the
   Fossicker system.")
 
-(defclass system (asdf:package-inferred-system)
-  ((projects :initarg :projects)
-   (legend :initarg :legend)))
-
-;;
-;;;; Load Libraries
-;;
-;;
-
-;; (defun load-library (name)
-;;   "Given a plugin, NAME, compile and load it."
-;;   (let ((file (merge-pathnames-as-file
-;;                fossicker-conf:*basedir*
-;;                (format nil "lib/~(~A~)" name))))
-;;     (multiple-value-bind (output-file error)
-;;         (ignore-errors (compile-file file :verbose nil :print nil))
-;;       (when error
-;;         (warn "Error while compiling library ~A: ~A.~%" name error))
-;;       (load (or output-file file) :verbose t))))
-
-;; (defun load-libs (&rest libraries)
-;;   "If supplied, load LIBS, else load libs supplied in LIBS variable."
-;;   (let ((libs (or libraries (getf *config* :libs))))
-;;     (when libs
-;;       (dolist (lib libs (message "Fossicker libraries loaded: ~a.~%" libs))
-;;         (load-library lib)))))
-
-;;
-;;;; Load Config
-;;
-;;
-
-;; (defun get-config-path (config-path)
-;;   "Check the supplied CONFIG-PATH and if one doesn't exist,
-;; use the .fossickerrc in user home or lastly in repo."
-;;   (let ((home-config (merge-pathnames-as-file
-;;                       (user-homedir-pathname) ".fossickerrc"))
-;;         (repo-config (merge-pathnames-as-file
-;;                       fossicker-conf:*basedir* ".fossickerrc")))
-;;     (if config-path
-;;         (if (not (directory-exists-p (pathname config-path)))
-;;             (progn
-;;               (message "Config file save location set to ~a.~%" config-path)
-;;               (setf *config-path* (pathname-as-file config-path)))
-;;             (progn
-;;               (message "~a is a directory, using ~a as config save location instead.~%"
-;;                        config-path
-;;                        home-config)
-;;               (setf *config-path* home-config)))
-;;         (progn
-;;           (message "Config file save location set to ~a~%" home-config)
-;;           (setf *config-path* home-config)))
-;;     (cond ((and config-path (file-exists-p (pathname config-path)))
-;;            (pathname config-path))
-;;           ((file-exists-p home-config) home-config)
-;;           (t repo-config))))
-
-;; (defun load-config (&optional config-path)
-;;   "Find and load the fossicker configuration."
-;;   (with-open-file (in (get-config-path config-path) :external-format :utf-8)
-;;     (setf *config* (read in)))
-;;   (setf fossicker-conf:*basedir*
-;;         (or (getf *config* :base-path)
-;;             fossicker-conf:*basedir*))
-;;   (load-libs)
-;;   (load-projects)
-;;   (set-project (getf *config* :default)))
+(defun configure (system &key force-reload)
+  "Loads the configuration system"
+  (funcall (if force-reload #'load-system #'require-system) system)
+  (setf *config* (find-system system))
+  (setf *repository* (system-source-directory '#:fossicker))
+  (load-projects)
+  (set-project (getf *config* :default)))

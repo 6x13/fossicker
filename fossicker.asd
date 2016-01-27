@@ -34,13 +34,8 @@
                  ;; (:file "srv")
                  )))
   :perform (load-op :after (o s)
-                    (let* ((package "FOSSICKER-CONFIGURATION")
-                           (system '#:fossicker-user)
-                           (config (find-symbol "*CONFIG*" package))
-                           (repo (find-symbol "*REPOSITORY*" package)))
-                      (require-system system)
-                      (set config (find-system system))
-                      (set repo (system-source-directory '#:fossicker)))))
+                    (funcall (find-symbol "CONFIGURE" "FOSSICKER")
+                             '#:fossickerrc)))
 
 (register-system-packages "closer-mop"
                           '(:c2mop
@@ -51,9 +46,6 @@
 
 (register-system-packages "fossicker"
                           '(:fck))
-
-(register-system-packages "fossicker-configuration"
-                          '(:fckcfg))
 
 (register-system-packages "fossicker-user"
                           '(:fcku))

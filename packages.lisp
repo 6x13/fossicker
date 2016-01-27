@@ -2,14 +2,14 @@
 
 (in-package :cl-user)
 
-(defpackage :fossicker-configuration
-  (:nicknames :fckcfg)
-  (:use :cl)
-  (:export #:*config* #:*repository* #:system))
-
 (defpackage :fossicker
   (:nicknames :fck)
   (:use :cl)
+  (:import-from :asdf
+                #:load-system
+                #:require-system
+                #:find-system
+                #:system-source-directory)
   ;; (:import-from :cl-fad #:canonical-pathname)
   ;; (:import-from :cl-fad #:list-directory)
   ;; (:import-from :cl-fad #:file-exists-p)
@@ -22,7 +22,9 @@
   ;; (:import-from :cl-ppcre #:create-scanner)
   ;; (:import-from :cl-ppcre #:scan)
   (:export #:*config*
-           #:config-system
+           #:*repository*
+           #:configuration
+           #:configure
            ;; #:load-libs
            ;; #:load-config
            ;; #:register-type
