@@ -4,7 +4,7 @@
 
 (defpackage :fossicker
   (:nicknames :fck)
-  (:use :cl)
+  (:use :cl :contextl)
   (:import-from :asdf
                 #:clear-system
                 #:load-system

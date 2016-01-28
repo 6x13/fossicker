@@ -34,7 +34,7 @@
 (defvar *project* nil
   "Name of the currently selected fossicker project.")
 
-(defclass project ()
+(define-layered-class project ()
   ((name
     :initarg :name
     :initform (error "Project doesn't have a name.")
@@ -157,7 +157,7 @@ current working directory path to select the project."
 (defun load-project (file &optional root)
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
-               'project
+               (intern (string-upcase (pathname-type file)) :fossicker)
                :import t
                :file file
                (if root (list :root root)))

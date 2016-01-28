@@ -11,7 +11,7 @@
    ("_e_" "enabled"))
   
   :projects
-  ((:file "~/dev/lisp/local-projects/fossicker/test/6x13.project"
+  ((:file "~/dev/lisp/local-projects/fossicker/test/6x13.blog"
     :root "~/dev/lisp/local-projects/fossicker/")
    (:file "~/dev/lisp/local-projects/fossicker/test/test.project"))
 
