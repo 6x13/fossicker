@@ -24,7 +24,7 @@
            #:configure
            #:load-projects
            #:add-project
-           #:delete-project
+           #:remove-project
            #:*project*
            #:*project-registry*
            #:get-project

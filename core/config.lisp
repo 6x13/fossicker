@@ -86,7 +86,7 @@
              :key (lambda (project) (getf project :file))
              :test #'string=)))
 
-(defgeneric delete-project (config file)
+(defgeneric remove-project (config file)
   (:documentation
    "Remove project from PROJECTS slot of CONFIG if exists.")
   (:method ((config configuration) file)

@@ -139,7 +139,7 @@ current working directory path to select the project."
                       *project-registry*
                       :key #'project-name
                       :test #'string=))
-          nil "~a is not in project list." project)
+          nil "~a is not in project list." name)
   (setf *project* (if name
                       (get-project name)
                       (find-project *project-registry*)))
