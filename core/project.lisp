@@ -51,7 +51,8 @@
     :initarg :root
     :type pathname
     :reader project-root
-    :documentation "Project root directory. It is either explicitly defined in project file or the directory project file resides in is used. ")
+    :documentation "Project root directory. It  is either explicitly defined in
+    project file or the directory project file resides in is used. ")
    (path
     :initarg :path
     :initform nil
@@ -68,12 +69,14 @@
     :type asset
     :initform nil
     :accessor current-asset
-    :documentation "Asset that is currently edited. Same as the CAR of generated assets.")
+    :documentation  "Asset  that  is  currently  edited. Same  as  the  CAR  of
+    generated assets.")
    (assets
     :type list
     :initform nil
     :accessor project-assets
-    :documentation "The list of asset instances generated in current session. The CAR is the latest GENERATED asset.")
+    :documentation  "The   list  of   asset  instances  generated   in  current
+    session. The CAR is the latest GENERATED asset.")
    (log
     :type list
     :initform nil
