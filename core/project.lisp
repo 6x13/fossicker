@@ -157,7 +157,9 @@ current working directory path to select the project."
 (defun load-project (file &optional root)
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
-               (intern (string-upcase (pathname-type file)) :fossicker)
+               (or (intern (string-upcase (pathname-type file))
+                           :fossicker)
+                   'project)
                :import t
                :file file
                (if root (list :root root)))
