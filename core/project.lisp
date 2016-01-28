@@ -26,8 +26,6 @@
 ;;
 ;;
 
-(declaim (type (or null project) *project*))
-
 (defvar *project-registry* nil
   "List of fossicker project instances.")
 
@@ -150,6 +148,9 @@ current working directory path to select the project."
                (project-name *project*)
                "nothing")))
 
+(defun clear-project-registry ()
+  (setf *project-registry* nil))
+
 (defun load-project (file &optional root)
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
@@ -161,5 +162,5 @@ current working directory path to select the project."
 
 (defun unload-project (name)
   "Unloads the project with the NAME from *PROJECT-REGISTRY*."
-  (delete (get-project name) *project-registry*))
+  (setf *project-registry* (delete (get-project name) *project-registry*)))
 

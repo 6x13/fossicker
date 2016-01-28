@@ -22,9 +22,9 @@
            #:*repository*
            #:configuration
            #:configure
-           #:add-project
-           #:remove-project
            #:load-projects
+           #:add-project
+           #:delete-project
            #:*project*
            #:*project-registry*
            #:get-project
@@ -39,6 +39,6 @@
 ;;   (:import-from :cl-fad #:merge-pathnames-as-file)
 ;;   (:export #:main))
 
-;; (defpackage :fossicker-user
-;;   (:nicknames :fcku)
-;;   (:use :fossicker :fossicker-widget))
+(defpackage :fossicker-user
+  (:nicknames :fcku)
+  (:use :cl :fossicker))

@@ -72,7 +72,7 @@
   (:documentation
    "Loads all projects listed in PROJECT slot of CONFIG.")
   (:method ((config configuration))
-    (setf *project-registry* nil)
+    (clear-project-registry)
     (dolist (project (projects config))
       (assert (and project (listp project)))
       (load-project (getf project :file) (getf project :root)))))
@@ -81,18 +81,17 @@
   (:documentation
    "Add path and root to PROJECTS slot of CONFIG if not already added.")
   (:method ((config configuration) file &optional root)
-    (pushnew (if root (list file root) (list file))
+    (pushnew (if root (list :file file :root root) (list :file file))
              (projects config)
-             :key #'car
-             :test #'string=)
-    (load-project file root)))
+             :key (lambda (project) (getf project :file))
+             :test #'string=)))
 
-(defgeneric remove-project (config name)
+(defgeneric delete-project (config file)
   (:documentation
    "Remove project from PROJECTS slot of CONFIG if exists.")
-  (:method ((config configuration) name)
-    (delete name
-            (projects config)
-            :key #'car
-            :test #'string=)
-    (unload-project name)))
+  (:method ((config configuration) file)
+    (setf (projects config)
+          (delete file
+                  (projects config)
+                  :key (lambda (project) (getf project :file))
+                  :test #'string=))))
