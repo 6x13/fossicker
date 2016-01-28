@@ -1,8 +1,0 @@
-(:legend (("_b_" "button")
-          ("_n_" "normal")
-          ("_p_" "pressed")
-          ("_e_" "enabled"))
- :libs (fossicker-texture fossicker-shader)
- :projects (("~/dev/lisp/local-projects/fossicker/test/6x13.proj"
-             "~/dev/lisp/local-projects/fossicker/")
-            ("~/dev/lisp/local-projects/fossicker/test/test.proj")))
