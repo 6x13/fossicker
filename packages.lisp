@@ -6,6 +6,7 @@
   (:nicknames :fck)
   (:use :cl)
   (:import-from :asdf
+                #:clear-system
                 #:load-system
                 #:require-system
                 #:find-system

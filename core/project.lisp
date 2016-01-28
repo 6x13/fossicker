@@ -86,8 +86,8 @@
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
-(defmethod initialize-instance :before ((project project) &key file importp)
-  (when importp
+(defmethod initialize-instance :before ((project project) &key file import)
+  (when import
     (let ((data (get-data-from-file file)))
       (with-slots (name path specs) project
         (setf name (car data)
@@ -155,7 +155,7 @@ current working directory path to select the project."
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
                'project
-               :importp t
+               :import t
                :file file
                (if root (list :root root)))
         *project-registry*))

@@ -54,10 +54,13 @@
   distributed with the source.  Its value  is computed from the location of the
   Fossicker system.")
 
-(defun configure (&key (system *default-config-system*) reloadp)
-  "Loads the configuration system"
+(defun configure (&key (system *default-config-system*) force)
+  "Loads the configuration system."
   (check-type system (or symbol string))
-  (funcall (if reloadp #'load-system #'require-system) system)
+  (clear-system system)
+  (if force
+      (load-system system :force force)
+      (require-system system))
   (setf *config* (find-system system))
   (setf *repository* (system-source-directory '#:fossicker))
   (load-projects *config*)
