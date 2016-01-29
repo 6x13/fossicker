@@ -32,7 +32,10 @@
   "Configuration system name to be used when no system name is supplied as an argument to the SYSTEM parameter in a call to CONFIGURE.")
 
 (defclass configuration (asdf:package-inferred-system)
-  ((projects :initarg :projects
+  ((notice   :initarg :notice
+             :initform t
+             :reader startup-notice)
+   (projects :initarg :projects
              :initform nil
              :accessor projects)
    (default  :initarg :default

@@ -34,7 +34,7 @@
                  ;; (:file "srv")
                  )))
   :perform (load-op :after (o s)
-                    (funcall (find-symbol "CONFIGURE" "FOSSICKER"))))
+                    (funcall (find-symbol "INITIALIZE" "FOSSICKER"))))
 
 (register-system-packages "closer-mop"
                           '(:c2mop
