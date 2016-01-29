@@ -1,10 +1,10 @@
-("test"
- "Resources/"
- (texture "textures/"
-          (("ldpi/" . 32)
-           ("mdpi/" . 64)
-           ("hdpi/" . 128)
-           ("retina/" . 256)))
- (model "models/")
- (bla "meh")
- (shader "shaders/"))
+(:name "test"
+ :path "Resources/"
+ :specs ((texture "textures/"
+                  (("ldpi/" . 32)
+                   ("mdpi/" . 64)
+                   ("hdpi/" . 128)
+                   ("retina/" . 256)))
+         (model "models/")
+         (bla "meh")
+         (shader "shaders/")))

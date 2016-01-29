@@ -21,6 +21,9 @@
 
 (in-package :fossicker)
 
+;; (declaim (optimize                                                       
+;;           (speed 0) (compilation-speed 0) (safety 3) (debug 3)))
+
 ;;;;;;;;;;;;
 ;;; Projects
 ;;
@@ -43,7 +46,7 @@
     :documentation "The name of the project. It has to be unique.")
    (file
     :initarg :file
-    :initform (error "Project doesn't have a file.")
+    :initform (error "Project doesn't have an associated file.")
     :type pathname
     :reader project-file
     :documentation "Path to loaded project configuration file.")
@@ -81,7 +84,10 @@
     :type list
     :initform nil
     :reader project-log
-    :documentation "Reports of project related actions.")))
+    :documentation "Reports of project related actions."))
+  (:default-initargs
+   :file (error "Project needs to have an associated file."))
+  (:documentation "Base project class that can be used and subclassed by other project types."))
 
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
@@ -89,18 +95,19 @@
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
-(defmethod initialize-instance :before ((project project) &key file import)
-  (when import
-    (let ((data (get-data-from-file file)))
-      (with-slots (name path specs) project
-        (setf name (car data)
-              path (cadr data)
-              specs (cddr data))))))
+(defmethod initialize-instance :around ((instance project)
+                                        &rest initargs
+                                        &key file import)
+  (declare (type (or pathname string) file))
+  (if import
+      (let ((data (get-data-from-file file)))
+        (apply #'call-next-method instance (append initargs data)))
+      (call-next-method)))
 
-(defmethod initialize-instance :after ((project project) &key)
-  (with-slots (file) project
-    (unless (slot-boundp project 'root)
-      (setf (slot-value project 'root) (pathname-directory-pathname file)))))
+(defmethod initialize-instance :after ((instance project) &key)
+  (unless (slot-boundp instance 'root)
+    (setf (slot-value instance 'root)
+          (pathname-directory-pathname (project-file instance)))))
 
 (defgeneric generate (project)
   (:documentation
