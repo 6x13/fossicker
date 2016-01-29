@@ -76,9 +76,7 @@
    "Loads all projects listed in PROJECT slot of CONFIG.")
   (:method ((config configuration))
     (clear-project-registry)
-    (dolist (project (projects config))
-      (assert (and project (listp project)))
-      (load-project (getf project :file) (getf project :root)))))
+    (dolist (project (projects config)) (apply #'load-project project))))
 
 (defgeneric add-project (config file &optional root)
   (:documentation

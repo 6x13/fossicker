@@ -162,15 +162,14 @@ current working directory path to select the project."
 (defun clear-project-registry ()
   (setf *project-registry* nil))
 
-(defun load-project (file &optional root)
+(defun load-project (&rest initargs &key file (import t) &allow-other-keys)
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
                (or (intern (string-upcase (pathname-type file))
                            :fossicker)
                    'project)
-               :import t
-               :file file
-               (if root (list :root root)))
+               :import import
+               initargs)
         *project-registry*))
 
 (defun unload-project (name)
