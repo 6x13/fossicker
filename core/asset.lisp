@@ -21,15 +21,15 @@
 
 (in-package :fossicker)
 
-;;;;;;;;;
-;;; Types
+;;;;;;;;;;
+;;; Assets
 ;;
 ;;
 
-(defvar *type-registry* nil)
+(defvar *dispatch-table* nil)
 
 ;;
-;;;; Register Type
+;;;; Register Asset
 ;;
 ;;
 
@@ -37,14 +37,14 @@
   "Default argument for register-type FUNCTION parameter."
   nil)
 
-(defun register-type (name
-                      override
-                      &key
-                        regexp
-                        (function #'ignore-function)
-                        formats)
+(defun register-asset (name
+                       override
+                       &key
+                         regexp
+                         (function #'ignore-function)
+                         formats)
   "Register a new fossicker type. 
-Fossicker TYPE is determined according a :REGEXP,
+Fossicker ASSET is determined according a :REGEXP,
 usually matching file extensions.
 The asset picked from fossicker data path is
 processed by :FUNCTION in order to fit
@@ -58,13 +58,13 @@ among possible matches in the data path."
     (push (list name regexp function formats) *type-registry*)))
 
 ;;
-;;;; Type Accessors
+;;;; Asset Class
 ;;
 ;;
 
 (defun get-types ()
-  (remove-duplicates *type-registry*
-                     :key #'type-name
+  (remove-duplicates *dispatch-table*
+                     :key #'dispatch-class
                      :from-end t))
 
 (defclass asset ()
@@ -102,20 +102,24 @@ among possible matches in the data path."
 
 (defmethod export ((asset asset)))
 
-(defclass asset-dispatcher ()
-     ((class :initarg :class :accessor asset-dispatcher-class)
-      (match :initarg :match :accessor asset-dispatcher-match))
+(defclass dispatcher ()
+  ((class :initarg :class
+          :type symbol
+          :accessor dispatcher-class)
+   (regex :initarg :regex
+          :type list
+          :accessor dispatcher-regex))
   (:documentation ""))
 
-(defmethod initialize-instance :after ((dispatcher asset-dispatcher))
-  (push dispatcher *asset-dispatcher-registry*))
+(defmethod initialize-instance :after ((dispatcher dispatcher))
+  (push dispatcher *dispatch-table*))
 
 (defgeneric dispatch (dispatcher namestring)
-  "")
+  (:documentation "Dispatch on an asset subclass."))
 
-(defmethod dispatch ((dispatcher asset-dispatcher) (namestring string))
+(defmethod dispatch ((dispatcher dispatcher) (namestring string))
   (some
-   (lambda (regexp)
-     (scan (create-scanner regexp :case-insensitive-mode t)
+   (lambda (regex)
+     (scan (create-scanner regex :case-insensitive-mode t)
            namestring))
-   (asset-dispatcher-match dispatcher)))
+   (dispatcher-regex dispatcher)))

@@ -38,28 +38,28 @@
   "Name of the currently selected fossicker project.")
 
 (define-layered-class project ()
-  ((name
+  ((file
+    :initarg :file
+    :initform (error "Project doesn't have an associated file.")
+    :type (or pathname string)
+    :reader project-file
+    :documentation "Path to loaded project configuration file.")
+   (name
     :initarg :name
     :initform (error "Project doesn't have a name.")
     :type string
     :reader project-name
     :documentation "The name of the project. It has to be unique.")
-   (file
-    :initarg :file
-    :initform (error "Project doesn't have an associated file.")
-    :type pathname
-    :reader project-file
-    :documentation "Path to loaded project configuration file.")
    (root
     :initarg :root
-    :type pathname
+    :type (or pathname string)
     :reader project-root
     :documentation "Project root directory. It  is either explicitly defined in
     project file or the directory project file resides in is used. ")
    (path
     :initarg :path
     :initform nil
-    :type pathname
+    :type (or pathname string)
     :reader project-path
     :documentation "The path to the project resource directory.")
    (specs
@@ -95,14 +95,15 @@
   (with-open-file (in path :external-format :utf-8)
     (read in)))
 
-(defmethod initialize-instance :around ((instance project)
-                                        &rest initargs
-                                        &key file import)
+(defmethod initialize-instance :around
+    ((instance project)
+     &rest initargs
+     &key import file (name (remove #\. (pathname-name file) :end 1)))
   (declare (type (or pathname string) file))
   (if import
       (let ((data (get-data-from-file file)))
-        (apply #'call-next-method instance (append initargs data)))
-      (call-next-method)))
+        (apply #'call-next-method instance :name name (append initargs data)))
+      (apply #'call-next-method instance :name name initargs)))
 
 (defmethod initialize-instance :after ((instance project) &key)
   (unless (slot-boundp instance 'root)
