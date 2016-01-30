@@ -44,7 +44,4 @@
                             :c2cl-user))
 
 (register-system-packages "fossicker"
-                          '(:fck))
-
-(register-system-packages "fossicker-user"
-                          '(:fcku))
+                          '(:fossicker-user))

@@ -3,7 +3,6 @@
 (in-package :cl-user)
 
 (defpackage :fossicker
-  (:nicknames :fck)
   (:use :cl :contextl)
   (:import-from :asdf
                 #:clear-system
@@ -42,5 +41,4 @@
 ;;   (:export #:main))
 
 (defpackage :fossicker-user
-  (:nicknames :fcku)
   (:use :cl :fossicker))

@@ -16,4 +16,5 @@
    (:file "~/dev/lisp/local-projects/fossicker/test/test.project"))
 
   :depends-on
-  ("fossicker/plugins/all"))
+  ("fossicker/plugins/inconvenience"
+   "fossicker/plugins/all"))
