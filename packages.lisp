@@ -23,6 +23,7 @@
            #:*repository*
            #:configuration
            #:configure
+           #:initialize
            #:load-projects
            #:add-project
            #:remove-project
