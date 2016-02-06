@@ -20,9 +20,10 @@
   :components ((:file "packages")
                (:module core
                 :components
-                ((:file "project")
-                 (:file "config")
+                (;; (:file "persistence")
                  ;; (:file "asset")
+                 (:file "project")
+                 (:file "config")
                  ;; (:file "prospect")
                  (:file "interface")
                  (:file "fossicker")))

@@ -5,10 +5,11 @@
 
 (in-package :fossicker/plugins/texture)
 
-;; (fossicker::register-type 'texture t
-;;                           :regexp
-;;                           '("\\.png$"
-;;                             "\\.jpg$"
-;;                             "\\.tiff$"
-;;                             "\\.tga$")
-;;                           :function #'fossicker::ignore-function)
+(deflayer texture)
+
+(define-layered-class texture (asset)
+  ()
+  (:documentation "Generic texture class."))
+
+(define-layered-method dispatch :in texture list (namestring)
+  '(texture . ("\\.png$" "\\.jpg$" "\\.tiff$" "\\.tga$")))

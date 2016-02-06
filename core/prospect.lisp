@@ -26,12 +26,7 @@
 ;;
 ;;
 
-(defun matching-types (fname)
-  (mapcar #'type-name
-          (remove-if-not
-           (lambda (type)
-             (type-match-p fname type))
-           (get-types))))
+
 
 (defun matching-spec (types specs)
   (when specs

@@ -29,23 +29,33 @@
 (declaim (type (or symbol string) *default-config-system*))
 
 (defvar *default-config-system* '#:fossickerrc
-  "Configuration system name to be used when no system name is supplied as an argument to the SYSTEM parameter in a call to CONFIGURE.")
+  "Configuration system name to  be used when no system name  is supplied as an
+  argument to the SYSTEM parameter in a call to CONFIGURE.")
 
 (defclass configuration (asdf:package-inferred-system)
   ((notice   :initarg :notice
              :initform t
-             :reader startup-notice)
+             :reader startup-notice
+             :documentation "Enable/disable Fossicker startup notice.")
    (projects :initarg :projects
              :initform nil
-             :accessor projects)
+             :accessor projects
+             :documentation  "Fossicker project  file  locations. Project  ROOT
+             will  be computed  from project  file location  if not  explicitly
+             specified.")
    (default  :initarg :default
              :initform nil
-             :accessor default-project)
+             :accessor default-project
+             :documentation "Default project name  to be selected. Project will
+             be   autoselected   from   current  working   directory   if   not
+             specified. Project will be set to  NIL if there is no project root
+             that corresponds to the current working directory.")
    (legend   :initarg :legend
              :initform nil
-             :accessor legend))
-  (:documentation
-   "System definition class for Fossicker configuration."))
+             :accessor legend
+             :documentation  "Legend  to  be  used when  mapping  a  NAMESTRING
+             specified by user to a prospect template from database."))
+  (:documentation "System definition class for Fossicker configuration."))
 
 (declaim (type (or null configuration) *config*))
 
@@ -75,15 +85,13 @@
 ;;
 
 (defgeneric load-projects (config)
-  (:documentation
-   "Loads all projects listed in PROJECT slot of CONFIG.")
+  (:documentation "Loads all projects listed in PROJECT slot of CONFIG.")
   (:method ((config configuration))
     (clear-project-registry)
     (dolist (project (projects config)) (apply #'load-project project))))
 
 (defgeneric add-project (config file &optional root)
-  (:documentation
-   "Add path and root to PROJECTS slot of CONFIG if not already added.")
+  (:documentation "Add FILE and ROOT to PROJECTS slot of CONFIG if absent.")
   (:method ((config configuration) file &optional root)
     (pushnew (if root (list :file file :root root) (list :file file))
              (projects config)
@@ -91,8 +99,7 @@
              :test #'string=)))
 
 (defgeneric remove-project (config file)
-  (:documentation
-   "Remove project from PROJECTS slot of CONFIG if exists.")
+  (:documentation "Remove project from PROJECTS slot of CONFIG if exists.")
   (:method ((config configuration) file)
     (setf (projects config)
           (delete file

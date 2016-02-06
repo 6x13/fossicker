@@ -87,13 +87,17 @@
     :documentation "Reports of project related actions."))
   (:default-initargs
    :file (error "Project needs to have an associated file."))
-  (:documentation "Base project class that can be used and subclassed by other project types."))
+  (:documentation "Base project class that can  be used and subclassed by other
+  project types."))
 
 (defun get-data-from-file (path)
   "Read s-expression from PATH."
   (assert (file-exists-p path) nil "File ~a doesn't exist." path)
   (with-open-file (in path :external-format :utf-8)
     (read in)))
+
+(defun project-file-directory (project)
+  (pathname-directory-pathname (project-file project)))
 
 (defmethod initialize-instance :around
     ((instance project)
@@ -108,11 +112,10 @@
 (defmethod initialize-instance :after ((instance project) &key)
   (unless (slot-boundp instance 'root)
     (setf (slot-value instance 'root)
-          (pathname-directory-pathname (project-file instance)))))
+          (project-file-directory instance))))
 
 (defgeneric generate (project)
-  (:documentation
-   "Generates asset, pushes it to ASSETS and sets it as CURRENT.")
+  (:documentation "Generates asset, pushes it to ASSETS and sets CURRENT.")
   (:method ((project project))))
 
 ;;
