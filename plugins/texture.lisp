@@ -1,9 +1,9 @@
 (in-package :cl-user)
 
 (defpackage :fossicker/plugins/texture
-  (:use :cl))
+  (:use :cxcl))
 
-(in-package :fossicker/plugins/texture)
+(in-package :fossicker)
 
 (deflayer texture)
 

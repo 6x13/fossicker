@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :fossicker/plugins/model
-  (:use :cl))
+  (:use :cxcl))
 
 (in-package :fossicker/plugins/model)
 

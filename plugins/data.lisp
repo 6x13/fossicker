@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :fossicker/plugins/data
-  (:use :cl))
+  (:use :cxcl))
 
 (in-package :fossicker/plugins/data)
 

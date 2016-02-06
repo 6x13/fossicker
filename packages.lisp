@@ -3,7 +3,7 @@
 (in-package :cl-user)
 
 (defpackage :fossicker
-  (:use :cl :contextl)
+  (:use :contextl-common-lisp)
   (:import-from :asdf
                 #:clear-system
                 #:load-system
@@ -32,13 +32,17 @@
            #:set-project
            #:load-project
            #:unload-project
-           #:generate))
+           #:generate
+           #:dispatch
+           #:save))
 
 ;; (defpackage #:fossicker-widget
 ;;   (:use #:cl+qt
 ;;         #:fossicker)
 ;;   (:import-from :cl-fad #:merge-pathnames-as-file)
 ;;   (:export #:main))
+
+(in-package :fossicker)
 
 (defpackage :fossicker-user
   (:use :cl :fossicker))

@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :fossicker/plugins/font
-  (:use :cl))
+  (:use :cxcl))
 
 (in-package :fossicker/plugins/font)
 

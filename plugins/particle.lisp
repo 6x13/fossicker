@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :fossicker/plugins/particle
-  (:use :cl))
+  (:use :cxcl))
 
 (in-package :fossicker/plugins/particle)
 

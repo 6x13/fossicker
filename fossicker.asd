@@ -44,5 +44,12 @@
                             :closer-common-lisp-user
                             :c2cl-user))
 
+(register-system-packages "contextl"
+                          '(:contextl
+                            :contextl-common-lisp
+                            :cxcl
+                            :contextl-user
+                            :cx-user))
+
 (register-system-packages "fossicker"
                           '(:fossicker-user))

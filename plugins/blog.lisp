@@ -1,7 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :fossicker/plugins/blog
-  (:use :fossicker :cl :contextl))
+  (:use :fossicker :cxcl))
 
 (in-package :fossicker/plugins/blog)
 
