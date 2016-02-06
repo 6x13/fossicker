@@ -43,7 +43,12 @@
   returning  (CLASS-NAME .   REGEX-LIST). The  CLASS-NAME will  be listed  as a
   potential  dispatch   target  if   any  REGEX   in  REGEX-LIST   matches  the
   NAMESTRING.")
+  (:method list (namestring)
+    "Returns  NIL, which  is  going to  be  removed from  list  by the  :AROUND
+    method. There needs to be at least one primary method." nil)
   (:method :around (namestring)
+    "Evaluates  CDRs of  every element  in  list returned  by primary  methods,
+collecting cars for the ones that yield T."
     (mapcar #'car (remove-if-not
                    (lambda (elt)
                      (etypecase elt
@@ -96,3 +101,4 @@
   path. Default method  simply ignores the input and does  nothing.  Each asset
   subclass should implement their own export method.")
   (:method ((asset asset))))
+

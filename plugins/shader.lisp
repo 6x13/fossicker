@@ -1,19 +1,7 @@
-(in-package :cl-user)
-
 (defpackage :fossicker/plugins/shader
   (:use :cxcl))
 
 (in-package :fossicker/plugins/shader)
-
-(deflayer shader)
-
-(define-layered-class shader (asset)
-  ()
-  (:documentation "Generic shader class."))
-
-(define-layered-method dispatch :in shader list (namestring)
-  '(shader . ("\\.vert\$" "\\.frag\$" "\\.tesc\$"
-              "\\.tese\$" "\\.geom\$" "\\.comp\$")))
 
 (defun match-prospect-extension (ext)
   (cond ((member ext
@@ -29,3 +17,18 @@
                  :test #'string-equal)
          '("tese" "tes"))
         (t nil)))
+
+
+(in-package :fossicker)
+
+(deflayer shader)
+
+(define-layered-class shader (asset)
+  ()
+  (:documentation "Generic shader class."))
+
+(define-layered-method dispatch :in shader list (namestring)
+  '(shader . ("\\.vert\$" "\\.frag\$" "\\.tesc\$"
+              "\\.tese\$" "\\.geom\$" "\\.comp\$")))
+
+

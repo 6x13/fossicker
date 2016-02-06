@@ -1,5 +1,3 @@
-(in-package :cl-user)
-
 (defpackage :fossicker/plugins/blog
   (:use :fossicker :cxcl))
 

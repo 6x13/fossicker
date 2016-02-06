@@ -94,7 +94,7 @@
   "Read s-expression from PATH."
   (assert (file-exists-p path) nil "File ~a doesn't exist." path)
   (with-open-file (in path :external-format :utf-8)
-    (read in)))
+    (let ((*package* (find-package :fossicker))) (read in))))
 
 (defun project-file-directory (project)
   (pathname-directory-pathname (project-file project)))
@@ -118,17 +118,34 @@
   (:documentation "Generates asset, pushes it to ASSETS and sets CURRENT.")
   (:method ((project project) namestring)
     (labels ((matching-spec (types specs)
-               "Project specification order drives type dispatch precedence, not the dispatch list."
+               "Iterates over project  specs and returns first  asset spec that
+successfully dispatched on namestring.  Project specification order drives type
+dispatch precedence, not the dispatch list."
                 (when specs
-                  (if (member (car specs) types)
+                  (if (member (caar specs) types)
                       (car specs)
                       (matching-spec types (cdr specs))))))
-      (let ((instance (make-instance (matching-spec (dispatch namestring)
-                                                    (project-specs project))
-                                     :namestring namestring
-                                     :date (get-universal-time))))
-        (push instance (project-assets project))
-        (setf (current-asset project) instance)))))
+      (let* ((dispatch (dispatch namestring))
+             (spec (matching-spec dispatch (project-specs project))))
+        (cond (spec
+               ;; Make an  instance of  asset subclass, set  it as  CURRENT and
+               ;; push it to ASSETS.
+               (progn
+                 (setf (current-asset project)
+                       (make-instance (car spec)
+                                      :namestring namestring
+                                      :date (get-universal-time)))
+                 (push (current-asset project) (project-assets project))
+                 (message "Asset generated: ~A"
+                          (current-asset project))))
+              (dispatch
+               ;; No matching specification in project. Do nothing.
+               (message "~A Candidates: ~A"
+                        "No dispatched asset class is specified in project."
+                        dispatch))
+              (t
+               ;; Couldn't dispatch on any classes.
+               (message "Couldn't dispatch on any asset class.")))))))
 
 ;;
 ;;;; Selection

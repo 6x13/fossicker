@@ -1,5 +1,3 @@
-(in-package :cl-user)
-
 (defpackage :fossicker/plugins/texture
   (:use :cxcl))
 
