@@ -26,14 +26,6 @@
 ;;
 ;;
 
-
-
-(defun matching-spec (types specs)
-  (when specs
-    (if (member (car specs) types)
-        (car specs)
-        (matching-spec types (cdr specs)))))
-
 (defun map-to-vein (string legend)
   (when legend
     (cons (cons (scan (caar legend) string)

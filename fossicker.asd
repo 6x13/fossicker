@@ -21,7 +21,7 @@
                (:module core
                 :components
                 (;; (:file "persistence")
-                 ;; (:file "asset")
+                 (:file "asset")
                  (:file "project")
                  (:file "config")
                  ;; (:file "prospect")

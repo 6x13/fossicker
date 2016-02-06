@@ -114,9 +114,21 @@
     (setf (slot-value instance 'root)
           (project-file-directory instance))))
 
-(defgeneric generate (project)
+(defgeneric generate (project namestring)
   (:documentation "Generates asset, pushes it to ASSETS and sets CURRENT.")
-  (:method ((project project))))
+  (:method ((project project) namestring)
+    (labels ((matching-spec (types specs)
+               "Project specification order drives type dispatch precedence, not the dispatch list."
+                (when specs
+                  (if (member (car specs) types)
+                      (car specs)
+                      (matching-spec types (cdr specs))))))
+      (let ((instance (make-instance (matching-spec (dispatch namestring)
+                                                    (project-specs project))
+                                     :namestring namestring
+                                     :date (get-universal-time))))
+        (push instance (project-assets project))
+        (setf (current-asset project) instance)))))
 
 ;;
 ;;;; Selection

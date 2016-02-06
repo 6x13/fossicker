@@ -1,11 +1,5 @@
 * Fossicker
 ** Implementation
-- Project specification order should drive type dispatch precedence, not the type dispatcher list.
-- Dispatcher can be a _function_ or a _list_ of regular expressions. dispatch-p should run the fn with input or run regexp-scan on list items.
-- asset-dispatcher doesn't have much value as an object. Make-instance doesn't really fit to API when automatically pushed to *type-registry*. Maybe it should be the old way, except match-p is a generic fn and dispatches on list and function classes. create-asset-dispatcher?
-- Namestring is generally a better description of user input that I usually refere as fname.
-- Maybe use class instead of type?
-- *dispatch-table* is better instead of type registry. Types aren't there anymore.
 - legend is part of project. config will define default legend, a project can define its own legend. if defined, it will not append to default, it will completely override it, because it is not possible to remove effective duplicates properly in case of regexp entries.
 - UI: Generate, Project, History, Settings
 - Everytime user inputs a successive namestring, a new asset will be generated and set as current. But only when the user hits export, the asset will be exported and recorded to project history, assuming export op returned success.
