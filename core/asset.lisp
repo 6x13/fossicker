@@ -68,6 +68,10 @@ collecting cars for the ones that yield T."
     :allocation :class
     :documentation "List  of possible file  formats that  can be used  as asset
     source.")
+   (path
+    :type (or null string)
+    :initarg :path
+    :documentation "Path of asset relative to project path.")
    (namestring
     :type string
     :initarg :namestring

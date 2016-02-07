@@ -1,10 +1,10 @@
 (:name "test"
  :path "Resources/"
- :specs ((texture "textures/"
-                  (("ldpi/" . 32)
-                   ("mdpi/" . 64)
-                   ("hdpi/" . 128)
-                   ("retina/" . 256)))
-         (model "models/")
-         (bla "meh")
-         (shader "shaders/")))
+ :specs ((texture :path "textures/"
+                  :density ((:path "ldpi/"   :scale 32)
+                            (:path "mdpi/"   :scale 64)
+                            (:path "hdpi/"   :scale 128)
+                            (:path "retina/" :scale 256)))
+         (model   :path "models/")
+         (bla     :path "meh")
+         (shader  :path "shaders/")))
