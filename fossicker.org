@@ -20,16 +20,8 @@
   asset class. Because type specifications will change between sessions.
 - Asset class will provide delete/regenerate function for their history assets.
 - If deleted it is deleted from history.
-- Recovery requires  keeping track of changes  in project folder because  it is
-  ambiguous what the user intends to  do if they manually edited files. Keeping
-  track of  changes in  actual files  is the job  of a  VC system.  Warn before
-  deletion though.
 - Defining a plugin-loader method that specialize on plugin name is great. This
   is influenced from Xach's output method approach on Reddit plugin question.
-- Everything that is explicitly referenced by the application should be defined
-  in application  namespace or a  predefined alternative namespace.  This saves
-  application programmer from  doing namespace fiddling and  plugin writer from
-  having to define a predetermined namespace.
 ** Interface
 - There will  be three methods  of communication  with fossicker: GUI,  CLI and
   server.
@@ -47,24 +39,3 @@
   will be managed by one character mode settings like fdisk.
 - If -srv is  provided, the swank server  will start so emacs  or other clients
   can connect it.
-** Export
-- Export objects  will hold  an MD5 sum  of the files  generated. It  will warn
-  twice if  the mp5sum  of the file  being deleted is  different thant  the one
-  recorded   because  that   means   user  edited/overwrote   the  wile   after
-  creation. Date created of the file might as  well be used but it is much less
-  reliable.
-- The creation  date of  an export  is seperate  than the  creation date  of an
-  asset?
-- Export:
-  - :path :: pathname
-  - :date :: date => ?
-  - :md5sum ::
-- If md5sum is  nil, it probably means  there already was a  file during export
-  and user has chosen not to overwrite it.
-- Export  class can  be subclassed  by  and used  by the  asset subclasses  for
-  instances  of export  data for  convenience. But  only the  slots related  to
-  export class will  be saved to history. What happens  if the subclass shadows
-  export slots is undefined. Just as with asset types.
-- An export can be browsed using webbrowser because it knows how to handle most
-  data types.
-

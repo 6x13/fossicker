@@ -62,7 +62,7 @@ collecting cars for the ones that yield T."
 ;;
 ;;
 
-(defclass asset ()
+(define-layered-class asset ()
   ((formats
     :type (or null t list)
     :allocation :class
@@ -90,6 +90,7 @@ collecting cars for the ones that yield T."
    (date
     :type integer
     :initarg :date
+    :initform (get-universal-time)
     :documentation "Date of creation for ASSET instance.")
    (description
     :type string

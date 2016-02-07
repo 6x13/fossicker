@@ -134,7 +134,6 @@ dispatch precedence, not the dispatch list."
                  (setf (current-asset project)
                        (apply #'make-instance (car spec)
                               :namestring namestring
-                              :date (get-universal-time)
                               (cdr spec)))
                  (push (current-asset project) (project-assets project))
                  (message "Asset generated: ~A"

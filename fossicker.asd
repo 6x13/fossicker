@@ -11,6 +11,7 @@
   :depends-on ((:version #:asdf "3.1.2")
                #:uiop
                #:contextl
+               #:ironclad
                #:cl-ppcre
                ;; #:qtools
                ;; #:qtcore
@@ -21,6 +22,7 @@
                (:module core
                 :components
                 (;; (:file "persistence")
+                 (:file "file")
                  (:file "asset")
                  (:file "project")
                  (:file "config")
