@@ -29,6 +29,7 @@
 (define-layered-class file ()
   ((path
     :type pathname
+    :initarg :path
     :accessor path
     :documentation "Pathname object pointing to the stored file.")
    (checksum
@@ -58,9 +59,10 @@
                            (ironclad:digest-file :md5 (path file))))))
 
 (defmethod initialize-instance :after ((instance file) &key)
-  (when (or (not (probe-file (path file)))
+  (when (or (not (probe-file (path instance)))
             (prompt "File exists at location ~A. Sure you want to overwrite?"
-                    (path file)))
+                    (namestring (path instance))))
+    ;; TODO: Call function to generate file.
     (setf (checksum instance) (md5sum instance))))
 
 (defgeneric browse (file)

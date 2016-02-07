@@ -6,4 +6,4 @@
   (apply #'format (cons t args)))
 
 (defun prompt (&rest args)
-  (apply #'y-or-n-p (cons t args)))
+  (apply #'y-or-n-p args))
