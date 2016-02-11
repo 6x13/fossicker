@@ -91,28 +91,49 @@
   project types."))
 
 (defun get-data-from-file (path)
-  "Read s-expression from PATH."
+  "Read one S-EXPRESSION from PATH."
   (assert (file-exists-p path) nil "File ~a doesn't exist." path)
   (with-open-file (in path :external-format :utf-8)
     (let ((*package* (find-package :fossicker))) (read in))))
 
-(defun project-file-directory (project)
-  (pathname-directory-pathname (project-file project)))
+(defun infer-project-root (pathname)
+  "Infers  the  root  of  project  that is  generated  from  the  project  file
+location."
+  (pathname-directory-pathname pathname))
+
+(defun infer-project-name (pathname)
+  "Infers the  name of project to  generate from project file  name. If project
+file is hidden using  DOT at the beginning of filename, the  dot is removed for
+convenience."
+  (remove #\. (pathname-name pathname) :end 1))
+
+(defun infer-project-class (pathname)
+  "Infers the class of project to generate from project file extension. PROJECT
+class is used if there is not extension."
+  (or (intern (string-upcase (pathname-type pathname))
+                           :fossicker)
+                   'project))
 
 (defmethod initialize-instance :around
     ((instance project)
      &rest initargs
-     &key import file (name (remove #\. (pathname-name file) :end 1)))
+     &key import file)
+  "Reads  the data  from  PROJECT FILE  and calls  next  method with  arguments
+appending  the  inferred  values,  initialization arguments  and  project  file
+data. Binds the ROOT and NAME of project by inferring them from project file if
+not explicitly stated."
   (declare (type (or pathname string) file))
-  (if import
-      (let ((data (get-data-from-file file)))
-        (apply #'call-next-method instance :name name (append initargs data)))
-      (apply #'call-next-method instance :name name initargs)))
-
-(defmethod initialize-instance :after ((instance project) &key)
-  (unless (slot-boundp instance 'root)
-    (setf (slot-value instance 'root)
-          (project-file-directory instance))))
+  (apply #'call-next-method instance
+         (append initargs
+                 ;; When IMPORT is T, append data from PROJECT FILE.
+                 (when import
+                   (assert (file-exists-p file) nil
+                           "Project file doesn't exist.")
+                   (get-data-from-file file))
+                 ;; Infer  NAME  and  ROOT,  in case  they  are  not  specified
+                 ;; elsewhere.
+                 (list :name (infer-project-name file)
+                       :root (infer-project-root file)))))
 
 (defgeneric generate (project namestring)
   (:documentation "Generates asset, pushes it to ASSETS and sets CURRENT.")
@@ -192,14 +213,13 @@ current working directory path to select the project."
                "nothing")))
 
 (defun clear-project-registry ()
+  "Sets the *PROJECT-REGISTRY* to NIL."
   (setf *project-registry* nil))
 
 (defun load-project (&rest initargs &key file (import t) &allow-other-keys)
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
   (push (apply #'make-instance
-               (or (intern (string-upcase (pathname-type file))
-                           :fossicker)
-                   'project)
+               (infer-project-class file)
                :import import
                initargs)
         *project-registry*))

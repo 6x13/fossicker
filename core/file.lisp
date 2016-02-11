@@ -51,15 +51,17 @@
     processor performance."))
   (:documentation "The file class."))
 
-(defgeneric md5sum (file)
-  (:documentation  "Calculates  the   MD5  checksum  of  file   to  check  file
-  modifications in the future.")
-  (:method ((file file))
-    (setf (checksum file) (ironclad:byte-array-to-hex-string
-                           (ironclad:digest-file :md5 (path file))))))
+(defun md5sum (file)
+  "Calculates the MD5 checksum of file."
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-file :md5 (path file))))
+
+(defgeneric check-status (file)
+  (:documentation  "Compares the checksum of ")
+  (:method ((file file))))
 
 (defmethod initialize-instance :after ((instance file) &key)
-  (when (or (not (probe-file (path instance)))
+  (when (or (not (file-exists-p (path instance)))
             (prompt "File exists at location ~A. Sure you want to overwrite?"
                     (namestring (path instance))))
     ;; TODO: Call function to generate file.
