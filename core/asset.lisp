@@ -37,12 +37,10 @@
 
 (define-layered-function dispatch (namestring)
   (:method-combination list :most-specific-last)
-  (:documentation "Dispatch loaded asset subclasses on NAMESTRING. A dispatcher
-  can either handle dispatch itself, in which case it should return (CLASS-NAME
-  .   BOOLEAN)  or  it can  defer  dispatch  to  the  around method  by  simply
-  returning  (CLASS-NAME .   REGEX-LIST). The  CLASS-NAME will  be listed  as a
-  potential  dispatch   target  if   any  REGEX   in  REGEX-LIST   matches  the
-  NAMESTRING.")
+  (:documentation "Dispatch  loaded asset  subclasses on  NAMESTRING.  Whatever
+  CLASS-NAMEs the  active dispatch methods  return will be listed  as potential
+  dispatch targets. If the DISPATCH method returns NIL, it is removed from list
+  by the :AROUND method.")
   (:method list (namestring)
     "Returns  NIL, which  is  going to  be  removed from  list  by the  :AROUND
     method. There needs to be at least one primary method." nil)
