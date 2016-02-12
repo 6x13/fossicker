@@ -55,8 +55,9 @@
 
 (define-layered-class asset ()
   ((formats
-    :type (or null t list)
-    :allocation :class
+    :type list
+    :initform nil
+    :accessor asset-formats
     :documentation "List  of possible file  formats that  can be used  as asset
     source.")
    (path
@@ -90,7 +91,23 @@
     :type string
     :documentation  "The  data  reported  by TIME  macro  for  measuring  asset
     processor performance."))
-  (:documentation "The asset class."))
+  (:documentation "The default asset class."))
+
+(defgeneric compute-prospectable-formats (asset)
+  (:documentation   "Gets  prospectable   formats   and  adds   upcase/downcase
+  versions.")
+  (:method ((asset asset)) nil)
+  (:method :around ((asset asset))
+    "Compiles  a new  list  with  the upcase-downcase  variations  of the  list
+returned by PRIMARY method."
+    (apply #'append
+           (mapcar (lambda (elt)
+                     (list (string-downcase elt)
+                           (string-upcase elt)))
+                   (call-next-method)))))
+
+(defmethod initialize-instance :after ((instance asset) &key)
+  (setf (asset-formats instance) (compute-prospectable-formats instance)))
 
 (defgeneric save (asset)
   (:documentation "Saves asset and creates the corresponding file[s] on project
@@ -98,3 +115,82 @@
   subclass should implement their own export method.")
   (:method ((asset asset))))
 
+(defclass prospect-any () (namestring)
+  (:documentation    "Mixin     class    that     defines    a     method    of
+  COMPUTE-PROSPECTABLE-FORMATS, which simply returns NIL. This is a dummy mixin
+  to  make behaviour  explicit. The  default behaviour  of ASSET  class is  the
+  same."))
+
+(defmethod compute-prospectable-formats ((asset prospect-any))
+  "Returns a list containing the extension of the file saved in NAMESTRING slot
+of the ASSET."  nil)
+
+(defclass prospect-same () (namestring)
+  (:documentation    "Mixin     class    that     defines    a     method    of
+  COMPUTE-PROSPECTABLE-FORMATS,   which  simply   returns   the  extension   of
+  NAMESTRING slot value of ASSET instance."))
+
+(defmethod compute-prospectable-formats ((asset prospect-same))
+  "Returns a list containing the extension of the file saved in NAMESTRING slot
+of the ASSET."
+  (list (pathname-type (slot-value asset 'namestring))))
+
+;;;;;;;;;;;;
+;;; Prospect
+;;
+;;
+
+(defun map-to-veins (namestring legend)
+  "Recursively traverses LEGEND  matching all entries to  NAMESTRING. Returns a
+list of each  matching entry bundled with their corresponding  positions in the
+NAMESTRING to  be sorted later  accordingly.
+Bundles  are in form  of (POSITION . VEINS))."
+  (when legend
+    (cons (cons (scan (caar legend) namestring)
+                (cdar legend))
+          (map-to-veins namestring (cdr legend)))))
+
+(defun generate-vein-map (namestring class)
+  "Gets  the vein  list using  MAP-TO-VEINS, sorting  veins according  to their
+position  of occurrance.  Collects the  vein lists  appending them  into a  new
+list. Conses the CLASS, which is used as root vein, to the generated list."
+  (cons (string-downcase (symbol-name class))
+        (apply #'append
+               (mapcar #'cdr
+                       (stable-sort 
+                        (delete-if #'null
+                                   (map-to-veins namestring
+                                                 (legend *config*))
+                                   :key #'car)
+                        #'< :key #'car)))))
+
+(defun prospect (map dir formats &optional prospect)
+  (if map
+      (let ((ndir (merge-pathnames-as-directory
+                   (pathname-as-directory dir)
+                   (pathname-as-directory (car map)))))
+        (prospect
+         (cdr map)
+         (or (directory-exists-p ndir)
+             (pathname-as-directory dir))
+         formats
+         (or (find-if (lambda (file)
+                        (scan
+                         (format nil "~a\\.(~{~a~^|~})" (car map) formats)
+                         (file-namestring file)))
+                      (list-directory dir))
+             prospect)))
+      prospect))
+
+(defun compile-path (spec)
+  (canonical-pathname
+   (merge-pathnames-as-directory
+    (pathname-as-directory (project-root *project*))
+    (pathname-as-directory (project-path *project*))
+    (pathname-as-directory (or (car spec) "")))))
+
+(defun report (result)
+  (message (if (listp result)
+               (format nil "~a assets generated!~%"
+                       (if result (length result) "No"))
+               "Finished!~%")))

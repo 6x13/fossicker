@@ -5,7 +5,7 @@
 
 (deflayer audio)
 
-(define-layered-class audio (asset)
+(define-layered-class audio (prospect-any asset)
   ()
   (:documentation "Generic audio class."))
 

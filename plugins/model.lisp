@@ -5,7 +5,7 @@
 
 (deflayer model)
 
-(define-layered-class model (asset)
+(define-layered-class model (prospect-same asset)
   ()
   (:documentation "Generic model class."))
 

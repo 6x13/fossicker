@@ -1,5 +1,6 @@
 (defpackage :fossicker/plugins/shader
-  (:use :cxcl))
+  (:use :cxcl)
+  (:export #:match-prospect-extension))
 
 (in-package :fossicker/plugins/shader)
 
@@ -18,7 +19,6 @@
          '("tese" "tes"))
         (t nil)))
 
-
 (in-package :fossicker)
 
 (deflayer shader)
@@ -26,6 +26,10 @@
 (define-layered-class shader (asset)
   ()
   (:documentation "Generic shader class."))
+
+(defmethod compute-prospectable-formats ((asset shader))
+  (fossicker/plugins/shader:match-prospect-extension
+   (pathname-type (slot-value asset 'namestring))))
 
 (define-layered-method dispatch :in shader list (namestring)
   (if (some-regex namestring

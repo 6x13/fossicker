@@ -5,7 +5,7 @@
 
 (deflayer font)
 
-(define-layered-class font (asset)
+(define-layered-class font (prospect-same asset)
   ()
   (:documentation "Generic font class."))
 

@@ -5,7 +5,7 @@
 
 (deflayer particle)
 
-(define-layered-class particle (asset)
+(define-layered-class particle (prospect-same asset)
   ()
   (:documentation "Generic particle class."))
 

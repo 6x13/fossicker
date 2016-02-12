@@ -5,7 +5,7 @@
 
 (deflayer texture)
 
-(define-layered-class texture (asset)
+(define-layered-class texture (prospect-any asset)
   ((density
     :type list
     :initarg :density
