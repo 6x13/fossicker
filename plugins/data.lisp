@@ -1,7 +1,7 @@
 (defpackage :fossicker/plugins/data
   (:use :cxcl))
 
-(in-package :fossicker/plugins/data)
+(in-package :fossicker)
 
 (deflayer data)
 
@@ -10,5 +10,6 @@
   (:documentation "Generic data class."))
 
 (define-layered-method dispatch :in data list (namestring)
-  '(data . ("\\.xml\\'" "\\.json\\'")))
+  (if (some-regex namestring "\\.xml$" "\\.json$") 'data))
 
+(ensure-active-layer 'data)

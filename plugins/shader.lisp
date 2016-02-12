@@ -28,7 +28,9 @@
   (:documentation "Generic shader class."))
 
 (define-layered-method dispatch :in shader list (namestring)
-  '(shader . ("\\.vert\$" "\\.frag\$" "\\.tesc\$"
-              "\\.tese\$" "\\.geom\$" "\\.comp\$")))
+  (if (some-regex namestring
+                  "\\.vert\$" "\\.frag\$" "\\.tesc\$"
+                  "\\.tese\$" "\\.geom\$" "\\.comp\$")
+      'shader))
 
-
+(ensure-active-layer 'shader)

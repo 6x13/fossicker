@@ -16,4 +16,7 @@
   (:documentation "Generic texture class."))
 
 (define-layered-method dispatch :in texture list (namestring)
-  '(texture . ("\\.png$" "\\.jpg$" "\\.tiff$" "\\.tga$")))
+  (if (some-regex namestring "\\.png$" "\\.jpg$" "\\.tiff$" "\\.tga$")
+      'texture))
+
+(ensure-active-layer 'texture)

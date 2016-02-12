@@ -1,7 +1,7 @@
 (defpackage :fossicker/plugins/particle
   (:use :cxcl))
 
-(in-package :fossicker/plugins/particle)
+(in-package :fossicker)
 
 (deflayer particle)
 
@@ -10,5 +10,6 @@
   (:documentation "Generic particle class."))
 
 (define-layered-method dispatch :in particle list (namestring)
-  '(particle . ("\\.pl\\'")))
+  (if (some-regex namestring "\\.pl$") 'particle))
 
+(ensure-active-layer 'particle)

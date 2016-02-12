@@ -1,7 +1,7 @@
 (defpackage :fossicker/plugins/video
   (:use :cxcl))
 
-(in-package :fossicker/plugins/video)
+(in-package :fossicker)
 
 (deflayer video)
 
@@ -10,4 +10,7 @@
   (:documentation "Generic video class."))
 
 (define-layered-method dispatch :in video list (namestring)
-  '(video . ("\\.mp4\\'" "\\.webm\\'" "\\.flv\\'")))
+  (if (some-regex namestring "\\.mp4$" "\\.webm$" "\\.flv$")
+      'video))
+
+(ensure-active-layer 'video)

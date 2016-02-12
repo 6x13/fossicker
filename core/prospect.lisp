@@ -26,19 +26,20 @@
 ;;
 ;;
 
-(defun map-to-vein (string legend)
+(defun map-to-veins (namestring legend)
   (when legend
-    (cons (cons (scan (caar legend) string)
+    (cons (cons (scan (caar legend) namestring)
                 (cdar legend))
-          (map-to-vein string (cdr legend)))))
+          (map-to-veins namestring (cdr legend)))))
 
-(defun generate-vein-map (fname atype)
+(defun generate-vein-map (namestring atype)
   (cons (string-downcase (symbol-name atype))
         (apply #'append
                (mapcar #'cdr
                        (stable-sort 
                         (delete-if #'null
-                                   (map-to-vein fname (copy-alist (getf *config* :legend)))
+                                   (map-to-veins namestring
+                                                 (legend *config*))
                                    :key #'car)
                         #'< :key #'car)))))
 

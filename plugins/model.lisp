@@ -1,7 +1,7 @@
 (defpackage :fossicker/plugins/model
   (:use :cxcl))
 
-(in-package :fossicker/plugins/model)
+(in-package :fossicker)
 
 (deflayer model)
 
@@ -10,4 +10,6 @@
   (:documentation "Generic model class."))
 
 (define-layered-method dispatch :in model list (namestring)
-  '(model . ("\\.obj\\'" "\\.3ds\\'")))
+  (if (some-regex namestring "\\.obj$" "\\.3ds$") 'model))
+
+(ensure-active-layer 'model)

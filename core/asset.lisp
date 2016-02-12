@@ -47,15 +47,8 @@
     "Returns  NIL, which  is  going to  be  removed from  list  by the  :AROUND
     method. There needs to be at least one primary method." nil)
   (:method :around (namestring)
-    "Evaluates  CDRs of  every element  in  list returned  by primary  methods,
-collecting cars for the ones that yield T."
-    (mapcar #'car (remove-if-not
-                   (lambda (elt)
-                     (etypecase elt
-                       (list (apply #'some-regex namestring elt))
-                       (boolean elt)))
-                   (call-next-method)
-                   :key #'cdr))))
+    "Removes NIL elements from the dispatch list."
+    (remove nil (call-next-method))))
 
 ;;
 ;;;; Asset

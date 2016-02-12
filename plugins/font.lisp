@@ -1,7 +1,7 @@
 (defpackage :fossicker/plugins/font
   (:use :cxcl))
 
-(in-package :fossicker/plugins/font)
+(in-package :fossicker)
 
 (deflayer font)
 
@@ -10,4 +10,6 @@
   (:documentation "Generic font class."))
 
 (define-layered-method dispatch :in font list (namestring)
-  '(font . ("\\.ttf\\'" "\\.otf\\'")))
+  (if (some-regex namestring "\\.ttf$" "\\.otf$") 'font))
+
+(ensure-active-layer 'font)

@@ -1,7 +1,7 @@
 (defpackage :fossicker/plugins/audio
   (:use :cxcl))
 
-(in-package :fossicker/plugins/audio)
+(in-package :fossicker)
 
 (deflayer audio)
 
@@ -10,4 +10,8 @@
   (:documentation "Generic audio class."))
 
 (define-layered-method dispatch :in audio list (namestring)
-  '(audio . ("\\.mp3\\'" "\\.wav\\'" "\\.ogg\\'" "\\.aac\\'")))
+  (if (some-regex namestring
+                  "\\.mp3$" "\\.wav$" "\\.ogg$" "\\.aac$")
+      'audio))
+
+(ensure-active-layer 'audio)
