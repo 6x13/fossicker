@@ -48,26 +48,10 @@
          (pathname (prompt-read "Context"))))))
 
 (defun generate (filename)
-  "Generates the asset according to the double-quoted text
-at current cursor position."
-  (assert (stringp filename) nil "~a is not a filename." filename)
   (assert *project* nil "No fossicker project selected for current buffer.")
   (let* ((fname (pathname filename))
-         (ext (pathname-type fname))
-         (types (matching-types (namestring fname)))
-         (specs (project-specs *project*))
-         (type (matching-spec types (mapcar #'car specs)))
-         (spec (cdr (assoc type specs)))
-         (fn (type-function (assoc type *type-registry*)))
-         (formats (get-extension-list type ext))
          (context (prompt-context fname))
-         (path (compile-path spec))
-         source)
-    (assert types nil
-            "Couldn't match file name ~a to regexp list of any fossicker type."
-            fname)
-    (assert type nil "No matching type is included in project. Possible types: ~a" types)
-    (assert (listp formats) nil "Source dispatch function didn't return a list.")
+         (path (compile-path spec)))
     (setf source (prompt-source
                   (prospect
                    (generate-vein-map (namestring fname) type)

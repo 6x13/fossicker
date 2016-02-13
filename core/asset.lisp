@@ -62,6 +62,7 @@
     source.")
    (path
     :type (or null string)
+    :initform nil
     :initarg :path
     :documentation "Path of asset relative to project path.")
    (namestring
@@ -77,12 +78,13 @@
     :documentation "Currently selected asset source.")
    (files
     :type list
+    :accessor asset-files
     :documentation  "List of  FILE class  instances that  are generated  by the
     asset.")
    (date
     :type integer
-    :initarg :date
     :initform (get-universal-time)
+    :reader asset-date
     :documentation "Date of creation for ASSET instance.")
    (description
     :type string
