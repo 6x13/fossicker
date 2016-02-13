@@ -152,22 +152,24 @@ Bundles  are in form  of (POSITION . VEINS))."
                 (cdar legend))
           (map-to-veins namestring (cdr legend)))))
 
-(defun generate-vein-map (namestring class)
-  "Gets  the vein  list using  MAP-TO-VEINS, sorting  veins according  to their
-position  of occurrance.  Collects the  vein lists  appending them  into a  new
-list. Conses the CLASS, which is used as root vein, to the generated list."
-  (cons (string-downcase (symbol-name class))
-        (apply #'append
-               (mapcar #'cdr
-                       (stable-sort 
-                        (delete-if #'null
-                                   (map-to-veins namestring
-                                                 (legend *config*))
-                                   :key #'car)
-                        #'< :key #'car)))))
+(defgeneric generate-vein-map (asset)
+  (:documentation  "Gets  the  vein  list  using  MAP-TO-VEINS,  sorting  veins
+according to their  position of occurrance.  Collects the  vein lists appending
+them into a new  list.  Conses the class of ASSET, which is  used as root vein,
+to the generated list.")
+  (:method ((asset asset))
+    (cons (string-downcase (type-of asset))
+          (apply #'append
+                 (mapcar #'cdr
+                         (stable-sort 
+                          (delete-if #'null
+                                     (map-to-veins (asset-namestring asset)
+                                                   (legend *config*))
+                                     :key #'car)
+                          #'< :key #'car))))))
 
 (defun prospect (map dir formats &optional prospect)
-  "Traverses database and selects prospect."
+  "Traverses mine and selects prospect."
   (if map
       (let ((new-dir (merge-pathnames*
                       (ensure-directory-pathname (car map))
@@ -184,6 +186,15 @@ list. Conses the CLASS, which is used as root vein, to the generated list."
                       (directory-files dir))
              prospect)))
       prospect))
+
+(defgeneric prospect-asset (asset)
+  (:documentation  "Prospects asset in the MINE specified in *CONFIG*.")
+  (:method ((asset asset))
+    (prospect (generate-vein-map asset)
+              (mine *config*)
+              (asset-formats asset))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun compile-path (spec)
   (merge-pathnames* 

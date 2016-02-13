@@ -32,6 +32,19 @@
   "Configuration system name to  be used when no system name  is supplied as an
   argument to the SYSTEM parameter in a call to CONFIGURE.")
 
+(declaim (type (or null configuration) *config*))
+
+(defvar *config* nil
+  "System object that holds configuration data.")
+
+(defvar *repository* nil
+  "Directory containing the  Fossicker package.  It is used to  load extra data
+  distributed with the source.  Its value  is computed from the location of the
+  Fossicker system.")
+
+(defvar *default-mine-directory* (ensure-directory-pathname "mine")
+  "The relative directory path default mine resides in.")
+
 (defclass configuration (asdf:package-inferred-system)
   ((notice   :initarg :notice
              :initform t
@@ -54,28 +67,23 @@
              :initform nil
              :accessor legend
              :documentation  "Legend  to  be  used when  mapping  a  NAMESTRING
-             specified by user to a prospect template from database."))
+             specified by user to a prospect template from database.")
+   (mine     :initarg :mine
+             :initform (merge-pathnames* *default-mine-directory* *repository*)
+             :accessor mine
+             :documentation "Pathname of the mine to prospect for sources."))
   (:documentation "System definition class for Fossicker configuration."))
-
-(declaim (type (or null configuration) *config*))
-
-(defvar *config* nil
-  "System object that holds configuration data.")
-
-(defvar *repository* nil
-  "Directory containing the  Fossicker package.  It is used to  load extra data
-  distributed with the source.  Its value  is computed from the location of the
-  Fossicker system.")
 
 (defun configure (&key (system *default-config-system*) force)
   "Loads the configuration system."
   (check-type system (or symbol string))
   (clear-system system)
+  ;; Set the repository before to initialize MINE slot of *CONFIG*.
+  (setf *repository* (system-source-directory '#:fossicker))
   (if force
       (load-system system :force force)
       (require-system system))
   (setf *config* (find-system system))
-  (setf *repository* (system-source-directory '#:fossicker))
   (load-projects *config*)
   (set-project (default-project *config*)))
 

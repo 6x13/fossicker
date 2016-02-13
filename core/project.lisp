@@ -146,7 +146,7 @@ dispatch precedence, not the dispatch list."
                   (if (member (caar specs) types)
                       (car specs)
                       (matching-spec types (cdr specs))))))
-      (assert (stringp filename) nil "~a is not a filename." filename)
+      (assert (stringp namestring) nil "~a is not a filename." filename)
       (let* ((dispatch (dispatch namestring))
              (spec (matching-spec dispatch (project-specs project))))
         (cond (spec
