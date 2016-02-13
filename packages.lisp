@@ -12,9 +12,13 @@
                 #:system-source-directory)
   (:import-from :uiop
                 #:file-exists-p
-                #:pathname-directory-pathname
                 #:directory-exists-p
-                #:directory-files)
+                #:directory-files
+                #:ensure-directory-pathname
+                #:merge-pathnames*
+                #:unix-namestring
+                #:parse-unix-namestring
+                #:pathname-directory-pathname)
   (:import-from :cl-ppcre
                 #:create-scanner
                 #:scan)

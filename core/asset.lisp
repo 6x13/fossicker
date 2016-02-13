@@ -165,29 +165,30 @@ list. Conses the CLASS, which is used as root vein, to the generated list."
                         #'< :key #'car)))))
 
 (defun prospect (map dir formats &optional prospect)
+  "Traverses database and selects prospect."
   (if map
-      (let ((ndir (merge-pathnames-as-directory
-                   (pathname-as-directory dir)
-                   (pathname-as-directory (car map)))))
+      (let ((new-dir (merge-pathnames*
+                      (ensure-directory-pathname (car map))
+                      (ensure-directory-pathname dir))))
         (prospect
          (cdr map)
-         (or (directory-exists-p ndir)
-             (pathname-as-directory dir))
+         (or (directory-exists-p new-dir)
+             (ensure-directory-pathname dir))
          formats
          (or (find-if (lambda (file)
                         (scan
                          (format nil "~a\\.(~{~a~^|~})" (car map) formats)
                          (file-namestring file)))
-                      (list-directory dir))
+                      (directory-files dir))
              prospect)))
       prospect))
 
 (defun compile-path (spec)
-  (canonical-pathname
-   (merge-pathnames-as-directory
-    (pathname-as-directory (project-root *project*))
-    (pathname-as-directory (project-path *project*))
-    (pathname-as-directory (or (car spec) "")))))
+  (merge-pathnames* 
+   (ensure-directory-pathname (or (car spec) ""))
+   (merge-pathnames*
+    (ensure-directory-pathname (project-path *project*))
+    (ensure-directory-pathname (project-root *project*)))))
 
 (defun report (result)
   (message (if (listp result)
