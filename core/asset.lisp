@@ -109,7 +109,8 @@ returned by PRIMARY method."
                    (call-next-method)))))
 
 (defmethod initialize-instance :after ((instance asset) &key)
-  (setf (asset-formats instance) (compute-prospectable-formats instance)))
+  (setf (asset-formats instance) (compute-prospectable-formats instance))
+  (setf (asset-source instance) (prospect-asset instance)))
 
 (defgeneric save (asset)
   (:documentation "Saves asset and creates the corresponding file[s] on project
