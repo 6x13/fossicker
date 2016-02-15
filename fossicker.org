@@ -4,15 +4,9 @@
   define its  own legend. if  defined, it will not  append to default,  it will
   completely  override it,  because  it  is not  possible  to remove  effective
   duplicates properly in case of regexp entries.
-- Everytime user inputs a successive namestring,  a new asset will be generated
-  and set  as current. But only  when the user  hits export, the asset  will be
-  exported  and  recorded  to  project history,  assuming  export  op  returned
-  success.
 - User will be able to select another  asset from history. If it is an instance
   of a subclass of  asset, user will be able to export, or  delete it. If it is
   an instance of asset, user will be able to regenerate, or delete.
-- Regenerate will generate  an asset using the namestring,  source (if exists),
-  and context. Then it will set the new asset as current.
 - Write project  history to seperate file?  so it can be  ignored from project?
 - Any asset read from  histroy is just an asset, not an  instance of a specific
   asset class. Because type specifications will change between sessions.

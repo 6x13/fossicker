@@ -58,8 +58,8 @@
     :type list
     :initform nil
     :accessor asset-formats
-    :documentation "List  of possible file  formats that  can be used  as asset
-    source.")
+    :documentation "List of prospectable file formats, meaning, extensions that
+    can be used as asset source.")
    (path
     :type (or null string)
     :initform nil
@@ -78,6 +78,7 @@
     :documentation "Currently selected asset source.")
    (files
     :type list
+    :initform nil
     :accessor asset-files
     :documentation  "List of  FILE class  instances that  are generated  by the
     asset.")

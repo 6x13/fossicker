@@ -55,7 +55,7 @@
     :type (or pathname string)
     :reader project-root
     :documentation "Project root directory. It  is either explicitly defined in
-    project file or the directory project file resides in is used. ")
+    project file or the directory project file resides in is used.")
    (path
     :initarg :path
     :initform nil
@@ -68,18 +68,31 @@
     :type list
     :reader project-specs
     :documentation "Association list of asset type specifications.")
-   (current
-    :type asset
+   (draft
+    :type (or nil asset)
     :initform nil
-    :accessor current-asset
-    :documentation  "Asset  that  is  currently  edited. Same  as  the  CAR  of
-    generated assets.")
+    :accessor draft
+    :documentation "Asset that  is currently being sketched. Draft  is an asset
+    in volatile  state. It can  be safely discarded.  A  draft can only  be the
+    result of new draft op. It is an  asset that is guaranteed to be unsaved so
+    far  so  there  are  no  side-effects  on  file-system  that  needs  to  be
+    processed (e.g cleaned) before modifying it. A draft is isolated from asset
+    database to safely prototype the effects  of drafted asset. In other words,
+    it exists for interactive dry-run kind of actions.")
+   (selected
+    :type (or nil asset)
+    :initform nil
+    :accessor selected-asset
+    :documentation "Asset that is in edit mode.  Its NAMESTRING slot is static.
+    Therefore it cannot change-class. All other  properties of the asset can be
+    edited. Selected asset may or may not be already in database. When draft is
+    accepted, it is set as selected but it is not saved in database yet.")
    (assets
     :type list
     :initform nil
     :accessor project-assets
     :documentation  "The   list  of   asset  instances  generated   in  current
-    session. The CAR is the latest GENERATED asset.")
+    session. The CAR is the latest saved asset.")
    (log
     :type list
     :initform nil
