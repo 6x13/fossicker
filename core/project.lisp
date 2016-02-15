@@ -148,8 +148,8 @@ not explicitly stated."
                  (list :name (infer-project-name file)
                        :root (infer-project-root file)))))
 
-(defgeneric generate (project namestring)
-  (:documentation "Generates asset, pushes it to ASSETS and sets SELECTED.")
+(defgeneric draft (project namestring)
+  (:documentation "Generates draft asset for PROJECT using NAMESTRING.")
   (:method ((project project) namestring)
     (labels ((matching-spec (types specs)
                "Iterates over project  specs and returns first  asset spec that
@@ -158,22 +158,32 @@ dispatch precedence, not the dispatch list."
                 (when specs
                   (if (member (caar specs) types)
                       (car specs)
-                      (matching-spec types (cdr specs))))))
-      (assert (stringp namestring) nil "~a is not a filename." filename)
+                      (matching-spec types (cdr specs)))))
+             (initialize-draft (project class namestring initargs)
+               "Decides on how to initialize new draft."
+               (let ((draft (project-draft project)))               
+                 (if draft
+                     (if (eq (type-of draft) class)
+                         (apply #'reinitialize-instance draft
+                                :namestring namestring
+                                initargs)
+                         (apply #'change-class draft class
+                                :namestring namestring
+                                initargs))
+                     (setf (project-draft project)
+                           (apply #'make-instance class
+                                  :namestring namestring
+                                  initargs))))))
+      (assert (stringp namestring) nil "~a is not a filename." namestring)
       (let* ((dispatch (dispatch namestring))
-             (spec (matching-spec dispatch (project-specs project))))
+             (spec (matching-spec dispatch (project-specs project)))
+             (class (car spec))
+             (initargs (cdr spec)))
         (cond (spec
-               ;; Make an  instance of  asset subclass, set  it as  SELECTED and
-               ;; push it to ASSETS.
-               (progn
-                 (setf (project-selected project)
-                       (apply #'make-instance (car spec)
-                              :namestring namestring
-                              (cdr spec)))
-                 (push (project-selected project)
-                       (project-assets project))
-                 (message "Asset generated: ~A"
-                          (project-selected project))))
+               ;; If necessary, make  an instance of asset subclass,  set it as
+               ;; DRAFT. Otherwise, reuse DRAFT.
+               (initialize-draft project class namestring initargs)
+               (message "Asset generated: ~A" (project-draft project)))
               (dispatch
                ;; No matching specification in project. Do nothing.
                (message "~A Candidates: ~A"
@@ -182,6 +192,13 @@ dispatch precedence, not the dispatch list."
               (t
                ;; Couldn't dispatch on any classes.
                (message "Couldn't dispatch on any asset class.")))))))
+
+(defgeneric generate (project)
+  (:documentation "Pushes draft to ASSETS and sets it as SELECTED. Sets DRAFT to NIL.")
+  (:method ((project project))
+    (setf (project-selected project) (project-draft project))
+    (push (project-selected project) (project-assets project))
+    (setf (project-draft project) nil)))
 
 ;;
 ;;;; Selection
