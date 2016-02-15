@@ -71,7 +71,7 @@
    (draft
     :type (or nil asset)
     :initform nil
-    :accessor draft
+    :accessor project-draft
     :documentation "Asset that  is currently being sketched. Draft  is an asset
     in volatile  state. It can  be safely discarded.  A  draft can only  be the
     result of new draft op. It is an  asset that is guaranteed to be unsaved so
@@ -82,7 +82,7 @@
    (selected
     :type (or nil asset)
     :initform nil
-    :accessor selected-asset
+    :accessor project-selected
     :documentation "Asset that is in edit mode.  Its NAMESTRING slot is static.
     Therefore it cannot change-class. All other  properties of the asset can be
     edited. Selected asset may or may not be already in database. When draft is
@@ -149,7 +149,7 @@ not explicitly stated."
                        :root (infer-project-root file)))))
 
 (defgeneric generate (project namestring)
-  (:documentation "Generates asset, pushes it to ASSETS and sets CURRENT.")
+  (:documentation "Generates asset, pushes it to ASSETS and sets SELECTED.")
   (:method ((project project) namestring)
     (labels ((matching-spec (types specs)
                "Iterates over project  specs and returns first  asset spec that
@@ -163,16 +163,17 @@ dispatch precedence, not the dispatch list."
       (let* ((dispatch (dispatch namestring))
              (spec (matching-spec dispatch (project-specs project))))
         (cond (spec
-               ;; Make an  instance of  asset subclass, set  it as  CURRENT and
+               ;; Make an  instance of  asset subclass, set  it as  SELECTED and
                ;; push it to ASSETS.
                (progn
-                 (setf (current-asset project)
+                 (setf (project-selected project)
                        (apply #'make-instance (car spec)
                               :namestring namestring
                               (cdr spec)))
-                 (push (current-asset project) (project-assets project))
+                 (push (project-selected project)
+                       (project-assets project))
                  (message "Asset generated: ~A"
-                          (current-asset project))))
+                          (project-selected project))))
               (dispatch
                ;; No matching specification in project. Do nothing.
                (message "~A Candidates: ~A"

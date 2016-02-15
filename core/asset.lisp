@@ -109,7 +109,7 @@ returned by PRIMARY method."
                            (string-upcase elt)))
                    (call-next-method)))))
 
-(defmethod initialize-instance :after ((instance asset) &key)
+(defmethod shared-initialize :after ((instance asset) slot-names &key)
   (setf (asset-formats instance) (compute-prospectable-formats instance))
   (setf (asset-source instance) (prospect-asset instance)))
 
