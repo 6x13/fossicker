@@ -194,7 +194,8 @@ dispatch precedence, not the dispatch list."
                (message "Couldn't dispatch on any asset class.")))))))
 
 (defgeneric generate (project)
-  (:documentation "Pushes draft to ASSETS and sets it as SELECTED. Sets DRAFT to NIL.")
+  (:documentation "Pushes draft  to ASSETS and sets it as  SELECTED. Sets DRAFT
+  to NIL.")
   (:method ((project project))
     (setf (project-selected project) (project-draft project))
     (push (project-selected project) (project-assets project))
