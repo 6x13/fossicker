@@ -193,13 +193,40 @@ dispatch precedence, not the dispatch list."
                ;; Couldn't dispatch on any classes.
                (message "Couldn't dispatch on any asset class.")))))))
 
+(defgeneric select (project &optional index)
+  (:documentation "If INDEX is supplied, sets SELECTED to the ASSET instance at
+  the INDEX position of ASSETS slot,  otherwise sets DRAFT as SELECTED and sets
+  DRAFT to NIL.")
+  (:method ((project project) &optional index)
+    (ctypecase index
+      (unsigned-byte
+       (let ((instance (nth index (project-assets project))))
+         (if instance
+             (progn
+               (message "Changed selection for project named ~a."
+                        (project-name project))
+               (setf (project-selected project) instance))
+             (message 
+              "No asset at position ~a for project named ~a."
+              index (project-name project)))))
+      (null
+       (if (project-draft project)
+           (progn
+             (message "Setting draft as selected for project named ~a."
+                       (project-name project))
+             (setf (project-selected project) (project-draft project))
+             (setf (project-draft project) nil))
+           (message "No draft asset available to select for project named ~a."
+                     (project-name project)))))))
+
 (defgeneric generate (project)
-  (:documentation "Pushes draft  to ASSETS and sets it as  SELECTED. Sets DRAFT
-  to NIL.")
+  (:documentation "TEMP: Ensures SELECTED is in ASSETS.")
   (:method ((project project))
-    (setf (project-selected project) (project-draft project))
-    (push (project-selected project) (project-assets project))
-    (setf (project-draft project) nil)))
+    (if (project-selected project)
+        (pushnew (project-selected project)
+                 (project-assets project))
+        (message "Skipping generation. No asset selected for project named ~a."
+                 (project-name project)))))
 
 ;;
 ;;;; Selection
