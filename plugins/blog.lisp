@@ -5,6 +5,6 @@
 
 (in-package :fossicker)
 
-(defclass blog (project)
+(define-layered-class blog (project)
   ((index :initarg :index :initform nil))
   (:documentation "Blog project."))

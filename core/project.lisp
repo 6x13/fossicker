@@ -69,7 +69,7 @@
     :reader project-specs
     :documentation "Association list of asset type specifications.")
    (draft
-    :type (or nil asset)
+    :type (or null asset)
     :initform nil
     :accessor project-draft
     :documentation "Asset that  is currently being sketched. Draft  is an asset
@@ -80,7 +80,7 @@
     database to safely prototype the effects  of drafted asset. In other words,
     it exists for interactive dry-run kind of actions.")
    (selected
-    :type (or nil asset)
+    :type (or null asset)
     :initform nil
     :accessor project-selected
     :documentation "Asset that is in edit mode.  Its NAMESTRING slot is static.
