@@ -119,6 +119,10 @@ returned by PRIMARY method."
   subclass should implement their own export method.")
   (:method ((asset asset))))
 
+(defgeneric browse (asset)
+  (:documentation  "Browse the file using the web browser.")
+  (:method ((asset asset) &aux file) nil))
+
 (defclass prospect-any () (namestring)
   (:documentation    "Mixin     class    that     defines    a     method    of
   COMPUTE-PROSPECTABLE-FORMATS, which simply returns NIL. This is a dummy mixin
