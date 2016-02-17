@@ -46,7 +46,9 @@ optionally provided DIGEST-NAME."
    :type string
    :read-only t))
 
-(deftype checksum () '(satisfies checksum-p))
+(deftype checksum ()
+  "Type definition for CHECKSUM structure."
+  '(satisfies checksum-p))
 
 (defun checksum-equal (checksum1 checksum2
                        &aux
@@ -60,37 +62,66 @@ optionally provided DIGEST-NAME."
   (string-equal (checksum-hash checksum1)
                 (checksum-hash checksum2)))
 
-(defstruct (file (:type vector) :named)
-  "The  FILE  struct.   PATH  is  a PATHNAME  object  pointing  to  the  stored
-file.  STATUS  is  the  CHECKSUM  of  the generated  file  if  it  is  of  type
-CHECKSUM.  User has  chosen to  write the  file if  STATUS is  T, omit  writing
-otherwise."
-  (pathname (error "No PATH specified for FILE.")
-   :type pathname
+(deftype intention ()
+  "Type definition for BOOLEAN values to  use as file write operation intention
+  in STATUS  slot of FILE structure.  T represents intent to  'write' while NIL
+  represents intent to 'discard' the file."
+  'boolean)
+
+(deftype file-status ()
+  "Type definition for STATUS slot of FILE structure."
+  '(or intention checksum))
+
+(deftype file-pathname ()
+  "Type definition  for PATHNAME slot  of FILE structure. Ensures  the pathname
+  represents a file."
+  '(and pathname (satisfies file-pathname-p)))
+
+(defstruct (file (:type vector) :named
+                 (:constructor make-file (pathname &optional status)))
+  "The FILE struct.  PATHNAME is a PATHNAME object pointing to the stored file.
+STATUS is the CHECKSUM  of the generated file if it is  of type CHECKSUM.  User
+has chosen to write the file if STATUS is T, omit writing otherwise."
+  (pathname (error "No PATHNAME specified for FILE.")
+   :type file-pathname
    :read-only t)
   (status t
-   :type (or boolean checksum)))
+   :type file-status))
 
-(deftype file () '(satisfies file-p))
+(deftype file ()
+  "Type definition for FILE structure."
+  '(satisfies file-p))
 
-(defun file-hash (file &rest args)
+(defun file-compute-checksum (file &rest args)
   "Calculates the CHECKSUM of FILE."
   (apply #'make-checksum (file-pathname file) args))
 
-(defun set-file-hash (file &rest args)
+(defun file-store-checksum (file &rest args)
   "Calculates the CHECKSUM of FILE and saves it to FILE's FILE-STATUS slot."
-  (setf (file-status file) (apply #'file-hash file args)))
+  (setf (file-status file) (apply #'file-compute-checksum file args)))
 
 (defun file-verify (file &aux (status (file-status file)))
   "Verifies the  FILE comparing  saved CHECKSUM to  the calculated  CHECKSUM of
 physical file."
   (check-type status checksum)
-  (checksum-equal status (file-hash file (checksum-digest status))))
+  (checksum-equal status (file-compute-checksum file (checksum-digest status))))
 
-;; (defmethod initialize-instance :after ((instance file) &key)
+(defun file-confirm-intention (file &aux (status (file-status file)))
+  "If file operation intention is  'discard', simply RETURN-FROM function doing
+nothing.  Otherwise  check if  file already exists  in file  system, confirming
+overwrite operation if so."
+  (check-type status intention)
+  (unless status (return-from file-confirm-intention)) ; Short circuit.
+  (unless (or (not (file-exists-p (file-pathname file)))
+              (prompt "File exists at location ~A.~%~A"
+                      (file-pathname file)
+                      "Sure you want to overwrite?"))
+    (setf (file-status file) nil)))
+
+;; (defun file-confirm-removal (file &aux (status (file-status file)))
+;;   "If file to be removed exists in file system, check if it matches the recorded "
+;;   (unless status (return-from file-confirm)) ; Short circuit.
 ;;   (when (or (not (file-exists-p (path instance)))
-;;             (prompt "File exists at location ~A. Sure you want to overwrite?"
-;;                     (namestring (path instance))))
-;;     ;; TODO: Call function to generate file.
-;;     (setf (checksum instance) (md5sum instance))))
-
+;;             (prompt "File exists at location ~A.~%~A"
+;;                     (file-pathname file)
+;;                     "Sure you want to overwrite?"))))

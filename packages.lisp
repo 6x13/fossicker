@@ -11,14 +11,18 @@
                 #:find-system
                 #:system-source-directory)
   (:import-from :uiop
+                ;; FILESYSTEM
                 #:file-exists-p
                 #:directory-exists-p
                 #:directory-files
+                #:delete-file-if-exists
+                ;; PATHNAME
+                #:file-pathname-p
                 #:ensure-directory-pathname
+                #:pathname-directory-pathname
                 #:merge-pathnames*
                 #:unix-namestring
-                #:parse-unix-namestring
-                #:pathname-directory-pathname)
+                #:parse-unix-namestring)
   (:import-from :cl-ppcre
                 #:create-scanner
                 #:scan)
