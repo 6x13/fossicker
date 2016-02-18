@@ -89,14 +89,12 @@ optionally provided DIGEST-NAME."
   '(and pathname (satisfies file-pathname-p)))
 
 (defstruct (file (:type vector) :named
-                 (:constructor make-file
-                     (namestring
-                      &optional status
-                      &aux (pathname (merge-pathnames* namestring)))))
+                 (:constructor make-file (namestring &key status
+                                          &allow-other-keys)))
   "The FILE struct.  PATHNAME is a PATHNAME object pointing to the stored file.
 STATUS is the CHECKSUM  of the generated file if it is  of type CHECKSUM.  User
 has chosen to write the file if STATUS is T, omit writing otherwise."
-  (pathname (error "No PATHNAME specified for FILE.")
+  (pathname (merge-pathnames* namestring)
    :type file-pathname
    :read-only t)
   (status t
@@ -118,7 +116,8 @@ has chosen to write the file if STATUS is T, omit writing otherwise."
   "Verifies the  FILE comparing  saved CHECKSUM to  the calculated  CHECKSUM of
 physical file."
   (check-type status checksum)
-  (checksum-equal status (file-compute-checksum file (checksum-digest status))))
+  (checksum-equal status
+                  (file-compute-checksum file (checksum-digest status))))
 
 (defun file-confirm-intention (file &aux (status (file-status file)))
   "If  intention is  to 'discard'  the operation,  simply RETURN-FROM  function
@@ -146,7 +145,7 @@ Third Value   : 'Safety' status.
 Possible PRIMARY values and corresponding other values are as follows:
 
 :CHECKS
-File :SAVED  by Fossicker, it still  exists in file system  unmodified. :SAFE to
+File :SAVED by  Fossicker, it still exists in file  system unmodified. :SAFE to
 operate.
 
 :MODIFIED

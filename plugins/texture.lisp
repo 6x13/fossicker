@@ -5,6 +5,13 @@
 
 (deflayer texture)
 
+(defstruct (texture-file (:include file) (:type vector) :named
+                         (:constructor make-image-file
+                             (namestring &key status scale)))
+  "The TEXTURE-FILE struct."
+  (scale (error "Scale needs to be supplied.")
+   :type unsigned-byte))
+
 (define-layered-class texture (prospect-any asset)
   ((density
     :type list
