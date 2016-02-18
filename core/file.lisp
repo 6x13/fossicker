@@ -119,18 +119,6 @@ physical file."
   (checksum-equal status
                   (file-compute-checksum file (checksum-digest status))))
 
-(defun file-confirm-intention (file &aux (status (file-status file)))
-  "If  intention is  to 'discard'  the operation,  simply RETURN-FROM  function
-doing  nothing.   Otherwise  check  if  file already  exists  in  file  system,
-confirming overwrite operation if so."
-  (check-type status intention)
-  (unless status (return-from file-confirm-intention)) ; Short circuit.
-  (unless (or (not (file-exists-p (file-pathname file)))
-              (prompt "File exists at location ~A.~%~A"
-                      (file-pathname file)
-                      "Sure you want to overwrite?"))
-    (setf (file-status file) nil)))
-
 (defun file-report-status (file &aux (status (file-status file))
                                   (checksump (checksum-p status))
                                   (pathname (file-pathname file))
@@ -194,8 +182,61 @@ deleted. It might as well be :PENDING. :SAFE to operate."
              :discarded
              :safe))))
 
-;; (defun file-confirm-removal (file &aux (status (file-status file)))
-;;   "If file to be removed exists in file system, check if it matches the recorded "
-;;   (unless (file-exists-p (file-pathname file))
-;;     (return-from file-confirm)) ; Short circuit.
-;;   (case ()))
+(defun file-sanity-checks (file &aux (pathname (file-pathname file)))
+  "Make  sure  the pathname  actually  represents  a  file both  logically  and
+physically."
+  (message "Doing sanity checks on file: ~A.~%" pathname)
+  (assert (file-pathname-p pathname) nil
+          "The calculated pathname does not represent a file.")
+  (assert (not (directory-exists-p pathname)) nil
+          "Calculated pathname represents a directory. Not a file.")
+  (message "Sanity checks successful.~%"))
+
+(defun file-confirm-intention (file &aux (status (file-status file))
+                                      (pathname (file-pathname file)))
+  "If  intention is  to 'discard'  the operation,  simply RETURN-FROM  function
+doing  nothing.   Otherwise  check  if  file already  exists  in  file  system,
+confirming overwrite operation if so."
+  (check-type status intention)
+  (message "Confirming intention on file: ~A.~%" pathname)
+  (file-sanity-checks file)
+  (if (and status (eq (file-report-status file) :exists))
+      (progn (setf (file-status file)
+                   (prompt "File exists at location ~A.~%~A"
+                           pathname
+                           "Sure you want to overwrite?"))
+             (if status
+                 (message "Confirmed. File will be overwritten.~%")
+                 (message "Discarded.~%")))
+      (message "No confirmation necessary.~%")))
+
+(defun file-safely-remove (file &aux (pathname (file-pathname file)))
+  "Make sanity checks about pathname and the physical file it represents. Query
+file status. Interactively handle file removal."
+  (file-sanity-checks file)
+  (message "Starting remove operation on file: ~A.~%" pathname)
+  (multiple-value-bind (physical operational safety) (file-report-status file)
+    (declare (ignore operational))
+    (let ((safe (eq safety :safe)))
+      (if safe
+          (message
+           (case physical
+             (:checks
+              (delete-file-if-exists pathname)
+              "File  was  created  by   Fossicker  and  is  unmodified. Safely removed file.")
+             (:deleted
+              "The  file that  was created  by  Fossicker seems  to be  removed externally. No cleaning necessary.")
+             (:absent
+              "Currently no file exists at location. No cleaning necessary.")))
+          (if (prompt
+               "~A Are you sure you want to remove the file?"
+               (case physical
+                 (:modified
+                  "File that was created by Fossicker is modified externally.")
+                 (:exists
+                  "A file already exists at the calculated location.")))
+              (progn
+                (message "Action confirmed. Removing file.~%")
+                (delete-file-if-exists pathname)
+                (message "File removed.~%"))
+              (message "Discarded. Skipping removal.~%"))))))
