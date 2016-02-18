@@ -78,7 +78,10 @@ optionally provided DIGEST-NAME."
   '(and pathname (satisfies file-pathname-p)))
 
 (defstruct (file (:type vector) :named
-                 (:constructor make-file (pathname &optional status)))
+                 (:constructor make-file
+                     (namestring
+                      &optional status
+                      &aux (pathname (merge-pathnames* namestring)))))
   "The FILE struct.  PATHNAME is a PATHNAME object pointing to the stored file.
 STATUS is the CHECKSUM  of the generated file if it is  of type CHECKSUM.  User
 has chosen to write the file if STATUS is T, omit writing otherwise."
@@ -107,9 +110,9 @@ physical file."
   (checksum-equal status (file-compute-checksum file (checksum-digest status))))
 
 (defun file-confirm-intention (file &aux (status (file-status file)))
-  "If file operation intention is  'discard', simply RETURN-FROM function doing
-nothing.  Otherwise  check if  file already exists  in file  system, confirming
-overwrite operation if so."
+  "If  intention is  to 'discard'  the operation,  simply RETURN-FROM  function
+doing  nothing.   Otherwise  check  if  file already  exists  in  file  system,
+confirming overwrite operation if so."
   (check-type status intention)
   (unless status (return-from file-confirm-intention)) ; Short circuit.
   (unless (or (not (file-exists-p (file-pathname file)))
@@ -118,10 +121,71 @@ overwrite operation if so."
                       "Sure you want to overwrite?"))
     (setf (file-status file) nil)))
 
+(defun file-report-status (file &aux (status (file-status file))
+                                  (checksump (checksum-p status))
+                                  (pathname (file-pathname file))
+                                  (existsp (file-exists-p pathname)))
+  "Reports status  of physical  file with extra  assumptions about  it. Overall
+meaning of return values are as follows:
+
+Primary Value : 'Physical' status.
+Second Value  : 'Operational' status.
+Third Value   : 'Safety' status.
+
+Possible PRIMARY values and corresponding other values are as follows:
+
+:CHECKS
+File :SAVED  by Fossicker, it still  exists in file system  unmodified. :SAFE to
+operate.
+
+:MODIFIED
+File :SAVED by Fossicker but later  modified outside of Fossicker. Proceed with
+:CAUTION.
+
+:DELETED
+File  :SAVED by  Fossicker but  later removed  outside of  Fossicker. :SAFE  to
+operate.
+
+:EXISTS
+File exists in  file system.  It is either :PENDING  or :DISCARDED by Fossicker
+probably because user has chosen not to overwrite it. Proceed with :CAUTION.
+
+:ABSENT
+File doesn't exist in file system.   It might be :DISCARDED by Fossicker either
+because  it was  generated  by a  DRY-RUN  or  it was  discarded  by user  then
+deleted. It might as well be :PENDING. :SAFE to operate."
+  (cond
+    ((and checksump existsp (file-verify file))
+     (values :checks
+             :saved
+             :safe))
+    ((and checksump existsp)
+     (values :modified
+             :saved
+             :caution))
+    (checksump
+     (values :deleted
+             :saved
+             :safe))
+    ((and status existsp)
+     (values :exists
+             :pending
+             :caution))
+    (status
+     (values :absent
+             :pending
+             :safe))
+    (existsp
+     (values :exists
+             :discarded
+             :caution))
+    (t
+     (values :absent
+             :discarded
+             :safe))))
+
 ;; (defun file-confirm-removal (file &aux (status (file-status file)))
 ;;   "If file to be removed exists in file system, check if it matches the recorded "
-;;   (unless status (return-from file-confirm)) ; Short circuit.
-;;   (when (or (not (file-exists-p (path instance)))
-;;             (prompt "File exists at location ~A.~%~A"
-;;                     (file-pathname file)
-;;                     "Sure you want to overwrite?"))))
+;;   (unless (file-exists-p (file-pathname file))
+;;     (return-from file-confirm)) ; Short circuit.
+;;   (case ()))

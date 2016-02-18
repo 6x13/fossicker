@@ -23,11 +23,3 @@
   will  be managed  by  one character  mode  settings like  fdisk.  If -srv  is
   provided, the swank  server will start so emacs or  other clients can connect
   it.
-
-- file status
-  - saved, checks
-  - saved, modified
-  - saved, deleted
-  - discarded, exists
-  - discarded, doesn't exist
-  - pending
