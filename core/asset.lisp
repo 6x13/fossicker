@@ -163,12 +163,14 @@ supplied."
 ;;
 ;;
 
+;; TODO
 (defgeneric save (asset)
   (:documentation "Saves asset and creates the corresponding file[s] on project
   path. Default method  simply ignores the input and does  nothing.  Each asset
   subclass should implement their own export method.")
   (:method ((asset asset))))
 
+;; TODO
 (defgeneric browse (asset)
   (:documentation  "Browse the file using the web browser.")
   (:method ((asset asset) &aux file) nil))

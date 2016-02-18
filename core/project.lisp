@@ -193,6 +193,13 @@ dispatch precedence, not the dispatch list."
                ;; Couldn't dispatch on any classes.
                (message "Couldn't dispatch on any asset class.")))))))
 
+;; TODO
+(defgeneric redraft (project &key clean)
+  (:documentation "Removes  selection from  ASSETS slot and  moves it  to DRAFT
+  slot.  Then  sets  SELECTED to  NIL.  If  CLEAN  is  T, REDRAFT  will  remove
+  previously generated and discarded files from file system.")
+  (:method ((project project) &key (clean t))))
+
 (defgeneric select (project &optional index)
   (:documentation "If INDEX is supplied, sets SELECTED to the ASSET instance at
   the INDEX position of ASSETS slot,  otherwise sets DRAFT as SELECTED and sets
