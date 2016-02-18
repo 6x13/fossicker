@@ -174,23 +174,22 @@ to the generated list.")
                                      :key #'car)
                           #'< :key #'car))))))
 
-(defun prospect (map dir formats &optional prospect)
+(defun prospect (map dir formats &optional prospect
+                 &aux (dir (ensure-directory-pathname dir))
+                   (new-dir (subpathname dir (car map) :type :directory)))
   "Traverses mine and selects prospect."
+  (assert dir nil "Directory can't be NIL.")
   (if map
-      (let ((new-dir (merge-pathnames*
-                      (ensure-directory-pathname (car map))
-                      (ensure-directory-pathname dir))))
-        (prospect
-         (cdr map)
-         (or (directory-exists-p new-dir)
-             (ensure-directory-pathname dir))
-         formats
-         (or (find-if (lambda (file)
-                        (scan
-                         (format nil "~a\\.(~{~a~^|~})" (car map) formats)
-                         (file-namestring file)))
-                      (directory-files dir))
-             prospect)))
+      (prospect
+       (cdr map)
+       (or (directory-exists-p new-dir) dir)
+       formats
+       (or (find-if (lambda (file)
+                      (scan
+                       (format nil "~a\\.(~{~a~^|~})" (car map) formats)
+                       (file-namestring file)))
+                    (directory-files dir))
+           prospect))
       prospect))
 
 (defgeneric prospect-asset (asset)
@@ -203,11 +202,9 @@ to the generated list.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun compile-path (spec)
-  (merge-pathnames* 
-   (ensure-directory-pathname (or (car spec) ""))
-   (merge-pathnames*
-    (ensure-directory-pathname (project-path *project*))
-    (ensure-directory-pathname (project-root *project*)))))
+  (subpathname
+   (subpathname (project-root *project*) (project-path *project*))
+   (car spec) :type :directory))
 
 (defun report (result)
   (message (if (listp result)

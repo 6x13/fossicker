@@ -21,6 +21,8 @@
                 #:ensure-directory-pathname
                 #:pathname-directory-pathname
                 #:merge-pathnames*
+                #:subpathname
+                #:subpathname*
                 #:unix-namestring
                 #:parse-unix-namestring)
   (:import-from :cl-ppcre
