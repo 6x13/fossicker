@@ -5,7 +5,7 @@
 
 (deflayer video)
 
-(define-layered-class video (prospect-any asset)
+(define-layered-class video (asset prospect-any)
   ()
   (:documentation "Generic video class."))
 

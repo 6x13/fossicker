@@ -12,7 +12,7 @@
   (scale (error "Scale needs to be supplied.")
    :type unsigned-byte))
 
-(define-layered-class texture (prospect-any asset)
+(define-layered-class texture (asset prospect-any)
   ((density
     :type list
     :initarg :density

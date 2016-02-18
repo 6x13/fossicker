@@ -5,7 +5,7 @@
 
 (deflayer data)
 
-(define-layered-class data (prospect-same asset)
+(define-layered-class data (asset prospect-same)
   ()
   (:documentation "Generic data class."))
 

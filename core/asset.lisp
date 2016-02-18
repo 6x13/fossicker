@@ -21,8 +21,11 @@
 
 (in-package :fossicker)
 
-;;;;;;;;;;;;;;
-;;; Dispatcher
+;;;;;;;;;;
+;;; Assets
+;;
+;;
+;;;; Dispatcher
 ;;
 ;;
 
@@ -59,7 +62,8 @@
     :initform nil
     :accessor asset-formats
     :documentation "List of prospectable file formats, meaning, extensions that
-    can be used as asset source.")
+    can  be  used  as  asset  source.   NIL  means  no  restrictions  apply  to
+    prospectable asset formats, any file will do.")
    (path
     :type (or null string)
     :initform nil
@@ -96,10 +100,22 @@
     processor performance."))
   (:documentation "The default asset class."))
 
-(defgeneric compute-prospectable-formats (asset)
+(defmethod shared-initialize :after ((instance asset) slot-names &key)
+  (setf (asset-formats instance) (restrict-prospectable-formats instance))
+  (setf (asset-source instance) (prospect-asset instance)))
+
+;;
+;;;; Prospectable Format Restrictions
+;;
+;;
+
+(defgeneric restrict-prospectable-formats (asset)
   (:documentation   "Gets  prospectable   formats   and  adds   upcase/downcase
   versions.")
-  (:method ((asset asset)) nil)
+  (:method ((asset t))
+    "Sane default. No prospectable format restrictions."
+    (warn "Asset subclass named ~A didn't specify prospectable format restriction behaviour. Assuming no restrictions."
+          (type-of asset)) nil)
   (:method :around ((asset asset))
     "Compiles  a new  list  with  the upcase-downcase  variations  of the  list
 returned by PRIMARY method."
@@ -109,9 +125,43 @@ returned by PRIMARY method."
                            (string-upcase elt)))
                    (call-next-method)))))
 
-(defmethod shared-initialize :after ((instance asset) slot-names &key)
-  (setf (asset-formats instance) (compute-prospectable-formats instance))
-  (setf (asset-source instance) (prospect-asset instance)))
+(defclass prospect-any () (namestring)
+  (:documentation    "Mixin     class    that     defines    a     method    of
+  RESTRICT-PROSPECTABLE-FORMATS,  which simply  returns  NIL. This  is a  dummy
+  mixin to make behaviour explicit. The default behaviour of ASSET class is the
+  same."))
+
+(defmethod restrict-prospectable-formats ((asset prospect-any))
+  "Returns NIL,  meaning no restrictions  apply to source  format prospection."
+  nil)
+
+(defclass prospect-same () (namestring)
+  (:documentation    "Mixin     class    that     defines    a     method    of
+  RESTRICT-PROSPECTABLE-FORMATS,   which  simply   returns  the   extension  of
+  NAMESTRING slot value of ASSET instance."))
+
+(defmethod restrict-prospectable-formats ((asset prospect-same))
+  "Returns a list containing the extension of the file saved in NAMESTRING slot
+of the ASSET."
+  (list (pathname-type (slot-value asset 'namestring))))
+
+(defclass prospect-custom () (namestring)
+  (:documentation    "Mixin     class    that     defines    a     method    of
+  RESTRICT-PROSPECTABLE-FORMATS, which signals an error when called. This class
+  is  mainly  for  stating  asset   behaviour  explicitly,  and  for  debugging
+  purposes."))
+
+(defmethod restrict-prospectable-formats ((asset prospect-custom))
+  "Signals    an    error    because    some   other    primary    method    on
+RESTRICT-PROSPECTABLE-FORMATS  that   precedes  this   one  should   have  been
+supplied."
+  (error  "Asset  subclass named ~A chose  to restrict  prospectable  formats  manually without actually specifying a restriction method."
+          (type-of asset)))
+
+;;
+;;;; Asset Generics
+;;
+;;
 
 (defgeneric save (asset)
   (:documentation "Saves asset and creates the corresponding file[s] on project
@@ -123,28 +173,8 @@ returned by PRIMARY method."
   (:documentation  "Browse the file using the web browser.")
   (:method ((asset asset) &aux file) nil))
 
-(defclass prospect-any () (namestring)
-  (:documentation    "Mixin     class    that     defines    a     method    of
-  COMPUTE-PROSPECTABLE-FORMATS, which simply returns NIL. This is a dummy mixin
-  to  make behaviour  explicit. The  default behaviour  of ASSET  class is  the
-  same."))
-
-(defmethod compute-prospectable-formats ((asset prospect-any))
-  "Returns a list containing the extension of the file saved in NAMESTRING slot
-of the ASSET."  nil)
-
-(defclass prospect-same () (namestring)
-  (:documentation    "Mixin     class    that     defines    a     method    of
-  COMPUTE-PROSPECTABLE-FORMATS,   which  simply   returns   the  extension   of
-  NAMESTRING slot value of ASSET instance."))
-
-(defmethod compute-prospectable-formats ((asset prospect-same))
-  "Returns a list containing the extension of the file saved in NAMESTRING slot
-of the ASSET."
-  (list (pathname-type (slot-value asset 'namestring))))
-
-;;;;;;;;;;;;
-;;; Prospect
+;;
+;;;; Prospect
 ;;
 ;;
 

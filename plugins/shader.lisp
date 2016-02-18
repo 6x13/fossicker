@@ -23,11 +23,11 @@
 
 (deflayer shader)
 
-(define-layered-class shader (asset)
+(define-layered-class shader (asset prospect-custom)
   ()
   (:documentation "Generic shader class."))
 
-(defmethod compute-prospectable-formats ((asset shader))
+(defmethod restrict-prospectable-formats ((asset shader))
   (fossicker/plugins/shader:match-prospect-extension
    (pathname-type (slot-value asset 'namestring))))
 
