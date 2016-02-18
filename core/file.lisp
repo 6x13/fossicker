@@ -21,10 +21,21 @@
 
 (in-package :fossicker)
 
+;; CAUTION:  Operations below  have  destructive side-effects  on file  system.
+;; Strict  type  checking  is  required  in  order  to  make  sure  we  do  not
+;; accidentally operate on wrong entities. Optimize for safety to make sure all
+;; type checks are done.
+(declaim (optimize safety))
+
 ;;;;;;;;
 ;;; File
 ;;
 ;;
+
+(declaim (type keyword *default-digest-name*))
+
+(defvar *default-digest-name* :md5
+  "Name of the digest algorithm to be used for checksums by default.")
 
 (defun calculate-hash (digest pathname)
   "Calculates the CHECKSUM of file using DIGEST."
@@ -39,7 +50,7 @@
   "The CHECKSUM structure. First element  is DIGEST-NAME. The second element is
 the  HASH calculated  for  the  physical file  located  at  PATHNAME using  the
 optionally provided DIGEST-NAME."
-  (digest :md5
+  (digest *default-digest-name*
    :type keyword
    :read-only t)
   (hash (error "No hash calculated.")
