@@ -37,37 +37,59 @@
 (defvar *project* nil
   "Name of the currently selected fossicker project.")
 
+(deftype pathname-designator ()
+  "Pathname designator type definition specifying types allowed in Hyperspec to
+  be used in most pathname related functions."
+  '(or pathname string))
+
 (define-layered-class project ()
   ((file
     :initarg :file
-    :initform (error "Project doesn't have an associated file.")
-    :type (or pathname string)
+    :type pathname-designator
+    :initform (error "Project doesn't have an associated configuration file.")
     :reader project-file
     :documentation "Path to loaded project configuration file.")
    (name
     :initarg :name
-    :initform (error "Project doesn't have a name.")
     :type string
+    :initform (error "Name should have been inferred during initialization.")
     :reader project-name
     :documentation "The name of the project. It has to be unique.")
    (root
     :initarg :root
-    :type (or pathname string)
+    :type pathname-designator
+    :initform (error "Root should have been inferred during initialization.")
     :reader project-root
     :documentation "Project root directory. It  is either explicitly defined in
-    project file or the directory project file resides in is used.")
+    project file or the directory project file resides in is used. It should be
+    an absolute pathname.")
    (path
     :initarg :path
+    :type pathname-designator
     :initform nil
-    :type (or pathname string)
     :reader project-path
-    :documentation "The path to the project resource directory.")
+    :documentation "Path of  project resource directory. It can  be an absolute
+    path  or a  relative path.  If  relative, it  is  merged with  the ROOT  to
+    retrieve the absolute path of resource directory.")
    (specs
     :initarg :specs
-    :initform nil
     :type list
+    :initform nil
     :reader project-specs
     :documentation "Association list of asset type specifications.")
+   (legend
+    :initarg :legend
+    :type list
+    :initform nil
+    :reader project-legend
+    :documentation "Project specific legend.")
+   (mine
+    :initarg :mine
+    :type (or null pathname-designator)
+    :initform nil
+    :accessor project-mine
+    :documentation  "Project specific  pathname  of the  mine  to prospect  for
+    sources.")
    (draft
     :type (or null asset)
     :initform nil
@@ -144,54 +166,67 @@ not explicitly stated."
                            "Project file doesn't exist.")
                    (get-data-from-file file))
                  ;; Infer  NAME  and  ROOT,  in case  they  are  not  specified
-                 ;; elsewhere.
+                 ;; elsewhere. We specifically infer them  here in order to let
+                 ;; any possible user specified initarg overrides them.
                  (list :name (infer-project-name file)
                        :root (infer-project-root file)))))
 
+(defun matching-spec (dispatch specs)
+  "Iterates over project  specs and returns first asset  spec that successfully
+dispatched  on namestring.   Project specification  order drives  type dispatch
+precedence, not the dispatch list."
+  (when specs
+    (if (member (caar specs) dispatch)
+        (car specs)
+        (matching-spec dispatch (cdr specs)))))
+
+(defun infer-asset-initargs (namestring project initargs)
+  "Adds defaulted :LEGEND and :MINE and :NAMESTRING keywords to INITARGS specified in project spec of dispatched asset class."
+  (apply #'list
+         :namestring namestring
+         :legend (or (project-legend project)
+                     (legend *config*))
+         :mine (or (project-mine project)
+                   (mine *config*))
+         initargs))
+
+(defun initialize-draft (project namestring spec
+                         &aux (draft (project-draft project))
+                           (class (car spec))
+                           (initargs (infer-asset-initargs namestring
+                                                           project
+                                                           (cdr spec))))
+  "Decides on how  to initialize new draft. If necessary,  makes an instance of
+asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
+  (cond
+    ((and draft (eq (type-of draft) class))
+     ;; If DRAFT exists and the CLASS matches, just reinitialize with INITARGS.
+     (apply #'reinitialize-instance draft initargs))
+    (draft
+     ;; If DRAFT exists and the CLASS is different, change class with INITARGS.
+     (apply #'change-class draft class initargs))
+    (t
+     ;; Otherwise, make an instance of CLASS and bind DRAFT to instance.
+     (setf (project-draft project) (apply #'make-instance class initargs)))))
+
 (defgeneric draft (project namestring)
   (:documentation "Generates draft asset for PROJECT using NAMESTRING.")
-  (:method ((project project) namestring)
-    (labels ((matching-spec (types specs)
-               "Iterates over project  specs and returns first  asset spec that
-successfully dispatched on namestring.  Project specification order drives type
-dispatch precedence, not the dispatch list."
-                (when specs
-                  (if (member (caar specs) types)
-                      (car specs)
-                      (matching-spec types (cdr specs)))))
-             (initialize-draft (project class namestring initargs)
-               "Decides on how to initialize new draft."
-               (let ((draft (project-draft project)))               
-                 (if draft
-                     (if (eq (type-of draft) class)
-                         (apply #'reinitialize-instance draft
-                                :namestring namestring
-                                initargs)
-                         (apply #'change-class draft class
-                                :namestring namestring
-                                initargs))
-                     (setf (project-draft project)
-                           (apply #'make-instance class
-                                  :namestring namestring
-                                  initargs))))))
-      (assert (stringp namestring) nil "~a is not a filename." namestring)
-      (let* ((dispatch (dispatch namestring))
-             (spec (matching-spec dispatch (project-specs project)))
-             (class (car spec))
-             (initargs (cdr spec)))
-        (cond (spec
-               ;; If necessary, make  an instance of asset subclass,  set it as
-               ;; DRAFT. Otherwise, reuse DRAFT.
-               (initialize-draft project class namestring initargs)
-               (message "Asset generated: ~A" (project-draft project)))
-              (dispatch
-               ;; No matching specification in project. Do nothing.
-               (message "~A Candidates: ~A"
-                        "No dispatched asset class is specified in project."
-                        dispatch))
-              (t
-               ;; Couldn't dispatch on any classes.
-               (message "Couldn't dispatch on any asset class.")))))))
+  (:method ((project project) namestring
+            &aux (dispatch (dispatch namestring))
+              (spec (matching-spec dispatch (project-specs project))))
+    (assert (stringp namestring) nil "~a is not a filename." namestring)
+    (cond (spec
+           ;; Initialize DRAFT ASSET.
+           (initialize-draft project namestring spec)
+           (message "Asset generated: ~A" (project-draft project)))
+          (dispatch
+           ;; No matching specification in project. Do nothing.
+           (message "~A Candidates: ~A"
+                    "No dispatched asset class is specified in project."
+                    dispatch))
+          (t
+           ;; Couldn't dispatch on any classes.
+           (message "Couldn't dispatch on any asset class.")))))
 
 ;; TODO
 (defgeneric redraft (project &key clean)
@@ -294,4 +329,3 @@ current working directory path to select the project."
 (defun unload-project (name)
   "Unloads the project with the NAME from *PROJECT-REGISTRY*."
   (setf *project-registry* (delete (get-project name) *project-registry*)))
-

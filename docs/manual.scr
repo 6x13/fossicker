@@ -1,0 +1,37 @@
+@begin(section)
+@title(Overview)
+
+My library does X, Y and Z.
+@cl:with-package[name="FOSSICKER"](
+@cl:doc(variable *default-digest-name*)
+@cl:doc(function calculate-hash)
+@cl:doc(struct checksum)
+@cl:doc(function checksum-equal)
+@cl:doc(type checksum)
+@cl:doc(type intention)
+@cl:doc(type file-status)
+@cl:doc(struct file)
+@cl:doc(function file-compute-checksum)
+@cl:doc(function file-compute-checksum)
+@cl:doc(function file-verify)
+@cl:doc(function file-report-status)
+@cl:doc(function file-sanity-checks)
+@cl:doc(function file-confirm-intention)
+@cl:doc(function file-safely-remove)
+)
+
+@cl:with-package[name="FOSSICKER"](
+@cl:doc(class asset)
+)
+
+@cl:spec(call-next-method)
+@cl:spec(complex)
+
+This text is @b(bold), this is @i(italics), and this is @c(code). You might also
+want @u(underlined) text.
+
+The speed of light is 3x10@sup(8) meters per second. The symbol for the
+permittivity of vacuum is ε@sub(0).
+
+
+@end(section)

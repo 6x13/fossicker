@@ -65,19 +65,19 @@
     can  be  used  as  asset  source.   NIL  means  no  restrictions  apply  to
     prospectable asset formats, any file will do.")
    (path
+    :initarg :path
     :type (or null string)
     :initform nil
-    :initarg :path
     :documentation "Path of asset relative to project path.")
    (namestring
-    :type string
     :initarg :namestring
+    :type string
     :initform (error "Asset doesn't have a namestring.")
     :accessor asset-namestring
     :documentation "Namestring that is provided by user for generated asset.")
    (source
-    :type pathname
     :initarg :source
+    :type pathname
     :accessor asset-source
     :documentation "Currently selected asset source.")
    (files
@@ -100,9 +100,10 @@
     processor performance."))
   (:documentation "The default asset class."))
 
-(defmethod shared-initialize :after ((instance asset) slot-names &key)
+(defmethod shared-initialize :after ((instance asset) slot-names
+                                     &key legend mine)
   (setf (asset-formats instance) (restrict-prospectable-formats instance))
-  (setf (asset-source instance) (prospect-asset instance)))
+  (setf (asset-source instance) (prospect-asset instance legend mine)))
 
 ;;
 ;;;; Prospectable Format Restrictions
@@ -190,19 +191,20 @@ Bundles  are in form  of (POSITION . VEINS))."
                 (cdar legend))
           (map-to-veins namestring (cdr legend)))))
 
-(defgeneric generate-vein-map (asset)
+(defgeneric generate-vein-map (asset legend)
   (:documentation  "Gets  the  vein  list  using  MAP-TO-VEINS,  sorting  veins
 according to their  position of occurrance.  Collects the  vein lists appending
 them into a new  list.  Conses the class of ASSET, which is  used as root vein,
 to the generated list.")
-  (:method ((asset asset))
+  (:method ((asset asset) legend)
     (cons (string-downcase (type-of asset))
           (apply #'append
                  (mapcar #'cdr
                          (stable-sort 
                           (delete-if #'null
-                                     (map-to-veins (asset-namestring asset)
-                                                   (legend *config*))
+                                     (map-to-veins
+                                      (asset-namestring asset)
+                                      legend)
                                      :key #'car)
                           #'< :key #'car))))))
 
@@ -224,12 +226,10 @@ to the generated list.")
            prospect))
       prospect))
 
-(defgeneric prospect-asset (asset)
-  (:documentation  "Prospects asset in the MINE specified in *CONFIG*.")
-  (:method ((asset asset))
-    (prospect (generate-vein-map asset)
-              (mine *config*)
-              (asset-formats asset))))
+(defgeneric prospect-asset (asset legend mine)
+  (:documentation  "Prospects ASSET according to LEGEND in MINE.")
+  (:method ((asset asset) legend mine)
+    (prospect (generate-vein-map asset legend) mine (asset-formats asset))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -46,32 +46,41 @@
   "The relative directory path default mine resides in.")
 
 (defclass configuration (asdf:package-inferred-system)
-  ((notice   :initarg :notice
-             :initform t
-             :reader startup-notice
-             :documentation "Enable/disable Fossicker startup notice.")
-   (projects :initarg :projects
-             :initform nil
-             :accessor projects
-             :documentation  "Fossicker project  file  locations. Project  ROOT
-             will  be computed  from project  file location  if not  explicitly
-             specified.")
-   (default  :initarg :default
-             :initform nil
-             :accessor default-project
-             :documentation "Default project name  to be selected. Project will
-             be   autoselected   from   current  working   directory   if   not
-             specified. Project will be set to  NIL if there is no project root
-             that corresponds to the current working directory.")
-   (legend   :initarg :legend
-             :initform nil
-             :accessor legend
-             :documentation  "Legend  to  be  used when  mapping  a  NAMESTRING
-             specified by user to a prospect template from database.")
-   (mine     :initarg :mine
-             :initform (merge-pathnames* *default-mine-directory* *repository*)
-             :accessor mine
-             :documentation "Pathname of the mine to prospect for sources."))
+  ((notice
+    :initarg :notice
+    :type boolean
+    :initform t
+    :reader startup-notice
+    :documentation "Enable/disable Fossicker startup notice.")
+   (projects
+    :initarg :projects
+    :type list
+    :initform nil
+    :accessor projects
+    :documentation  "Fossicker project  file  locations. Project  ROOT will  be
+    computed from project file location if not explicitly specified.")
+   (default
+    :initarg :default
+    :type string
+    :initform nil
+    :accessor default-project
+    :documentation  "Default  project name  to  be  selected. Project  will  be
+    autoselected from current working directory if not specified.  Project will
+    be set to NIL  if there is no project root that  corresponds to the current
+    working directory.")
+   (legend
+    :initarg :legend
+    :type list
+    :initform nil
+    :accessor legend
+    :documentation "Legend  to be used  when mapping a NAMESTRING  specified by
+    user to a prospect template from database.")
+   (mine
+    :initarg :mine
+    :type pathname-designator
+    :initform (merge-pathnames* *default-mine-directory* *repository*)
+    :accessor mine
+    :documentation "Pathname of the mine to prospect for sources."))
   (:documentation "System definition class for Fossicker configuration."))
 
 (defun configure (&key (system *default-config-system*) force)
