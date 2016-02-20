@@ -202,9 +202,11 @@ asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
     ((and draft (eq (type-of draft) class))
      ;; If DRAFT exists and the CLASS matches, just reinitialize with INITARGS.
      (apply #'reinitialize-instance draft initargs))
-    (draft
-     ;; If DRAFT exists and the CLASS is different, change class with INITARGS.
-     (apply #'change-class draft class initargs))
+    ;; DISABLED! LOCAL-SLOTS that  accidentally have the same name  will not be
+    ;; reinitialized with INITFORM of changed CLASS.    
+    ;; (draft
+    ;;  ;; If DRAFT exists and the CLASS is different, change class with INITARGS.
+    ;;  (apply #'change-class draft class initargs))
     (t
      ;; Otherwise, make an instance of CLASS and bind DRAFT to instance.
      (setf (project-draft project) (apply #'make-instance class initargs)))))
