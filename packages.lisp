@@ -11,6 +11,8 @@
                 #:find-system
                 #:system-source-directory)
   (:import-from :uiop
+                ;; STREAM
+                #:with-safe-io-syntax
                 ;; FILESYSTEM
                 #:file-exists-p
                 #:directory-exists-p

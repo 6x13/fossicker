@@ -205,7 +205,7 @@ asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
     ;; DISABLED! LOCAL-SLOTS that  accidentally have the same name  will not be
     ;; reinitialized with INITFORM of changed CLASS.    
     ;; (draft
-    ;;  ;; If DRAFT exists and the CLASS is different, change class with INITARGS.
+    ;;  ;; If DRAFT exists and CLASS is different,  change class with INITARGS.
     ;;  (apply #'change-class draft class initargs))
     (t
      ;; Otherwise, make an instance of CLASS and bind DRAFT to instance.
@@ -296,8 +296,8 @@ asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
   (find name *project-registry* :key #'project-name :test #'string=))
 
 (defun set-project (&optional name)
-  "If  NAME is  supplied, manually  select a  project by  name among  fossicker
-projects  list.  Otherwise  automatically  select  a  project  among  fossicker
+  "If  NAME is  supplied, manually  select a  project by  name among  Fossicker
+projects  list.  Otherwise  automatically  select  a  project  among  Fossicker
 projects list.  Checks the project root  of each fossicker project  against the
 current working directory path to select the project."
   (assert *project-registry* nil

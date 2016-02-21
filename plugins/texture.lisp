@@ -6,7 +6,7 @@
 (deflayer texture)
 
 (defstruct (texture-file (:include file) (:type vector) :named
-                         (:constructor make-image-file
+                         (:constructor make-texture-file
                              (namestring &key status scale)))
   "The TEXTURE-FILE struct."
   (scale (error "Scale needs to be supplied.")

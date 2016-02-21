@@ -10,6 +10,7 @@
   :licence "GPL"
   :depends-on ((:version #:asdf "3.1.2")
                #:uiop
+               #:alexandria
                #:contextl
                #:ironclad
                #:cl-ppcre
