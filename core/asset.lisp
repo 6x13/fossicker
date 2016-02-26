@@ -52,6 +52,47 @@
     (remove nil (call-next-method))))
 
 ;;
+;;;; Resource
+;;
+;;
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass resource (exposure)
+    ()
+    (:default-initargs
+     :direct-superclasses (list (find-class 'asset))))
+
+  (defmethod validate-superclass ((class resource)
+                                  (superclass cl:standard-class)) 
+    t)
+  
+  (defmethod initialize-instance :around
+      ((class resource) &rest initargs
+       &key direct-superclasses)
+    (if (loop for superclass in direct-superclasses
+                thereis (subclassp superclass 'asset))
+        (call-next-method)
+        (apply #'call-next-method class
+               :direct-superclasses
+               (append direct-superclasses
+                       (list (find-class 'asset)))
+               initargs)))
+
+  (defmethod reinitialize-instance :around
+      ((class resource) &rest initargs
+       &key (direct-superclasses () direct-superclasses-p))
+    (if direct-superclasses-p
+        (if (loop for superclass in direct-superclasses
+                    thereis (subclassp superclass 'asset))
+            (call-next-method)
+            (apply #'call-next-method class
+                   :direct-superclasses
+                   (append direct-superclasses
+                           (list (find-class 'asset)))
+                   initargs))
+        (call-next-method))))
+
+;;
 ;;;; Asset
 ;;
 ;;

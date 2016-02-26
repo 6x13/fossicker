@@ -61,7 +61,7 @@
     computed from project file location if not explicitly specified.")
    (default
     :initarg :default
-    :type string
+    :type (or null string)
     :initform nil
     :accessor default-project
     :documentation  "Default  project name  to  be  selected. Project  will  be

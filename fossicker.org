@@ -8,25 +8,6 @@
   asset class. Because type specifications will change between sessions.
 - Asset  class  will  provide  delete/regenerate  function  for  their  history
   assets. If deleted it is deleted from history.
-
-- query-initargs using metaclass base-arglist?
-  - metaclass name is 'resource
-  - :type :documentation maybe :query-method keyword args to each arg?
-  - maybe even make them objects and write documentation method for them?
-- or maybe just document the initargs in class documentation and get defining-class documentation for class
-- do both as explicit and implicit querying
-- finalize inheritance using c2mop:ensure-finalized to make sure even though it is not necessary for this specific case since always a draft asset will be initialized before documenting initargs.
-- check partial-initargs test as example.
-(mapcar #'c2mop:slot-definition-initform (c2mop:class-slots (find-class 'fck::project)))
-(mapcar #'c2mop:slot-definition-initargs (c2mop:class-slots (find-class 'fck::project)))
-(mapcar #'c2mop:slot-definition-type (c2mop:class-slots (find-class 'fck::project)))
-(c2mop:compute-default-initargs (find-class 'fck::project))
-(contextl::partial-class-defining-classes (find-class 'fossicker::video))
-(contextl:partial-class-base-initargs (find-class 'fossicker::project))
-(c2mop:class-direct-default-initargs (car (c2mop:class-direct-superclasses (find-class 'fossicker::project)))) change with defining classes
-(documentation (car (c2mop:class-direct-superclasses (find-class 'fossicker::asset))) 't) same
-(c2mop:class-default-initargs (find-class 'fossicker::project)) don't use, inherits
-(find (contextl:partial-class-defining-metaclass (find-class 'fck::asset)) (contextl:partial-class-defining-classes (find-class 'fck::asset)) :key #'type-of)
 ** Interface
 - UI: Generate, Project, History, Settings
 - For  Slime and  CLI, standard  error handling  is good,  but for  GUI, errors

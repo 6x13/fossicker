@@ -24,6 +24,8 @@
                 :components
                 (;; (:file "persistence")
                  (:file "file")
+                 (:file "documentation")
+                 (:file "exposure")
                  (:file "asset")
                  (:file "project")
                  (:file "config")

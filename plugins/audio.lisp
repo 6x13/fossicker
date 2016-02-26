@@ -5,8 +5,9 @@
 
 (deflayer audio)
 
-(define-layered-class audio (asset prospect-any)
+(defclass audio (prospect-any)
   ()
+  (:metaclass resource)
   (:documentation "Generic audio class."))
 
 (define-layered-method dispatch :in audio list (namestring)

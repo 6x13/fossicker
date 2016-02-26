@@ -23,8 +23,9 @@
 
 (deflayer shader)
 
-(define-layered-class shader (asset prospect-custom)
+(defclass shader (prospect-custom)
   ()
+  (:metaclass resource)
   (:documentation "Generic shader class."))
 
 (defmethod restrict-prospectable-formats ((asset shader))
