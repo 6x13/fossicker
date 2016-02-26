@@ -97,7 +97,7 @@
 ;;
 ;;
 
-(define-layered-class asset ()
+(defclass asset ()
   ((formats
     :type list
     :initform nil
@@ -134,11 +134,13 @@
     :documentation "Date of creation for ASSET instance.")
    (description
     :type string
+    :interactive t
     :documentation "Description of the asset to be used in generated report.")
    (benchmark
     :type string
     :documentation  "The  data  reported  by TIME  macro  for  measuring  asset
     processor performance."))
+  (:metaclass exposure)
   (:documentation "The default asset class."))
 
 (defmethod shared-initialize :after ((instance asset) slot-names
