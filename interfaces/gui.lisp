@@ -33,7 +33,7 @@
 
 (define-initializer (main main-setup)
   (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
-  (setf (q+:fixed-size main) (values 480 500)))
+  (setf (q+:fixed-size main) (values 480 520)))
 
 ;;
 ;;;; Header
@@ -194,10 +194,23 @@
 ;;
 ;;
 
+;; (define-slot (main hit-reset) ()
+;;   (declare (connected reset (pressed)))
+;;   (loop for widget = (q+:take-at initargs 0) until (null-qobject-p widget)
+;;         do (progn (format t "~A" widget) (#_delete widget))))
+
+(define-slot (main hit-reset) ()
+  (declare (connected reset (pressed)))
+  (loop for widget = (q+:take-at initargs 0) until (null-qobject-p widget)
+        do (progn
+             ;; (q+:remove-widget initargs (q+:widget widget))
+             (#_delete (q+:widget widget))
+             (q+:update initargs))))
+
 (define-signal (main name-set) (string))
 (define-slot (main name-set) ((new-name string))
   (declare (connected main (name-set string)))
-  (q+:add-widget initargs (q+:make-qlabel "Project"))
+  (q+:add-widget initargs (q+:make-qlineedit "Project"))
   (setf (q+:text source) (q+:text namestring)))
 
 (define-slot (main go) ()
