@@ -201,12 +201,7 @@
 
 (define-slot (main hit-reset) ()
   (declare (connected reset (pressed)))
-  (loop for widget = (q+:take-at initargs 0) until (null-qobject-p widget)
-        do ;; (q+:remove-widget initargs (q+:widget widget))
-           (#_delete (q+:widget widget)))
-  (q+:update (q+:viewport initargs-scroller))
-  (q+:repaint (q+:viewport initargs-scroller))
-  (q+:update initargs))
+  (sweep-layout initargs))
 
 (define-signal (main name-set) (string))
 (define-slot (main name-set) ((new-name string))
