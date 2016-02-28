@@ -48,11 +48,13 @@
            #:dispatch
            #:save))
 
-;; (defpackage #:fossicker-widget
-;;   (:use #:cl+qt
-;;         #:fossicker)
-;;   (:import-from :cl-fad #:merge-pathnames-as-file)
-;;   (:export #:main))
+(defpackage #:fossicker-widget
+  (:use #:cl+qt
+        #:fossicker)
+  (:import-from :uiop
+                ;; PATHNAME
+                #:subpathname*)
+  (:export #:main))
 
 (in-package :fossicker)
 

@@ -14,10 +14,9 @@
                #:contextl
                #:ironclad
                #:cl-ppcre
-               ;; #:qtools
-               ;; #:qtcore
-               ;; #:qtgui
-               )
+               #:qtools
+               #:qtcore
+               #:qtgui)
   :serial t
   :components ((:file "packages")
                (:module core
@@ -36,7 +35,7 @@
                 :components
                 (
                  ;; (:file "cli")
-                 ;; (:file "gui")
+                 (:file "gui")
                  ;; (:file "srv")
                  )))
   :perform (load-op :after (o s)

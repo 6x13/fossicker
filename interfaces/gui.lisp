@@ -33,7 +33,7 @@
 
 (define-initializer (main main-setup)
   (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
-  (setf (q+:fixed-size main) (values 480 360)))
+  (setf (q+:fixed-size main) (values 480 500)))
 
 ;;
 ;;;; Header
@@ -42,8 +42,8 @@
 
 (define-subwidget (main logo) (q+:make-qlabel)
   (setf (q+:pixmap logo) (q+:make-qpixmap (namestring
-                                           (merge-pathnames-as-file
-                                            fossicker-conf:*basedir*
+                                           (subpathname*
+                                            *repository*
                                             "etc/fossicker-logo.png")))))
 
 (define-subwidget (main info) (q+:make-qlabel "Select project, type file name, press GENERATE. That's it! Check out our website and follow us on Twitter for more libraries and games.")
@@ -74,21 +74,54 @@
 ;;
 
 (define-subwidget (main project) (q+:make-qcombobox)
+  (setf (q+:size-policy project)
+        (q+::make-qsizepolicy (q+::qsizepolicy.maximum)
+                              (q+::qsizepolicy.fixed)))
   (q+:add-item project "6x13")
   (q+:add-item project "Twiniwt")
   (q+:add-item project "Test"))
-(define-subwidget (main filename) (q+:make-qlineedit "asset-name.png"))
-(define-subwidget (main type) (q+:make-qlabel "Type"))
-(define-subwidget (main context) (q+:make-qlineedit "game/ui/"))
+
+(define-subwidget (main namestring) (q+:make-qlineedit "asset-name.png")
+  (setf (q+:size-policy namestring)
+        (q+::make-qsizepolicy (q+::qsizepolicy.minimum-expanding)
+                              (q+::qsizepolicy.fixed))))
+
+(define-subwidget (main type) (q+:make-qlabel "Type")
+  (setf (q+:size-policy type)
+        (q+::make-qsizepolicy (q+::qsizepolicy.ignored)
+                              (q+::qsizepolicy.fixed))))
+
 (define-subwidget (main grid) (q+:make-qgridlayout)
+  (setf (q+:size-constraint grid) (q+:qlayout.set-fixed-size))
+  (setf (q+:alignment grid) (q+:qt.align-top))
   (q+:add-widget grid (q+:make-qlabel "Project") 0 0)
-  (q+:add-widget grid project 0 1)
-  (q+:add-widget grid (q+:make-qlabel "Filename") 0 2)
-  (q+:add-widget grid filename 0 3)
+  (q+:add-widget grid project 0 1)  
+  (q+:add-widget grid (q+:make-qlabel "Namestring") 0 2)
+  (q+:add-widget grid namestring 0 3)
   (q+:add-widget grid (q+:make-qlabel "Type") 1 0)
-  (q+:add-widget grid type 1 1)
-  (q+:add-widget grid (q+:make-qlabel "Context") 1 2)
-  (q+:add-widget grid context) 1 3)
+  (q+:add-widget grid type 1 1))
+
+(define-subwidget (main initargs-scroller) (q+:make-qscrollarea)
+  ;; (setf (q+:background-role initargs-scroller) (q+:qpalette.dark))
+  (setf (q+:widget-resizable initargs-scroller) t)
+  (setf (q+:frame-shape initargs-scroller) (q+:qframe.no-frame)))
+
+(define-subwidget (main initargs-layout) (q+:make-qvboxlayout)
+  (q+:add-widget initargs-layout initargs-scroller)
+  ;; (q+:add-stretch initargs-layout 0)
+  )
+
+(define-subwidget (main initargs-box) (q+:make-qgroupbox)
+  (setf (q+:title initargs-box) "Initialization Arguments")
+  ;(setf (q+:flat initargs-box) t)
+  (setf (q+:layout initargs-box) initargs-layout))
+
+(define-subwidget (main initargs-widget) (q+:make-qwidget initargs-scroller)
+  (setf (q+:widget initargs-scroller) initargs-widget))
+
+(define-subwidget (main initargs) (q+:make-qvboxlayout initargs-widget)
+  (setf (q+:layout initargs-widget) initargs)
+  (setf (q+:alignment initargs) (q+:qt.align-top)))
 
 ;;
 ;;;; Source
@@ -122,6 +155,7 @@
 
 (define-subwidget (main asset) (q+:make-qvboxlayout general)
   (q+:add-layout asset grid)
+  (q+:add-widget asset initargs-box)
   (q+:add-layout asset srcbar)
   (q+:add-layout asset buttons))
 
@@ -159,6 +193,16 @@
 ;;;; Slots
 ;;
 ;;
+
+(define-signal (main name-set) (string))
+(define-slot (main name-set) ((new-name string))
+  (declare (connected main (name-set string)))
+  (q+:add-widget initargs (q+:make-qlabel "Project"))
+  (setf (q+:text source) (q+:text namestring)))
+
+(define-slot (main go) ()
+  (declare (connected namestring (text-edited string)))
+  (signal! main (name-set string) (q+:text namestring)))
 
 ;; (define-slot (main inc) ()
 ;;   (declare (connected increase (pressed))))
