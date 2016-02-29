@@ -181,7 +181,8 @@ precedence, not the dispatch list."
         (matching-spec dispatch (cdr specs)))))
 
 (defun infer-asset-initargs (namestring project initargs)
-  "Adds defaulted :LEGEND and :MINE and :NAMESTRING keywords to INITARGS specified in project spec of dispatched asset class."
+  "Adds  defaulted  :LEGEND and  :MINE  and  :NAMESTRING keywords  to  INITARGS
+specified in project spec of dispatched asset class."
   (apply #'list
          :namestring namestring
          :legend (or (project-legend project)
@@ -243,15 +244,18 @@ direct representation of the current state of a drafting process."
                  (compile-draft-closure (project-draft project)
                                         class
                                         initargs))
-           (message "Asset generated: ~A" (project-draft project)))
+           (message "Asset generated: ~A" (project-draft project))
+           class)
           (dispatch
            ;; No matching specification in project. Do nothing.
            (message "~A Candidates: ~A"
                     "No dispatched asset class is specified in project."
-                    dispatch))
+                    dispatch)
+           nil)
           (t
            ;; Couldn't dispatch on any classes.
-           (message "Couldn't dispatch on any asset class.")))))
+           (message "Couldn't dispatch on any asset class.")
+           nil))))
 
 (defgeneric accept (project interactive)
   (:documentation "Generates draft ASSET for PROJECT using INTERACTIVE.")
