@@ -91,7 +91,7 @@
     :documentation  "Project specific  pathname  of the  mine  to prospect  for
     sources.")
    (draft
-    :type (or null asset)
+    :type (or null asset function)
     :initform nil
     :accessor project-draft
     :documentation "Asset that  is currently being sketched. Draft  is an asset
