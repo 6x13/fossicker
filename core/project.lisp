@@ -190,14 +190,11 @@ precedence, not the dispatch list."
                    (mine *config*))
          initargs))
 
-(defun initialize-draft (project namestring spec
-                         &aux (draft (project-draft project))
-                           (class (car spec))
-                           (initargs (infer-asset-initargs namestring
-                                                           project
-                                                           (cdr spec))))
+(defun initialize-draft (draft class initargs)
   "Decides on how  to initialize new draft. If necessary,  makes an instance of
-asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
+asset subclass,  set it as DRAFT.  Otherwise, reuses DRAFT. This  is refactored
+into a  seperate function in  order to safely  optimize draft generation  in an
+isolated manner."
   (cond
     ((and draft (eq (type-of draft) class))
      ;; If DRAFT exists and the CLASS matches, just reinitialize with INITARGS.
@@ -208,18 +205,44 @@ asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
     ;;  ;; If DRAFT exists and CLASS is different,  change class with INITARGS.
     ;;  (apply #'change-class draft class initargs))
     (t
-     ;; Otherwise, make an instance of CLASS and bind DRAFT to instance.
-     (setf (project-draft project) (apply #'make-instance class initargs)))))
+     ;; Otherwise, make an instance of CLASS and return it.
+     (apply #'make-instance class initargs))))
+
+(defun compile-draft-closure (draft class initargs)
+  "If the  DRAFT is  a CLOSURE,  calls CLOSURE  with no  arguments in  order to
+retrieve the ASSET it holds without further processing it, for use within newly
+compiled  CLOSURE ,  then  calls  itself using  the  returned  ASSET as  DRAFT.
+Otherwise, just  compiles a  CLOSURE and returns  the compiled  CLOSURE. Design
+would be somehow simpler if the CLOSURE and ASSET were stored in seperate slots
+of the  PROJECT. But that would  be misleading, giving the  impression they can
+both  be   incorporated  into  pipeline  independently.    The  current  design
+emphasizes the fact that there should either be a CLOSURE expected to be called
+in  order to  generate an  ASSET, or  an ASSET  that is  expected to  either be
+DISCARDED or SELECTED. In a way, the value  of the DRAFT slot of a PROJECT is a
+direct representation of the current state of a drafting process."
+  (if (functionp draft)
+      (compile-draft-closure (funcall draft) class initargs) 
+      (lambda (&optional (interactive nil interactive-supplied-p))
+        (if interactive-supplied-p
+            (initialize-draft draft class (append interactive initargs))
+            draft))))
 
 (defgeneric draft (project namestring)
-  (:documentation "Generates draft asset for PROJECT using NAMESTRING.")
+  (:documentation "Generates a draft CLOSURE for PROJECT using NAMESTRING.")
   (:method ((project project) namestring
             &aux (dispatch (dispatch namestring))
-              (spec (matching-spec dispatch (project-specs project))))
+              (spec (matching-spec dispatch (project-specs project)))
+              (class (car spec))
+              (initargs (infer-asset-initargs namestring
+                                              project
+                                              (cdr spec))))
     (assert (stringp namestring) nil "~a is not a filename." namestring)
     (cond (spec
-           ;; Initialize DRAFT ASSET.
-           (initialize-draft project namestring spec)
+           ;; Compile and store DRAFT CLOSURE.
+           (setf (project-draft project)
+                 (compile-draft-closure (project-draft project)
+                                        class
+                                        initargs))
            (message "Asset generated: ~A" (project-draft project)))
           (dispatch
            ;; No matching specification in project. Do nothing.
@@ -229,6 +252,13 @@ asset subclass, set it as DRAFT. Otherwise, reuses DRAFT."
           (t
            ;; Couldn't dispatch on any classes.
            (message "Couldn't dispatch on any asset class.")))))
+
+(defgeneric accept (project interactive)
+  (:documentation "Generates draft ASSET for PROJECT using INTERACTIVE.")
+  (:method ((project project) interactive)
+    (check-type (project-draft project) function)
+    (setf (project-draft project)
+          (funcall (project-draft project) interactive))))
 
 ;; TODO
 (defgeneric redraft (project &key clean)
