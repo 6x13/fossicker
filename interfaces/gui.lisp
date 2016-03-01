@@ -22,8 +22,11 @@
 (in-package #:fossicker-widget)
 (in-readtable :qtools)
 
+;;;;;;;;;;;;;;;;;;;;
+;;; Fossicker Widget
 ;;
-;;;; Output
+;;
+;;;; Fontify & Output
 ;;
 ;;
 
@@ -37,16 +40,17 @@
            (cl-ppcre:regex-replace-all find text replace)))
     (r (r (r text "&" "&amp;") "<" "&lt;") ">" "&gt;")))
 
-(defun output-colored (log color format-string &rest args)
-  (output log "<span style=\"color:~a;\">~a</span>" color (apply #'format NIL format-string args)))
+(defun fontify (color format-string &rest args)
+  (format nil "<span style=\"color:~a;\">~a</span>"
+          (symbol-name color)
+          (apply #'format NIL format-string args)))
 
-(defun output-comment (log format-string &rest args)
-  (output-colored log "gray" "; ~a<br />" (apply #'format NIL format-string args)))
-
-(defun output-error (log error)
-  (output log "<br />")
-  (output-comment log "<span style=\"color:red;\">Error:</span> ~a" (escape (princ-to-string error)))
-  (output-comment log "[Condition of type ~a]" (escape (princ-to-string (type-of error)))))
+(defun fontify-error (error)
+  (format nil "<br />~a~a"
+          (fontify :red "Error: ")
+          (fontify :grey "~a<br />[Condition of type ~a]"
+                   (escape (princ-to-string error))
+                   (escape (princ-to-string (type-of error))))))
 
 ;;
 ;;;; Stream
@@ -62,7 +66,9 @@
 
 (defmethod stream-finish-output ((stream log-stream))
   (let ((string (get-output-stream-string (buffer stream))))
-    (output-colored (log-stream-log stream) "orange" "~a" (cl-ppcre:regex-replace-all "\\n" (escape string) "<br />")))
+    (output (log-stream-log stream)
+            (fontify :orange
+                     (cl-ppcre:regex-replace-all "\\n" string "<br />"))))
   (clear-output stream))
 
 (defmethod stream-force-output ((stream log-stream))
@@ -78,14 +84,23 @@
 (defmethod stream-terpri ((stream log-stream))
   (write-char #\Newline stream))
 
-
-;;;;;;;;;;;;;;;;;;;;
-;;; Fossicker Widget
+;;
+;;;; Widget
 ;;
 ;;
 
 (define-widget main (qwidget)
   ((log-stream :accessor log-stream)))
+
+(defun call-with-gui-stream (widget function)
+  (let* ((*standard-output* (log-stream widget))
+         (*error-output* *standard-output*)
+         (*trace-output* *standard-output*))
+    (handler-case (funcall function)
+      (error (err) (format t (fontify-error err))))))
+
+(defmacro with-gui-stream ((widget) &body body)
+  `(call-with-gui-stream ,widget (lambda () ,@body)))
 
 ;;
 ;;;; Log
@@ -94,9 +109,9 @@
 
 (define-subwidget (main log) (q+:make-qtextedit)
   (let ((font (q+:make-qfont "Monospace" 8)))
-  ;; (setf (q+:word-wrap log) t)
-  ;; (setf (q+:frame-style log)
-  ;;       (logior (q+:qframe.styled-panel) (q+:qframe.sunken)))
+    ;; (setf (q+:word-wrap log) t)
+    ;; (setf (q+:frame-style log)
+    ;;       (logior (q+:qframe.styled-panel) (q+:qframe.sunken)))
     (setf (q+:style-hint font) (q+:qfont.type-writer))
     (setf (q+:font log) font)))
 
@@ -106,7 +121,7 @@
 ;;
 
 (define-initializer (main main-setup)
-  (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
+  ;; (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
   (setf (q+:fixed-size main) (values 480 520))
   (setf (log-stream main)
         (make-instance 'log-stream :log log)))
@@ -189,7 +204,7 @@
 
 (define-subwidget (main initargs-box) (q+:make-qgroupbox)
   (setf (q+:title initargs-box) "Initialization Arguments")
-  ;(setf (q+:flat initargs-box) t)
+                                        ;(setf (q+:flat initargs-box) t)
   (setf (q+:layout initargs-box) initargs-layout))
 
 (define-subwidget (main initargs-widget) (q+:make-qwidget initargs-scroller)
@@ -267,15 +282,10 @@
 
 (define-slot (main hit-reset) ()
   (declare (connected reset (pressed)))
-  (let* ((*standard-output* (log-stream main))
-         (*error-output* *standard-output*)
-         (*trace-output* *standard-output*))
-    (handler-case
-        (progn
-          (fossicker:set-project "6x13")
-          (fossicker::draft *project* "bla_b_n_p_e_.png")
-          (error "TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!!"))
-      (error (err) (output-error log err))))
+  (with-gui-stream (main)
+    (fossicker:set-project "6x13")
+    (fossicker::draft *project* "bla_b_n_p_e_.png")
+    (error "TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!!"))
   (sweep-layout initargs))
 
 (define-signal (main name-set) (string))
@@ -299,4 +309,5 @@
 ;;
 
 (defun main ()
-  (with-main-window (window (make-instance 'main))))
+  (with-main-window (window (make-instance 'main)
+                     :name "Fossicker: Open Source Asset Prospector")))
