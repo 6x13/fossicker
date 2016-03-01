@@ -31,22 +31,28 @@
 ;;
 
 (defun output (log format-string &rest args)
+  "Formats and outputs to LOG widget according to given arguments."
   (q+:move-cursor log (q+:qtextcursor.end))
   (q+:insert-html log (apply #'format NIL format-string args))
   (q+:move-cursor log (q+:qtextcursor.end)))
 
 (defun escape (text)
+  "Escapes TEXT that might be confused with HTML tags."
   (flet ((r (text find replace)
            (cl-ppcre:regex-replace-all find text replace)))
     (r (r (r text "&" "&amp;") "<" "&lt;") ">" "&gt;")))
 
 (defun fontify (color format-string &rest args)
+  "Applies formatting and fontification to  text with specified style for given
+arguments for printing  to log widget.  Currently only COLOR  is supported as a
+style."
   (format nil "<span style=\"color:~a;\">~a</span>"
           (symbol-name color)
           (apply #'format NIL format-string args)))
 
 (defun fontify-error (error)
-  (format nil "<br />~a~a"
+  "Formats and fontifies ERROR for log widget."
+  (format nil "<br />~a~a<br />"
           (fontify :red "Error: ")
           (fontify :grey "~a<br />[Condition of type ~a]"
                    (escape (princ-to-string error))
@@ -57,14 +63,24 @@
 ;;
 ;;
 
-(defclass log-stream (fundamental-character-output-stream trivial-gray-stream-mixin)
-  ((log :initarg :log :initform (error "LOG required.") :accessor log-stream-log)
-   (buffer :initform (make-string-output-stream) :accessor buffer)))
+(defclass log-stream (fundamental-character-output-stream
+                      trivial-gray-stream-mixin)
+  ((log
+    :initarg :log
+    :initform (error "LOG required.")
+    :accessor log-stream-log
+    :documentation "Log widget that stream will output.")
+   (buffer
+    :initform (make-string-output-stream)
+    :accessor buffer
+    :documentation "Stream buffer."))
+  (:documentation "The stream to use for logging in widget."))
 
 (defmethod stream-clear-output ((stream log-stream))
   (setf (buffer stream) (make-string-output-stream)))
 
 (defmethod stream-finish-output ((stream log-stream))
+  "Applies fontification to contents of stream and outputs it to log widget."
   (let ((string (get-output-stream-string (buffer stream))))
     (output (log-stream-log stream)
             (fontify :orange
@@ -74,7 +90,8 @@
 (defmethod stream-force-output ((stream log-stream))
   (stream-finish-output stream))
 
-(defmethod stream-write-string ((stream log-stream) string &optional (start 0) end)
+(defmethod stream-write-string ((stream log-stream) string
+                                &optional (start 0) end)
   (write-string string (buffer stream) :start start :end end)
   (stream-finish-output stream))
 
@@ -90,9 +107,15 @@
 ;;
 
 (define-widget main (qwidget)
-  ((log-stream :accessor log-stream)))
+  ((log-stream
+     :accessor log-stream
+     :documentation "The stream that holds the log output."))
+  (:documentation "The main widget of the Fossicker QT GUI."))
 
 (defun call-with-gui-stream (widget function)
+  "Calls  FUNCTION  with  output  stream   variables  bound  to  LOG-STREAM  of
+WIDGET.  Also ignores  errors  and outputs  error message  to  LOG-STREAM in  a
+non-interactive manner."
   (let* ((*standard-output* (log-stream widget))
          (*error-output* *standard-output*)
          (*trace-output* *standard-output*))
@@ -100,6 +123,7 @@
       (error (err) (format t (fontify-error err))))))
 
 (defmacro with-gui-stream ((widget) &body body)
+  "Wrapper macro for forwarding output to LOG-STREAM of WIDGET."
   `(call-with-gui-stream ,widget (lambda () ,@body)))
 
 ;;
@@ -137,7 +161,9 @@
                                             *repository*
                                             "etc/fossicker-logo.png")))))
 
-(define-subwidget (main info) (q+:make-qlabel "Select project, type file name, press GENERATE. That's it! Check out our website and follow us on Twitter for more libraries and games.")
+(define-subwidget (main info) (q+:make-qlabel "Select project, type file name,
+press GENERATE. That's it! Check out our website and
+follow us on Twitter for more libraries and games.")
   (setf (q+:word-wrap info) t))
 
 (define-subwidget (main header) (q+:make-qhboxlayout)
@@ -285,7 +311,7 @@
   (with-gui-stream (main)
     (fossicker:set-project "6x13")
     (fossicker::draft *project* "bla_b_n_p_e_.png")
-    (error "TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!!"))
+    (error "TEST ERROR!!!"))
   (sweep-layout initargs))
 
 (define-signal (main name-set) (string))
