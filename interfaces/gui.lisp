@@ -132,7 +132,7 @@ non-interactive manner."
 ;;
 
 (define-subwidget (main log) (q+:make-qtextedit)
-  (let ((font (q+:make-qfont "Monospace" 8)))
+  (let ((font (q+:make-qfont "Monospace" 7)))
     ;; (setf (q+:word-wrap log) t)
     ;; (setf (q+:frame-style log)
     ;;       (logior (q+:qframe.styled-panel) (q+:qframe.sunken)))
