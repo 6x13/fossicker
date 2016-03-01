@@ -208,13 +208,13 @@ follow us on Twitter for more libraries and games.")
   ;; Set  current project  as  selected  in widget.  Disable  namestring if  no
   ;; project selected.
   (cond (fossicker::*project*
-         (setf (q+:read-only namestring) nil)
+         (setf (q+:enabled namestring) t)
          (setf (q+:current-index project)
                (q+:find-data project
                              (fossicker::project-name
                               fossicker::*project*))))
         (t
-         (setf (q+:read-only namestring) t)
+         (setf (q+:enabled namestring) nil)
          (setf (q+:current-index project) -1))))
 
 (define-slot (main project-selected) ((new-project string))
@@ -222,7 +222,7 @@ follow us on Twitter for more libraries and games.")
   ;; Set project. Ensure namestring enabled.
   (with-gui-stream (main)
     (fossicker:set-project new-project)
-    (setf (q+:read-only namestring) nil)))
+    (setf (q+:enabled namestring) t)))
 
 (define-subwidget (main type) (q+:make-qlabel "")
   (setf (q+:size-policy type)
