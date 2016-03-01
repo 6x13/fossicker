@@ -194,9 +194,19 @@ follow us on Twitter for more libraries and games.")
   (setf (q+:size-policy project)
         (q+::make-qsizepolicy (q+::qsizepolicy.maximum)
                               (q+::qsizepolicy.fixed)))
-  (q+:add-item project "6x13")
-  (q+:add-item project "Twiniwt")
-  (q+:add-item project "Test"))
+  ;; Add items representing projects.
+  (mapc (lambda (proj &aux (name (fossicker::project-name proj)))
+          (q+:add-item project name name))
+        fossicker::*project-registry*)
+  ;; Set current project as selected in widget.
+  (setf (q+:current-index project)
+        (q+:find-data project (fossicker::project-name fossicker::*project*))))
+
+(define-slot (main project-selected) ((new-project string))
+  (declare (connected project (activated string)))
+  ;; Set project.
+  (with-gui-stream (main)
+    (fossicker:set-project new-project)))
 
 (define-subwidget (main namestring) (q+:make-qlineedit "asset-name.png")
   (setf (q+:size-policy namestring)
@@ -309,8 +319,7 @@ follow us on Twitter for more libraries and games.")
 (define-slot (main hit-reset) ()
   (declare (connected reset (pressed)))
   (with-gui-stream (main)
-    (fossicker:set-project "6x13")
-    (fossicker::draft *project* "bla_b_n_p_e_.png")
+    ;; (fossicker::draft *project* "bla_b_n_p_e_.png")
     (error "TEST ERROR!!!"))
   (sweep-layout initargs))
 
