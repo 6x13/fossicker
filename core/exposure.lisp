@@ -211,10 +211,38 @@
   "Infers how to present the INTERACTION from type."
   nil)
 
+(deftype type-specifier ()
+  "Type definition for type-specifier."
+  '(or symbol list class))
+
+(deftype documentation-or-null ()
+  "Type definition for documentation of a slot."
+  '(or null string))
+
+(defstruct (initarg (:type vector) :named)
+  "The INITARG struct consisting  of :KEYWORD, :TYPE, :INITFORM, :DOCUMENTATION
+and :PRESENTATION information."
+  (keyword (error "The initarg should have a keyword.")
+   :type keyword
+   :read-only t)
+  (type t
+   :type type-specifier
+   :read-only t)
+  (initform t
+   :type t
+   :read-only t)
+  (presentation nil
+   :type t
+   :read-only t)
+  (documentation nil
+   :type documentation-or-null
+   :read-only t)
+  (value nil
+   :type t))
+
 (defgeneric infer-initarg-properties (class &rest initargs)
-  (:documentation "Loops through the provided  INITARGS, returning a plist with
-values  consisting  of  :TYPE,   :INITFORM,  :DOCUMENTATION  and  :PRESENTATION
-information for each INITARG as key.")
+  (:documentation "Loops  through the  provided INITARGS,  returning a  list of
+INITARG structures for each INITARG.")
   (:method ((class symbol) &rest initargs)
     (apply #'infer-initarg-properties (find-class class) initargs))
   (:method ((class exposure) &rest initargs)
@@ -235,17 +263,16 @@ information for each INITARG as key.")
       as slot-initform = (if slot (slot-definition-initform slot))
       and slot-type = (if slot (slot-definition-type slot))
       and slot-documentation = (if slot (document-slot slot))
-      ;; Append all into a PLIST.
-      appending
-      (list initarg (list :type slot-type
-                          :presentation (infer-presentation slot-type)
-                          :initform (or default-initform slot-initform)
-                          :documentation slot-documentation)))))
+      ;; Collect all into a nested list.
+      collecting
+      (make-initarg :keyword initarg
+                    :type slot-type
+                    :initform (or default-initform slot-initform)
+                    :presentation (infer-presentation slot-type)
+                    :documentation slot-documentation))))
 
 (defgeneric compute-initarg-properties (class)
-  (:documentation  "Loops  through the  provided  INTERACTIVE  slots of  CLASS,
-returning a PLIST with values consisting of :INITFORM and :TYPE information for
-each INITARG as key.")
+  (:documentation "Loops through the provided INTERACTIVE initargs of CLASS.")
   (:method ((class symbol))
     (compute-initarg-properties (find-class class)))
   (:method ((class exposure)

@@ -260,17 +260,23 @@ follow us on Twitter for more libraries and games.")
 
 (define-slot (main name-set) ((new-name string))
   (declare (connected namestring (text-edited string)))
-  (q+:add-widget initargs (q+:make-qlineedit "Project"))
+  (sweep-layout initargs)
   (with-gui-stream (main)
     (let ((class (fossicker::draft fossicker::*project*
                                    (q+:text namestring))))
-      (setf (q+:text type)
-            (if class
-                (format nil "~:(~a~)"
-                        (cl-ppcre:regex-replace-all "-"
-                                                    (symbol-name class)
-                                                    " "))
-                "No type selected.")))))
+      (cond (class
+             (dolist (arg (fossicker::compute-initarg-properties class))
+               (q+:add-widget initargs
+                              (q+:make-qlineedit
+                               (or (symbol-name
+                                    (fossicker::initarg-keyword arg)) ""))))
+             (setf (q+:text type)
+                   (format nil "~:(~a~)"
+                           (cl-ppcre:regex-replace-all "-"
+                                                       (symbol-name class)
+                                                       " "))))
+            (t
+             (setf (q+:text type) "No type selected."))))))
 
 ;;
 ;;;; Source
@@ -295,8 +301,7 @@ follow us on Twitter for more libraries and games.")
   (declare (connected reset (pressed)))
   (with-gui-stream (main)
     ;; (fossicker::draft *project* "bla_b_n_p_e_.png")
-    (error "TEST ERROR!!!"))
-  (sweep-layout initargs))
+    (error "TEST ERROR!!!")))
 
 (define-subwidget (main generate) (q+:make-qpushbutton "GENERATE"))
 (define-subwidget (main buttons) (q+:make-qhboxlayout)
