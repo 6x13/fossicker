@@ -148,7 +148,9 @@ non-interactive manner."
   ;; (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
   (setf (q+:fixed-size main) (values 480 520))
   (setf (log-stream main)
-        (make-instance 'log-stream :log log)))
+        (make-instance 'log-stream :log log))
+  (with-gui-stream (main)
+    (format t "Welcome to Fossicker!")))
 
 ;;
 ;;;; Header
@@ -200,7 +202,11 @@ follow us on Twitter for more libraries and games.")
         fossicker::*project-registry*)
   ;; Set current project as selected in widget.
   (setf (q+:current-index project)
-        (q+:find-data project (fossicker::project-name fossicker::*project*))))
+        (if fossicker::*project*
+            (q+:find-data project
+                          (fossicker::project-name
+                           fossicker::*project*))
+            -1)))
 
 (define-slot (main project-selected) ((new-project string))
   (declare (connected project (activated string)))
@@ -213,7 +219,7 @@ follow us on Twitter for more libraries and games.")
         (q+::make-qsizepolicy (q+::qsizepolicy.minimum-expanding)
                               (q+::qsizepolicy.fixed))))
 
-(define-subwidget (main type) (q+:make-qlabel "Type")
+(define-subwidget (main type) (q+:make-qlabel "")
   (setf (q+:size-policy type)
         (q+::make-qsizepolicy (q+::qsizepolicy.ignored)
                               (q+::qsizepolicy.fixed))))
@@ -226,7 +232,7 @@ follow us on Twitter for more libraries and games.")
   (q+:add-widget grid (q+:make-qlabel "Namestring") 0 2)
   (q+:add-widget grid namestring 0 3)
   (q+:add-widget grid (q+:make-qlabel "Type") 1 0)
-  (q+:add-widget grid type 1 1))
+  (q+:add-widget grid type 1 1 1 3))
 
 (define-subwidget (main initargs-scroller) (q+:make-qscrollarea)
   (setf (q+:widget-resizable initargs-scroller) t)
@@ -251,9 +257,15 @@ follow us on Twitter for more libraries and games.")
   (declare (connected namestring (text-edited string)))
   (q+:add-widget initargs (q+:make-qlineedit "Project"))
   (with-gui-stream (main)
-    (setf (q+:text type) (symbol-name
-                          (fossicker::draft fossicker::*project*
-                                            (q+:text namestring))))))
+    (let ((class (fossicker::draft fossicker::*project*
+                                   (q+:text namestring))))
+      (setf (q+:text type)
+            (if class
+                (format nil "~:(~a~)"
+                        (cl-ppcre:regex-replace-all "-"
+                                                    (symbol-name class)
+                                                    " "))
+                "No type selected.")))))
 
 ;;
 ;;;; Source
