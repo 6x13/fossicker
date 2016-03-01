@@ -14,6 +14,7 @@
                #:contextl
                #:ironclad
                #:cl-ppcre
+               #:trivial-gray-streams
                #:qtools
                #:qtcore
                #:qtgui)

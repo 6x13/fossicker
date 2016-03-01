@@ -50,7 +50,8 @@
 
 (defpackage #:fossicker-widget
   (:use #:cl+qt
-        #:fossicker)
+        #:fossicker
+        #:trivial-gray-streams)
   (:import-from :uiop
                 ;; PATHNAME
                 #:subpathname*)

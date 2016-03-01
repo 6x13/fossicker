@@ -22,18 +22,94 @@
 (in-package #:fossicker-widget)
 (in-readtable :qtools)
 
+;;
+;;;; Output
+;;
+;;
+
+(defun output (log format-string &rest args)
+  (q+:move-cursor log (q+:qtextcursor.end))
+  (q+:insert-html log (apply #'format NIL format-string args))
+  (q+:move-cursor log (q+:qtextcursor.end)))
+
+(defun escape (text)
+  (flet ((r (text find replace)
+           (cl-ppcre:regex-replace-all find text replace)))
+    (r (r (r text "&" "&amp;") "<" "&lt;") ">" "&gt;")))
+
+(defun output-colored (log color format-string &rest args)
+  (output log "<span style=\"color:~a;\">~a</span>" color (apply #'format NIL format-string args)))
+
+(defun output-comment (log format-string &rest args)
+  (output-colored log "gray" "; ~a<br />" (apply #'format NIL format-string args)))
+
+(defun output-error (log error)
+  (output log "<br />")
+  (output-comment log "<span style=\"color:red;\">Error:</span> ~a" (escape (princ-to-string error)))
+  (output-comment log "[Condition of type ~a]" (escape (princ-to-string (type-of error)))))
+
+;;
+;;;; Stream
+;;
+;;
+
+(defclass log-stream (fundamental-character-output-stream trivial-gray-stream-mixin)
+  ((log :initarg :log :initform (error "LOG required.") :accessor log-stream-log)
+   (buffer :initform (make-string-output-stream) :accessor buffer)))
+
+(defmethod stream-clear-output ((stream log-stream))
+  (setf (buffer stream) (make-string-output-stream)))
+
+(defmethod stream-finish-output ((stream log-stream))
+  (let ((string (get-output-stream-string (buffer stream))))
+    (output-colored (log-stream-log stream) "orange" "~a" (cl-ppcre:regex-replace-all "\\n" (escape string) "<br />")))
+  (clear-output stream))
+
+(defmethod stream-force-output ((stream log-stream))
+  (stream-finish-output stream))
+
+(defmethod stream-write-string ((stream log-stream) string &optional (start 0) end)
+  (write-string string (buffer stream) :start start :end end)
+  (stream-finish-output stream))
+
+(defmethod stream-write-char ((stream log-stream) char)
+  (write-string (string char) stream))
+
+(defmethod stream-terpri ((stream log-stream))
+  (write-char #\Newline stream))
+
+
 ;;;;;;;;;;;;;;;;;;;;
 ;;; Fossicker Widget
 ;;
 ;;
 
 (define-widget main (qwidget)
-  ((angle :initform 0)
-   (angle-delta :initform 1)))
+  ((log-stream :accessor log-stream)))
+
+;;
+;;;; Log
+;;
+;;
+
+(define-subwidget (main log) (q+:make-qtextedit)
+  (let ((font (q+:make-qfont "Monospace" 8)))
+  ;; (setf (q+:word-wrap log) t)
+  ;; (setf (q+:frame-style log)
+  ;;       (logior (q+:qframe.styled-panel) (q+:qframe.sunken)))
+    (setf (q+:style-hint font) (q+:qfont.type-writer))
+    (setf (q+:font log) font)))
+
+;;
+;;;; Setup
+;;
+;;
 
 (define-initializer (main main-setup)
   (setf (q+:window-title main) "Fossicker: Open Source Asset Prospector")
-  (setf (q+:fixed-size main) (values 480 520)))
+  (setf (q+:fixed-size main) (values 480 520))
+  (setf (log-stream main)
+        (make-instance 'log-stream :log log)))
 
 ;;
 ;;;; Header
@@ -169,16 +245,6 @@
 ;;   (setf (q+:layout group) asset))
 
 ;;
-;;;; Log
-;;
-;;
-
-(define-subwidget (main log) (q+:make-qlabel "Report: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: SuccessReport: Success")
-  (setf (q+:word-wrap log) t)
-  (setf (q+:frame-style log)
-        (logior (q+:qframe.styled-panel) (q+:qframe.sunken))))
-
-;;
 ;;;; Layout
 ;;
 ;;
@@ -201,6 +267,15 @@
 
 (define-slot (main hit-reset) ()
   (declare (connected reset (pressed)))
+  (let* ((*standard-output* (log-stream main))
+         (*error-output* *standard-output*)
+         (*trace-output* *standard-output*))
+    (handler-case
+        (progn
+          (fossicker:set-project "6x13")
+          (fossicker::draft *project* "bla_b_n_p_e_.png")
+          (error "TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!! TEST ERROR!!!"))
+      (error (err) (output-error log err))))
   (sweep-layout initargs))
 
 (define-signal (main name-set) (string))
