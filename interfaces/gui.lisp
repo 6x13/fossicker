@@ -192,6 +192,11 @@ follow us on Twitter for more libraries and games.")
 ;;
 ;;
 
+(define-subwidget (main namestring) (q+:make-qlineedit "asset-name.png")
+  (setf (q+:size-policy namestring)
+        (q+::make-qsizepolicy (q+::qsizepolicy.minimum-expanding)
+                              (q+::qsizepolicy.fixed))))
+
 (define-subwidget (main project) (q+:make-qcombobox)
   (setf (q+:size-policy project)
         (q+::make-qsizepolicy (q+::qsizepolicy.maximum)
@@ -200,24 +205,24 @@ follow us on Twitter for more libraries and games.")
   (mapc (lambda (proj &aux (name (fossicker::project-name proj)))
           (q+:add-item project name name))
         fossicker::*project-registry*)
-  ;; Set current project as selected in widget.
-  (setf (q+:current-index project)
-        (if fossicker::*project*
-            (q+:find-data project
-                          (fossicker::project-name
-                           fossicker::*project*))
-            -1)))
+  ;; Set  current project  as  selected  in widget.  Disable  namestring if  no
+  ;; project selected.
+  (cond (fossicker::*project*
+         (setf (q+:read-only namestring) nil)
+         (setf (q+:current-index project)
+               (q+:find-data project
+                             (fossicker::project-name
+                              fossicker::*project*))))
+        (t
+         (setf (q+:read-only namestring) t)
+         (setf (q+:current-index project) -1))))
 
 (define-slot (main project-selected) ((new-project string))
   (declare (connected project (activated string)))
-  ;; Set project.
+  ;; Set project. Ensure namestring enabled.
   (with-gui-stream (main)
-    (fossicker:set-project new-project)))
-
-(define-subwidget (main namestring) (q+:make-qlineedit "asset-name.png")
-  (setf (q+:size-policy namestring)
-        (q+::make-qsizepolicy (q+::qsizepolicy.minimum-expanding)
-                              (q+::qsizepolicy.fixed))))
+    (fossicker:set-project new-project)
+    (setf (q+:read-only namestring) nil)))
 
 (define-subwidget (main type) (q+:make-qlabel "")
   (setf (q+:size-policy type)
