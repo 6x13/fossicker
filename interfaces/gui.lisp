@@ -52,7 +52,7 @@ style."
 
 (defun fontify-error (error)
   "Formats and fontifies ERROR for log widget."
-  (format nil "<br />~a~a<br />"
+  (format nil "~a~a<br />"
           (fontify :red "Error: ")
           (fontify :grey "~a<br />[Condition of type ~a]"
                    (escape (princ-to-string error))
@@ -229,14 +229,11 @@ follow us on Twitter for more libraries and games.")
   (q+:add-widget grid type 1 1))
 
 (define-subwidget (main initargs-scroller) (q+:make-qscrollarea)
-  ;; (setf (q+:background-role initargs-scroller) (q+:qpalette.dark))
   (setf (q+:widget-resizable initargs-scroller) t)
   (setf (q+:frame-shape initargs-scroller) (q+:qframe.no-frame)))
 
 (define-subwidget (main initargs-layout) (q+:make-qvboxlayout)
-  (q+:add-widget initargs-layout initargs-scroller)
-  ;; (q+:add-stretch initargs-layout 0)
-  )
+  (q+:add-widget initargs-layout initargs-scroller))
 
 (define-subwidget (main initargs-box) (q+:make-qgroupbox)
   (setf (q+:title initargs-box) "Initialization Arguments")
@@ -249,6 +246,14 @@ follow us on Twitter for more libraries and games.")
 (define-subwidget (main initargs) (q+:make-qvboxlayout initargs-widget)
   (setf (q+:layout initargs-widget) initargs)
   (setf (q+:alignment initargs) (q+:qt.align-top)))
+
+(define-slot (main name-set) ((new-name string))
+  (declare (connected namestring (text-edited string)))
+  (q+:add-widget initargs (q+:make-qlineedit "Project"))
+  (with-gui-stream (main)
+    (setf (q+:text type) (symbol-name
+                          (fossicker::draft fossicker::*project*
+                                            (q+:text namestring))))))
 
 ;;
 ;;;; Source
@@ -268,6 +273,14 @@ follow us on Twitter for more libraries and games.")
 ;;
 
 (define-subwidget (main reset) (q+:make-qpushbutton "RESET"))
+
+(define-slot (main hit-reset) ()
+  (declare (connected reset (pressed)))
+  (with-gui-stream (main)
+    ;; (fossicker::draft *project* "bla_b_n_p_e_.png")
+    (error "TEST ERROR!!!"))
+  (sweep-layout initargs))
+
 (define-subwidget (main generate) (q+:make-qpushbutton "GENERATE"))
 (define-subwidget (main buttons) (q+:make-qhboxlayout)
   (q+:add-widget buttons reset)
@@ -292,9 +305,6 @@ follow us on Twitter for more libraries and games.")
   (q+:add-tab tabs general "General")
   (q+:add-tab tabs settings "Settings"))
 
-;; (define-subwidget (main group) (q+:make-qgroupbox "Asset Generation")
-;;   (setf (q+:layout group) asset))
-
 ;;
 ;;;; Layout
 ;;
@@ -307,39 +317,7 @@ follow us on Twitter for more libraries and games.")
   (q+:add-widget layout log))
 
 ;;
-;;;; Slots
-;;
-;;
-
-;; (define-slot (main hit-reset) ()
-;;   (declare (connected reset (pressed)))
-;;   (loop for widget = (q+:take-at initargs 0) until (null-qobject-p widget)
-;;         do (progn (format t "~A" widget) (#_delete widget))))
-
-(define-slot (main hit-reset) ()
-  (declare (connected reset (pressed)))
-  (with-gui-stream (main)
-    ;; (fossicker::draft *project* "bla_b_n_p_e_.png")
-    (error "TEST ERROR!!!"))
-  (sweep-layout initargs))
-
-(define-signal (main name-set) (string))
-(define-slot (main name-set) ((new-name string))
-  (declare (connected main (name-set string)))
-  (q+:add-widget initargs (q+:make-qlineedit "Project"))
-  (setf (q+:text source) (q+:text namestring)))
-
-(define-slot (main go) ()
-  (declare (connected namestring (text-edited string)))
-  (signal! main (name-set string) (q+:text namestring)))
-
-;; (define-slot (main inc) ()
-;;   (declare (connected increase (pressed))))
-;; (define-slot (main dec) ()
-;;   (declare (connected decrease (pressed))))
-
-;;
-;;;; Widget
+;;;; Main
 ;;
 ;;
 

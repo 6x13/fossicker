@@ -244,7 +244,7 @@ direct representation of the current state of a drafting process."
                  (compile-draft-closure (project-draft project)
                                         class
                                         initargs))
-           (message "Asset generated: ~A" (project-draft project))
+           (message "Asset draft prepared for class ~A." class)
            class)
           (dispatch
            ;; No matching specification in project. Do nothing.
@@ -345,7 +345,7 @@ current working directory path to select the project."
   (setf *project* (if name
                       (get-project name)
                       (find-project *project-registry*)))
-  (message "Fossicker Project currently set to ~a.~%"
+  (message "Fossicker Project currently set to ~a."
            (if *project*
                (project-name *project*)
                "nothing")))

@@ -3,7 +3,7 @@
 (in-package :fossicker)
 
 (defun message (&rest args)
-  (apply #'format (cons t args)))
+  (format t "~A~%" (apply #'format nil args)))
 
 (defun prompt (&rest args)
   (apply #'y-or-n-p args))

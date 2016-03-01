@@ -283,6 +283,6 @@ to the generated list.")
 
 (defun report (result)
   (message (if (listp result)
-               (format nil "~a assets generated!~%"
+               (format nil "~a assets generated!"
                        (if result (length result) "No"))
-               "Finished!~%")))
+               "Finished!")))
