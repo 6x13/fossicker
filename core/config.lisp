@@ -45,7 +45,7 @@
 (defvar *default-mine-directory* (ensure-directory-pathname "mine")
   "The relative directory path default mine resides in.")
 
-(defclass configuration (asdf:package-inferred-system)
+(defclass configuration (package-inferred-system)
   ((notice
     :initarg :notice
     :type boolean

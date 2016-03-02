@@ -36,23 +36,23 @@
 ;; their   class  counterparts.   Nothing  to   do  about   it  except   fixing
 ;; implementations.
 
-(defmethod documentation ((x contextl:layered-class) (doc-type (eql 't)))
+(defmethod documentation ((x layered-class) (doc-type (eql 't)))
   (documentation
-   (getf (contextl:partial-class-defining-classes x) 't)
+   (getf (partial-class-defining-classes x) 't)
    'type))
 
-(defmethod documentation ((x contextl:layered-class) (doc-type (eql 'type)))
+(defmethod documentation ((x layered-class) (doc-type (eql 'type)))
   (documentation x 't))
 
 (defmethod (setf documentation) (new-value
-                                 (x contextl:layered-class)
+                                 (x layered-class)
                                  (doc-type (eql 't)))
   (setf (documentation
-         (getf (contextl:partial-class-defining-classes x) 't)
+         (getf (partial-class-defining-classes x) 't)
          't) new-value))
 
 (defmethod (setf documentation) (new-value
-                                 (x contextl:layered-class)
+                                 (x layered-class)
                                  (doc-type (eql 'type)))
   (setf (documentation x 't) new-value))
 
@@ -78,18 +78,18 @@
       (documentation* class 't)
       (call-next-method)))
 
-(defmethod documentation* ((x contextl:layered-class) (doc-type (eql 'type)))
+(defmethod documentation* ((x layered-class) (doc-type (eql 'type)))
   "Formats  a  string containing  documentation  compiled  from each  LAYERED
   definition of the same CLASS."
   (documentation* x 't))
 
-(defmethod documentation* ((x contextl:layered-class) (doctype (eql 't))
+(defmethod documentation* ((x layered-class) (doctype (eql 't))
                            &aux docs)
   "Formats  a  string containing  documentation  compiled  from each  LAYERED
   definition of the same CLASS."
   (format nil "~{~a~^~%~}"
           (loop for (layer defining-class)
-                  on (contextl:partial-class-defining-classes x)
+                  on (partial-class-defining-classes x)
                 by #'cddr
                 do (push (format nil "~@[~:@(~a Layer: ~)~]~a"
                                  (if (eql layer t) nil layer)

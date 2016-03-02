@@ -213,17 +213,17 @@ follow us on Twitter for more libraries and games.")
         (q+::make-qsizepolicy (q+::qsizepolicy.maximum)
                               (q+::qsizepolicy.fixed)))
   ;; Add items representing projects.
-  (mapc (lambda (proj &aux (name (fossicker::project-name proj)))
+  (mapc (lambda (proj &aux (name (project-name proj)))
           (q+:add-item project name name))
-        fossicker::*project-registry*)
+        *project-registry*)
   ;; Set  current project  as  selected  in widget.  Disable  namestring if  no
   ;; project selected.
-  (cond (fossicker::*project*
+  (cond (*project*
          (setf (q+:enabled namestring) t)
          (setf (q+:current-index project)
                (q+:find-data project
-                             (fossicker::project-name
-                              fossicker::*project*))))
+                             (project-name
+                              *project*))))
         (t
          (setf (q+:enabled namestring) nil)
          (setf (q+:current-index project) -1))))
@@ -232,7 +232,7 @@ follow us on Twitter for more libraries and games.")
   (declare (connected project (activated string)))
   ;; Set project. Ensure namestring enabled.
   (with-gui-stream (main)
-    (fossicker:set-project new-project)
+    (set-project new-project)
     (setf (q+:enabled namestring) t)))
 
 (define-subwidget (main type) (q+:make-qlabel "")
@@ -273,14 +273,14 @@ follow us on Twitter for more libraries and games.")
   (declare (connected namestring (text-edited string)))
   (sweep-layout initargs)
   (with-gui-stream (main)
-    (let ((class (fossicker::draft fossicker::*project*
-                                   (q+:text namestring))))
+    (let ((class (draft *project*
+                        (q+:text namestring))))
       (cond (class
-             (dolist (arg (fossicker::compute-initarg-properties class))
+             (dolist (arg (compute-initarg-properties class))
                (q+:add-widget initargs
                               (q+:make-qlineedit
                                (or (symbol-name
-                                    (fossicker::initarg-keyword arg)) ""))))
+                                    (initarg-keyword arg)) ""))))
              (setf (q+:text type)
                    (format nil "~:(~a~)"
                            (regex-replace-all "-"
@@ -311,7 +311,7 @@ follow us on Twitter for more libraries and games.")
 (define-slot (main hit-reset) ()
   (declare (connected reset (pressed)))
   (with-gui-stream (main)
-    ;; (fossicker::draft *project* "bla_b_n_p_e_.png")
+    ;; (draft *project* "bla_b_n_p_e_.png")
     (error "TEST ERROR!!!")))
 
 (define-subwidget (main generate) (q+:make-qpushbutton "GENERATE"))

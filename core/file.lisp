@@ -39,8 +39,8 @@
 
 (defun calculate-hash (digest pathname)
   "Calculates the CHECKSUM of file using DIGEST."
-  (ironclad:byte-array-to-hex-string
-   (ironclad:digest-file digest pathname)))
+  (byte-array-to-hex-string
+   (digest-file digest pathname)))
 
 (defstruct (checksum (:type vector) :named
                      (:constructor make-checksum
@@ -201,13 +201,12 @@ confirming overwrite operation if so."
   (message "Confirming intention on file: ~A.~%" pathname)
   (file-sanity-checks file)
   (if (and status (eq (file-report-status file) :exists))
-      (progn (setf (file-status file)
-                   (prompt "File exists at location ~A.~%~A"
-                           pathname
-                           "Sure you want to overwrite?"))
-             (if status
-                 (message "Confirmed. File will be overwritten.~%")
-                 (message "Discarded.~%")))
+      (if (setf (file-status file)
+                (prompt "File exists at location ~A.~%~A"
+                        pathname
+                        "Sure you want to overwrite?"))
+          (message "Confirmed. File will be overwritten.~%")
+          (message "Discarded.~%"))
       (message "No confirmation necessary.~%")))
 
 (defun file-safely-remove (file &aux (pathname (file-pathname file)))

@@ -2,6 +2,11 @@
 
 (in-package :fossicker)
 
+;;;;;;;;;;;;;
+;;; Interface
+;;
+;;
+
 (defun message (&rest args)
   (format t "~&~A" (apply #'format nil args)))
 
