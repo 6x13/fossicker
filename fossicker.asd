@@ -19,10 +19,10 @@
                #:qtcore
                #:qtgui)
   :serial t
-  :components ((:file "packages")
-               (:module core
+  :components ((:module core
                 :components
-                (;; (:file "persistence")
+                ((:file "package")
+                 ;; (:file "persistence")
                  (:file "file")
                  (:file "documentation")
                  (:file "exposure")
@@ -34,11 +34,9 @@
                  (:file "fossicker")))
                (:module interfaces
                 :components
-                (
-                 ;; (:file "cli")
-                 (:file "gui")
+                (;; (:file "cli")
                  ;; (:file "srv")
-                 )))
+                 (:file "gui"))))
   :perform (load-op :after (o s)
                     (funcall (find-symbol "INITIALIZE" "FOSSICKER"))))
 

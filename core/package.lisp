@@ -48,15 +48,6 @@
            #:dispatch
            #:save))
 
-(defpackage #:fossicker-widget
-  (:use #:cl+qt
-        #:fossicker
-        #:trivial-gray-streams)
-  (:import-from :uiop
-                ;; PATHNAME
-                #:subpathname*)
-  (:export #:main))
-
 (in-package :fossicker)
 
 (defpackage :fossicker-user

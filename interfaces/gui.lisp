@@ -19,7 +19,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
-(in-package #:fossicker-widget)
+(defpackage #:fossicker-ui-qt
+  (:use #:cl+qt
+        #:fossicker
+        #:trivial-gray-streams)
+  (:import-from :uiop
+                ;; PATHNAME
+                #:subpathname*)
+  (:import-from :cl-ppcre
+                #:regex-replace-all)
+  (:export #:main))
+
+(in-package #:fossicker-ui-qt)
 (in-readtable :qtools)
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -39,7 +50,7 @@
 (defun escape (text)
   "Escapes TEXT that might be confused with HTML tags."
   (flet ((r (text find replace)
-           (cl-ppcre:regex-replace-all find text replace)))
+           (regex-replace-all find text replace)))
     (r (r (r text "&" "&amp;") "<" "&lt;") ">" "&gt;")))
 
 (defun fontify (color format-string &rest args)
@@ -84,7 +95,7 @@ style."
   (let ((string (get-output-stream-string (buffer stream))))
     (output (log-stream-log stream)
             (fontify :orange
-                     (cl-ppcre:regex-replace-all "\\n" string "<br />"))))
+                     (regex-replace-all "\\n" string "<br />"))))
   (clear-output stream))
 
 (defmethod stream-force-output ((stream log-stream))
@@ -272,9 +283,9 @@ follow us on Twitter for more libraries and games.")
                                     (fossicker::initarg-keyword arg)) ""))))
              (setf (q+:text type)
                    (format nil "~:(~a~)"
-                           (cl-ppcre:regex-replace-all "-"
-                                                       (symbol-name class)
-                                                       " "))))
+                           (regex-replace-all "-"
+                                              (symbol-name class)
+                                              " "))))
             (t
              (setf (q+:text type) "No type selected."))))))
 
