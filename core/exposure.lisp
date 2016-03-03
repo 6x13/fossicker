@@ -240,6 +240,10 @@ and :PRESENTATION information."
   (value nil
    :type t))
 
+(deftype initarg ()
+  "Type definition for INITARG structure."
+  '(satisfies initarg-p))
+
 (defgeneric infer-initarg-properties (class &rest initargs)
   (:documentation "Loops  through the  provided INITARGS,  returning a  list of
 INITARG structures for each INITARG.")
