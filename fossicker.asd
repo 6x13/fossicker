@@ -25,6 +25,7 @@
                  ;; (:file "persistence")
                  (:file "file")
                  (:file "documentation")
+                 (:file "interaction")
                  (:file "exposure")
                  (:file "asset")
                  (:file "project")

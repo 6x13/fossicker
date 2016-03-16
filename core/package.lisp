@@ -34,7 +34,7 @@
                 #:byte-array-to-hex-string
                 #:digest-file)
   ;; FILE
-  (:export                          ; file.lisp
+  (:intern                          ; file.lisp
    #:*default-digest-name*
    #:calculate-hash                 ; (digest pathname)
    #:checksum ;;;;;;;;;
@@ -45,19 +45,19 @@
    ;;;;;;;;;;;;;;;;;;;;
    #:checksum-equal                 ; (checksum1 checksum2)
    #:intention
-   #:file-status
-   #:file-pathname
+   #:file-compute-checksum          ; (file &rest args)
+   #:file-sanity-checks             ; (file)
+   )
+  (:export                          ; file.lisp
    #:file ;;;;;;;;;;;
    #:make-file     ;;               ; (namestring &key status
    ;;              ;;                   ; &allow-other-keys)
    #:file-pathname ;;               ; (structure)
    #:file-status   ;;               ; (structure)
    ;;;;;;;;;;;;;;;;;;
-   #:file-compute-checksum          ; (file &rest args)
    #:file-store-checksum            ; (file &rest args)
    #:file-verify                    ; (file)
    #:file-report-status             ; (file)
-   #:file-sanity-checks             ; (file)
    #:file-confirm-intention         ; (file)
    #:file-safely-remove             ; (file)
    )
@@ -66,10 +66,7 @@
    #:documentation*                 ; (x doc-type)
    )
   ;; EXPOSURE
-  (:export                          ; exposure.lisp
-   #:interactive-object
-   #:interactive-class
-   #:slot-definition-interactivep   ; (slot)
+  (:intern                          ; exposure.lisp
    #:interactive-direct-slot-definition
    #:interactive-effective-slot-definition
    #:*interactive-effective-slot-definition-class*
@@ -78,11 +75,8 @@
    #:interactive-effective-slot-definition-in-layers
    #:interactive-layered-effective-slot-definition
    #:*interactive-layered-effective-slot-definition-class*
-   #:exposure
-   #:document-slot                  ; (slot)
    #:slot-or-null
    #:infer-presentation             ; (type)
-   #:type-specifier
    #:documentation-or-null
    #:initarg ;;;;;;;;;;;;;;;;
    #:make-initarg          ;;
@@ -94,10 +88,25 @@
    #:initarg-documentation ;;       ; (structure)
    #:initarg-value         ;;       ; (structure)
    ;;;;;;;;;;;;;;;;;;;;;;;;;;
+   )
+  (:export                          ; exposure.lisp
+   #:interactive-object
+   #:interactive-class
+   #:slot-definition-interactivep   ; (slot)
+   #:exposure
+   #:document-slot                  ; (slot)
+   #:type-specifier
    #:infer-initarg-properties       ; (class &rest initargs)
    #:compute-initarg-properties     ; (class)
    )
   ;; ASSET
+  (:intern                          ; asset.lisp
+   #:map-to-veins                   ; (namestring legend)
+   #:generate-vein-map              ; (asset legend)
+   #:prospect                       ; (map dir formats &optional prospect)
+   ;;compile-path                   ; (spec)
+   ;;report                         ; (result)
+   )
   (:export                          ; asset.lisp
    #:some-regex                     ; (namestring &rest regex)
    #:dispatch                       ; (namestring)
@@ -115,18 +124,25 @@
    #:prospect-custom
    ;;save                           ; (asset)
    ;;browse                         ; (asset)
-   #:map-to-veins                   ; (namestring legend)
-   #:generate-vein-map              ; (asset legend)
-   #:prospect                       ; (map dir formats &optional prospect)
    #:prospect-asset                 ; (asset legend mine)
-   ;;compile-path                   ; (spec)
-   ;;report                         ; (result)
    )
   ;; PROJECT
+  (:intern                          ; project.lisp
+   #:pathname-designator
+   #:get-data-from-file             ; (path)
+   #:infer-project-root             ; (pathname)
+   #:infer-project-name             ; (pathname)
+   #:infer-project-class            ; (pathname)
+   #:matching-spec                  ; (dispatch specs)
+   #:infer-asset-initargs           ; (namestring project initargs)
+   #:initialize-draft               ; (draft class initargs)
+   #:compile-draft-closure          ; (draft class initargs)
+   #:project-root-p                 ; (project-root)
+   #:find-project                   ; (projects)
+   )
   (:export                          ; project.lisp
    #:*project-registry*
    #:*project*
-   #:pathname-designator
    #:project ;;;;;;;;;;;
    #:project-file     ;;            ; (object)
    #:project-name     ;;            ; (object)
@@ -140,21 +156,11 @@
    #:project-assets   ;;            ; (object)
    #:project-log      ;;            ; (object)
    ;;;;;;;;;;;;;;;;;;;;;
-   #:get-data-from-file             ; (path)
-   #:infer-project-root             ; (pathname)
-   #:infer-project-name             ; (pathname)
-   #:infer-project-class            ; (pathname)
-   #:matching-spec                  ; (dispatch specs)
-   #:infer-asset-initargs           ; (namestring project initargs)
-   #:initialize-draft               ; (draft class initargs)
-   #:compile-draft-closure          ; (draft class initargs)
    #:draft                          ; (project namestring)
    #:accept                         ; (project interactive)
    #:redraft                        ; (project &key clean)
    #:select                         ; (project &optional index)
    #:generate                       ; (project)
-   #:project-root-p                 ; (project-root)
-   #:find-project                   ; (projects)
    #:get-project                    ; (name)
    #:set-project                    ; (&optional name)
    #:clear-project-registry         ; ()
