@@ -44,6 +44,17 @@ sequence
 simple-array
 simple-vector
 vector
+
+prompt
+type
+
+reader
+writer
+merge
+
+interaction:
+default
+
 |#
 
 (defvar *default-numerical-range* 100)
@@ -51,20 +62,69 @@ vector
 (defvar *default-numerical-lower-limit* (- 0 (/ *default-numerical-range* 2)))
 (defvar *default-numerical-upper-limit* (- 0 (/ *default-numerical-range* 2)))
 
-(defvar *default-real-lower-limit* *default-numerical-lower-limit*)
-(defvar *default-real-upper-limit* *default-numerical-upper-limit*)
+(defclass interaction ()
+  ())
 
-(defvar *default-rational-lower-limit* *default-numerical-lower-limit*)
-(defvar *default-rational-upper-limit* *default-numerical-upper-limit*)
+(defclass numerical-interaction (interaction)
+  ())
 
-(defvar *default-integer-lower-limit* *default-numerical-lower-limit*)
-(defvar *default-integer-upper-limit* *default-numerical-upper-limit*)
+(defclass real-interaction (numerical-interaction)
+  ((lower-limit :initarg :lower-limit
+                :type real
+                :reader real-interaction-lower-limit
+                :documentation "Lower limit of numeric type.")
+   (upper-limit :initarg :upper-limit
+                :type real
+                :reader real-interaction-upper-limit
+                :documentation "Upper limit of numeric type.")))
 
-(defvar *default-float-lower-limit* *default-numerical-lower-limit*)
-(defvar *default-float-upper-limit* *default-numerical-upper-limit*)
+(defclass rational-interaction (real-interaction)
+  ((lower-limit :type rational)
+   (upper-limit :type rational)))
+
+(defclass ratio-interaction (rational-interaction)
+  ((lower-limit :type ratio)
+   (upper-limit :type ratio)))
+
+(defclass integer-interaction (rational-interaction)
+  ((lower-limit :type integer)
+   (upper-limit :type integer)))
+
+(defmethod slot-unbound (class
+                         (instance real-interaction)
+                         (slot-name (eql 'lower-limit)))
+  (setf (slot-value instance 'lower-limit)
+        *default-numerical-lower-limit*))
+
+(defmethod slot-unbound (class
+                         (instance real-interaction)
+                         (slot-name (eql 'upper-limit)))
+  (setf (slot-value instance 'upper-limit)
+        *default-numerical-upper-limit*))
+
+(defclass float-interaction (real-interaction)
+  ((lower-limit :type float)
+   (upper-limit :type float)))
+
+(defmethod slot-unbound (class
+                         (instance float-interaction)
+                         (slot-name (eql 'lower-limit)))
+  (setf (slot-value instance 'lower-limit)
+        (float *default-numerical-lower-limit*)))
+
+(defmethod slot-unbound (class
+                         (instance float-interaction)
+                         (slot-name (eql 'upper-limit)))
+  (setf (slot-value instance 'upper-limit)
+        (float *default-numerical-upper-limit*)))
 
 (defun unspecified-p (x)
   (eql x '*))
+
+(defun remove-unspecified-initargs (&rest initargs)
+  (declare (list initargs))
+  (loop for (key value) of-type (keyword) on initargs by #'cddr
+        unless (unspecified-p value) nconc (list key value)))
 
 (defun default (x default)
   "When  a  type-specifier that  expects  a  type-specifier in  its  subsidiary
@@ -349,17 +409,13 @@ vector
   ;; "lower-limit,  upper-limit---interval  designators  for  type  real.   The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
   ;; X3J13/94-101R (System Class REAL)
-  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)
-                       &aux
-                         (defaulted-lower-limit
-                          (default lower-limit
-                                   *default-real-lower-limit*))
-                         (defaulted-upper-limit
-                          (default upper-limit
-                                   *default-real-upper-limit*))) subsidiary
+  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)) subsidiary
     ;; "This denotes  the reals  on the interval  described by  lower-limit and
     ;; upper-limit." X3J13/94-101R (System Class REAL)
-    (list :real :between defaulted-lower-limit :and defaulted-upper-limit)))
+    (apply #'make-instance 'real-interaction
+           (remove-unspecified-initargs
+            :lower-limit lower-limit
+            :upper-limit upper-limit))))
 
 ;;
 ;;;;; Complex
@@ -400,17 +456,13 @@ vector
   ;; "lower-limit, upper-limit---interval  designators for type  rational.  The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
   ;; X3J13/94-101R (System Class RATIONAL)
-  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)
-                       &aux
-                         (defaulted-lower-limit
-                          (default lower-limit
-                                   *default-rational-lower-limit*))
-                         (defaulted-upper-limit
-                          (default upper-limit
-                                   *default-rational-upper-limit*))) subsidiary
+  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)) subsidiary
     ;; "This denotes the rationals on the interval described by lower-limit and
     ;; upper-limit." X3J13/94-101R (System Class RATIONAL)
-    (list :rational :between defaulted-lower-limit :and defaulted-upper-limit)))
+    (apply #'make-instance 'rational-interaction
+           (remove-unspecified-initargs
+            :lower-limit lower-limit
+            :upper-limit upper-limit))))
 
 (defmethod compile-interaction ((type-specifier (eql 'ratio))
                                 stream
@@ -432,17 +484,13 @@ vector
   ;; "lower-limit,  upper-limit---interval designators  for type  integer.  The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
   ;; X3J13/94-101R (System Class INTEGER)
-  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)
-                       &aux
-                         (defaulted-lower-limit
-                          (default lower-limit
-                                   *default-integer-lower-limit*))
-                         (defaulted-upper-limit
-                          (default upper-limit
-                                   *default-integer-upper-limit*))) subsidiary
+  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)) subsidiary
     ;; "This denotes the integers on  the interval described by lower-limit and
     ;; upper-limit." X3J13/94-101R (System Class INTEGER)
-    (list :integer :between defaulted-lower-limit :and defaulted-upper-limit)))
+    (apply #'make-instance 'integer-interaction
+           (remove-unspecified-initargs
+            :lower-limit lower-limit
+            :upper-limit upper-limit))))
 
 (defmethod compile-interaction ((type-specifier (eql 'fixnum))
                                 stream
@@ -498,17 +546,13 @@ vector
   ;; "lower-limit,  upper-limit---interval  designators  for type  flaot.   The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
   ;; X3J13/94-101R (System Class FLOAT)
-  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)
-                       &aux
-                         (defaulted-lower-limit
-                          (default lower-limit
-                                   *default-float-lower-limit*))
-                         (defaulted-upper-limit
-                          (default upper-limit
-                                   *default-float-upper-limit*))) subsidiary
+  (destructuring-bind (&optional (lower-limit '*) (upper-limit '*)) subsidiary
     ;; "This denotes  the floats on  the interval described by  lower-limit and
     ;; upper-limit." X3J13/94-101R (System Class FLOAT)
-    (list :float :between defaulted-lower-limit :and defaulted-upper-limit)))
+    (apply #'make-instance 'float-interaction
+           (remove-unspecified-initargs
+            :lower-limit lower-limit
+            :upper-limit upper-limit))))
 
 (defmethod compile-interaction ((name (eql 'short-float))
                                 stream
