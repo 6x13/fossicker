@@ -8,6 +8,10 @@
 (in-package #:interaction)
 
 #|
+
+handle t and nil interactions
+handle slot-value access before actually required by explicit check of slot-boundp.
+
 or: selection box, shown in parallel, pick one then process.
 and: first presentation found will be used.
 member: combobox
@@ -90,6 +94,26 @@ default
   (print-unreadable-object (object stream :type nil :identity nil)
     (format stream "choices ~{~S~^ ~}"
             (slot-value object 'choices))))
+
+(defclass cons-interaction (interaction)
+  ((car
+    :type interaction
+    :initform nil
+    :initarg :car
+    :reader cons-interaction-car
+    :documentation "Interaction for the car of cons.")
+   (cdr
+    :type interaction
+    :initform nil
+    :initarg :cdr
+    :reader cons-interaction-cdr
+    :documentation "Interaction for the cdr of cons.")))
+
+(defmethod print-object ((object cons-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "cons ~S ~S"
+            (slot-value object 'car)
+            (slot-value object 'cdr))))
 
 (defclass numerical-interaction (interaction)
   ())
@@ -267,7 +291,6 @@ default
   ;; T.
   (compile-interaction 'not :subsidiary '(cons)))
 
-
 (defmethod compile-interaction ((name (eql 'cons))
                                 &key subsidiary)
   ;; "This denotes  the set of  conses whose car is  constrained to be  of type
@@ -285,7 +308,9 @@ default
                                                                 cdr-typespec
                                                                 t))))
       subsidiary
-    (list :cons car-interaction cdr-interaction)))
+    (make-instance 'cons-interaction
+                   :car car-interaction
+                   :cdr cdr-interaction)))
 
 
 (defmethod compile-interaction ((name (eql 'eql))
