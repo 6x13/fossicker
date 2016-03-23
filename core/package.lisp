@@ -78,16 +78,6 @@
    #:slot-or-null
    #:infer-presentation             ; (type)
    #:documentation-or-null
-   #:initarg ;;;;;;;;;;;;;;;;
-   #:make-initarg          ;;
-   #:initarg-p             ;;       ; (x)
-   #:initarg-keyword       ;;       ; (structure)
-   #:initarg-type          ;;       ; (structure)
-   #:initarg-initform      ;;       ; (structure)
-   #:initarg-presentation  ;;       ; (structure)
-   #:initarg-documentation ;;       ; (structure)
-   #:initarg-value         ;;       ; (structure)
-   ;;;;;;;;;;;;;;;;;;;;;;;;;;
    )
   (:export                          ; exposure.lisp
    #:interactive-object
@@ -98,6 +88,16 @@
    #:type-specifier
    #:infer-initarg-properties       ; (class &rest initargs)
    #:compute-initarg-properties     ; (class)
+   #:initarg ;;;;;;;;;;;;;;;;
+   #:make-initarg          ;;
+   #:initarg-p             ;;       ; (x)
+   #:initarg-keyword       ;;       ; (structure)
+   #:initarg-type          ;;       ; (structure)
+   #:initarg-initform      ;;       ; (structure)
+   #:initarg-presentation  ;;       ; (structure)
+   #:initarg-documentation ;;       ; (structure)
+   #:initarg-value         ;;       ; (structure)
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;
    )
   ;; ASSET
   (:intern                          ; asset.lisp

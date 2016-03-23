@@ -65,18 +65,64 @@ default
 (defclass interaction ()
   ())
 
+(defclass static-interaction (interaction)
+  ((object
+    :type t ; Object can be anything.
+    :initform nil
+    :initarg :object
+    :reader static-interaction-object
+    :documentation "The object that is referenced by static interaction.")))
+
+(defmethod print-object ((object static-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "static ~S"
+            (slot-value object 'object))))
+
+(defclass choice-interaction (interaction)
+  ((choices
+    :type list
+    :initform nil
+    :initarg :choices
+    :reader choice-interaction-choices
+    :documentation "List of interaction options.")))
+
+(defmethod print-object ((object choice-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "choices ~{~S~^ ~}"
+            (slot-value object 'choices))))
+
 (defclass numerical-interaction (interaction)
   ())
 
+(defclass complex-interaction (numerical-interaction)
+  ((part
+    :type real-interaction
+    :initarg :part
+    :reader complex-interaction-part
+    :documentation "Lower limit of numeric type.")))
+
+(defmethod print-object ((object complex-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "complex ~S"
+            (slot-value object 'part))))
+
 (defclass real-interaction (numerical-interaction)
-  ((lower-limit :initarg :lower-limit
-                :type real
-                :reader real-interaction-lower-limit
-                :documentation "Lower limit of numeric type.")
-   (upper-limit :initarg :upper-limit
-                :type real
-                :reader real-interaction-upper-limit
-                :documentation "Upper limit of numeric type.")))
+  ((lower-limit
+    :type real
+    :initarg :lower-limit
+    :reader real-interaction-lower-limit
+    :documentation "Lower limit of numeric type.")
+   (upper-limit
+    :type real
+    :initarg :upper-limit
+    :reader real-interaction-upper-limit
+    :documentation "Upper limit of numeric type.")))
+
+(defmethod print-object ((object real-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "real (LOWER: ~S) (UPPER: ~S)"
+            (slot-value object 'lower-limit)
+            (slot-value object 'upper-limit))))
 
 (defclass rational-interaction (real-interaction)
   ((lower-limit :type rational)
@@ -155,27 +201,23 @@ default
     (funcall function)))
 
 (defmacro with-using-value ((form) &body body)
-  "Wrapper macro for forwarding output to LOG-STREAM of WIDGET."
+  "Wrapper macro that handles ambiguities."
   `(call-with-using-value ,form (lambda () ,@body)))
 
-(defgeneric compile-interaction (type-specifier stream
+(defgeneric compile-interaction (type-specifier
                                  &key subsidiary
                                  &allow-other-keys)
   (:documentation ""))
 
 (defmethod compile-interaction (type-specifier
-                                stream
                                 &key subsidiary)
-  (declare (ignore stream))
   (restart-case
       (warn 'ambiguity :type-specifier type-specifier
                        :subsidiary subsidiary)
     (use-value (value) value)))
 
 (defmethod compile-interaction ((type-specifier null)
-                                stream
                                 &key)
-  (declare (ignore stream))
   ;; "Description: The type  nil contains no objects and so  is also called the
   ;; empty type. The type nil is a subtype  of every type. No object is of type
   ;; nil.
@@ -185,7 +227,6 @@ default
   nil)
 
 (defmethod compile-interaction ((compound cons)
-                                stream
                                 &rest args)
   "Compound type specifier."
   ;; "If a type specifier  is a list, the car of the list  is a symbol, and the
@@ -197,7 +238,7 @@ default
   (destructuring-bind (name &rest subsidiary) compound
     (check-type name symbol)
     (check-type subsidiary list)
-    (apply #'compile-interaction name stream :subsidiary subsidiary args)))
+    (apply #'compile-interaction name :subsidiary subsidiary args)))
 
 ;;
 ;;;; Type Specifiers
@@ -205,35 +246,29 @@ default
 ;;
 
 (defmethod compile-interaction ((type-specifier (eql 't))
-                                stream
                                 &key)
-  (declare (ignore type-specifier
-                   stream))
+  (declare (ignore type-specifier))
   ;; "The  set of  all  objects. The  type  t  is a  supertype  of every  type,
   ;; including itself.  Every object is of type t." X3J13/94-101R (System Class
   ;; T)
   t)
 
 (defmethod compile-interaction ((type-specifier (eql 'null))
-                                stream
                                 &key)
-  (declare (ignore stream))
   ;; "The only object of type null is  nil, which represents the empty list and
   ;; can also be notated ()." X3J13/94-101R (System Class NULL)
   t)
 
 (defmethod compile-interaction ((type-specifier (eql 'atom))
-                                stream
                                 &key)
   ;; "It is equivalent to (not cons)." X3J13/94-101R (Type ATOM)
   
   ;; For now we delegate decision about  ATOM type to NOT, which simply returns
   ;; T.
-  (compile-interaction 'not stream :subsidiary '(cons)))
+  (compile-interaction 'not :subsidiary '(cons)))
 
 
 (defmethod compile-interaction ((name (eql 'cons))
-                                stream
                                 &key subsidiary)
   ;; "This denotes  the set of  conses whose car is  constrained to be  of type
   ;; car-typespec and whose cdr is constrained  to be of type cdr-typespec. (If
@@ -244,27 +279,25 @@ default
                          (cdr-typespec '*)
                        &aux
                          (car-interaction (compile-interaction (default
-                                                                car-typespec t)
-                                                               stream))
+                                                                car-typespec
+                                                                t)))
                          (cdr-interaction (compile-interaction (default
-                                                                cdr-typespec t)
-                                                               stream)))
+                                                                cdr-typespec
+                                                                t))))
       subsidiary
     (list :cons car-interaction cdr-interaction)))
 
 
 (defmethod compile-interaction ((name (eql 'eql))
-                                stream
                                 &key subsidiary)
   ;; "The argument  object is  required.  The  object can  be *,  but if  so it
   ;; denotes itself (the symbol *) and does not represent an unspecified value.
   ;; The symbol eql  is not valid as an atomic  type specifier."  X3J13/94-101R
   ;; (Type Specifier EQL)
   (destructuring-bind (object) subsidiary
-    (list :eql object)))
+    (make-instance 'static-interaction :object object)))
 
 (defmethod compile-interaction ((name (eql 'member))
-                                stream
                                 &key ((:subsidiary objects)))
   ;; "The type specifiers  (member) and nil are equivalent. *  can be among the
   ;; objects, but if so it denotes itself (the symbol *) and does not represent
@@ -272,18 +305,19 @@ default
   ;; and,  specifically, it  is  not  an abbreviation  for  either (member)  or
   ;; (member *)." X3J13/94-101R (Type Specifier MEMBER)
   (if objects
-      (apply #'list :member objects)
-      (compile-interaction nil stream)))
+      (compile-interaction 'or :subsidiary (mapcar (lambda (object)
+                                                     (list 'eql object))
+                                                   objects))
+      (compile-interaction nil)))
 
-(defun ignoring-compile-each-interaction (typespecs stream ignored)
+(defun ignoring-compile-each-interaction (typespecs ignored)
   (loop for typespec in typespecs
-        as interaction = (compile-interaction typespec stream)
+        as interaction = (compile-interaction typespec)
         unless (eql ignored interaction)
           collect interaction into interactions of-type list
           finally (return interactions)))
 
 (defmethod compile-interaction ((name (eql 'or))
-                                stream
                                 &key ((:subsidiary typespecs))
                                 &aux ambiguity
                                   (interactions
@@ -293,7 +327,7 @@ default
                                                       (setf ambiguity t)
                                                       (use-value nil))))
                                      (ignoring-compile-each-interaction
-                                      typespecs stream nil))))
+                                      typespecs nil))))
   ;; "This denotes the set  of all objects of the type  determined by the union
   ;; of the typespecs." X3J13/94-101R (Type Specifier OR)
   
@@ -305,12 +339,11 @@ default
   (case (length interactions)
     (0 (if ambiguity
            (call-next-method)
-           (compile-interaction nil stream)))
+           (compile-interaction nil)))
     (1 (car interactions))
-    (t (apply #'list :or interactions))))
+    (t (make-instance 'choice-interaction :choices interactions))))
 
 (defmethod compile-interaction ((name (eql 'and))
-                                stream
                                 &key ((:subsidiary typespecs))
                                 &aux ambiguity
                                   (interactions
@@ -320,7 +353,7 @@ default
                                                       (setf ambiguity t)
                                                       (use-value t))))
                                      (ignoring-compile-each-interaction
-                                      typespecs stream t))))
+                                      typespecs t))))
   ;; "This  denotes the  set  of all  objects  of the  type  determined by  the
   ;; intersection of the typespecs.
   ;;
@@ -332,13 +365,12 @@ default
   (case (length interactions)
     (0 (if ambiguity
            (call-next-method)
-           (compile-interaction t stream)))
+           (compile-interaction t)))
     (1 (car interactions))
     (t (apply #'list :and interactions))))
 
 
 (defmethod compile-interaction ((name (eql 'satisfies))
-                                stream
                                 &key subsidiary)
   ;; "This  denotes  the  set  of   all  objects  that  satisfy  the  predicate
   ;; predicate-name, which must be a symbol whose global function definition is
@@ -359,7 +391,6 @@ default
     (call-next-method)))
 
 (defmethod compile-interaction ((name (eql 'not))
-                                stream
                                 &key subsidiary)
   ;; "This denotes the set of all objects that are not of the type typespec.
   ;;
@@ -374,7 +405,6 @@ default
     (call-next-method)))
 
 (defmethod compile-interaction ((name (eql 'mod))
-                                stream
                                 &key subsidiary)
   ;; "This  denotes the  set  of non-negative  integers less  than  n. This  is
   ;; equivalent to (integer 0 (n)) or to (integer 0 m), where m=n-1.
@@ -383,7 +413,7 @@ default
   ;; MOD)
   (destructuring-bind (n) subsidiary
     ;; We resolve the presentation of MOD by means of presentation of INTEGER.
-    (compile-interaction 'integer stream :subsidiary (list (1- n)))))
+    (compile-interaction 'integer :subsidiary (list (1- n)))))
 
 ;;
 ;;;; Number
@@ -391,7 +421,6 @@ default
 ;;
 
 (defmethod compile-interaction ((type-specifier (eql 'number))
-                                stream
                                 &key)
   ;; "The type  number contains  objects which represent  mathematical numbers.
   ;; The   types  real   and  complex   are  disjoint   subtypes  of   number."
@@ -404,7 +433,6 @@ default
 ;;
 
 (defmethod compile-interaction ((name (eql 'real))
-                                stream
                                 &key subsidiary)
   ;; "lower-limit,  upper-limit---interval  designators  for  type  real.   The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
@@ -423,7 +451,6 @@ default
 ;;
 
 (defmethod compile-interaction ((name (eql 'complex))
-                                stream
                                 &key subsidiary)
   ;; "Every element  of this type  is a complex  whose real part  and imaginary
   ;; part are  each of  type (upgraded-complex-part-type typespec).   This type
@@ -432,10 +459,10 @@ default
   (destructuring-bind (&optional (typespec '*)
                        &aux
                          (defaulted-typespec (default typespec 'real))
-                         ;; (upgraded (upgraded-complex-part-type
-                         ;;            defaulted-typespec))
-                         (interaction (compile-interaction defaulted-typespec
-                                                           stream))) subsidiary
+                         (upgraded-typespec (upgraded-complex-part-type
+                                             defaulted-typespec))
+                         (interaction (compile-interaction upgraded-typespec)))
+      subsidiary
     ;; "typespec---a  type specifier  that  denotes a  subtype  of type  real."
     ;; X3J13/94-101R (System Class COMPLEX)
     ;;
@@ -443,7 +470,7 @@ default
     ;; giving numbers of type type-specifier  to the function complex, plus all
     ;; other complexes  of the same specialized  representation." X3J13/94-101R
     ;; (System Class COMPLEX)
-    (list :complex interaction)))
+    (make-instance 'complex-interaction :part interaction)))
 
 ;;
 ;;;;; Rational
@@ -451,7 +478,6 @@ default
 ;;
 
 (defmethod compile-interaction ((name (eql 'rational))
-                                stream
                                 &key subsidiary)
   ;; "lower-limit, upper-limit---interval  designators for type  rational.  The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
@@ -465,13 +491,12 @@ default
             :upper-limit upper-limit))))
 
 (defmethod compile-interaction ((type-specifier (eql 'ratio))
-                                stream
                                 &key)
   ;; "A ratio is  a number representing the mathematical ratio  of two non-zero
   ;; integers, the numerator and denominator,  whose greatest common divisor is
   ;; one,  and of  which the  denominator is  positive and  greater than  one."
   ;; X3J13/94-101R (System Class RATIO)
-  (compile-interaction 'rational stream))
+  (compile-interaction 'rational))
 
 ;;
 ;;;;; Integer
@@ -479,7 +504,6 @@ default
 ;;
 
 (defmethod compile-interaction ((name (eql 'integer))
-                                stream
                                 &key subsidiary)
   ;; "lower-limit,  upper-limit---interval designators  for type  integer.  The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
@@ -493,22 +517,19 @@ default
             :upper-limit upper-limit))))
 
 (defmethod compile-interaction ((type-specifier (eql 'fixnum))
-                                stream
                                 &key)
   ;; "A fixnum  is an integer  whose value is between  most-negative-fixnum and
   ;; most-positive-fixnum inclusive." X3J13/94-101R (Type FIXNUM)
-  (compile-interaction 'integer stream :subsidiary (list most-negative-fixnum
+  (compile-interaction 'integer :subsidiary (list most-negative-fixnum
                                                          most-positive-fixnum)))
 
 (defmethod compile-interaction ((type-specifier (eql 'bignum))
-                                stream
                                 &key)
   ;; "The type  bignum is defined  to be  exactly (and integer  (not fixnum))."
   ;; X3J13/94-101R (Type BIGNUM)
-  (compile-interaction 'and stream :subsidiary '(integer (not fixnum))))
+  (compile-interaction 'and :subsidiary '(integer (not fixnum))))
 
 (defmethod compile-interaction ((name (eql 'unsigned-byte))
-                                stream
                                 &key subsidiary)
   ;; "This denotes the set of non-negative  integers that can be represented in
   ;; a byte of  size s (bits). This is  equivalent to (mod m) for  m=2^s, or to
@@ -516,20 +537,19 @@ default
   ;; (unsigned-byte  *) is  the same  as the  type (integer  0 *),  the set  of
   ;; non-negative integers." X3J13/94-101R (Type UNSIGNED-BYTE)
   (destructuring-bind (&optional (s '*)) subsidiary
-    (compile-interaction 'integer stream
+    (compile-interaction 'integer
                          :subsidiary (list 0 (if (unspecified-p s)
                                                  s
                                                  (1- (expt 2 s)))))))
 
 (defmethod compile-interaction ((name (eql 'signed-byte))
-                                stream
                                 &key subsidiary)
   ;; "This  denotes   the  set   of  integers  that   can  be   represented  in
   ;; two's-complement form in a byte of  s bits. This is equivalent to (integer
   ;; -2^s-1 2^s-1-1). The  type signed-byte or the type (signed-byte  *) is the
   ;; same as the type integer. " X3J13/94-101R (Type SIGNED-BYTE)
   (destructuring-bind (&optional (s '*)) subsidiary
-    (compile-interaction 'integer stream
+    (compile-interaction 'integer
                          :subsidiary (if (unspecified-p s)
                                          '(* *)
                                          (list (- (expt 2 (1- s)))
@@ -541,7 +561,6 @@ default
 ;;
 
 (defmethod compile-interaction ((name (eql 'float))
-                                stream
                                 &key subsidiary)
   ;; "lower-limit,  upper-limit---interval  designators  for type  flaot.   The
   ;; defaults  for  each of  lower-limit  and  upper-limit  is the  symbol  *."
@@ -555,24 +574,20 @@ default
             :upper-limit upper-limit))))
 
 (defmethod compile-interaction ((name (eql 'short-float))
-                                stream
                                 &key subsidiary)
-  (compile-interaction 'float stream :subsidiary subsidiary))
+  (compile-interaction 'float :subsidiary subsidiary))
 
 (defmethod compile-interaction ((name (eql 'single-float))
-                                stream
                                 &key subsidiary)
-  (compile-interaction 'float stream :subsidiary subsidiary))
+  (compile-interaction 'float :subsidiary subsidiary))
 
 (defmethod compile-interaction ((name (eql 'double-float))
-                                stream
                                 &key subsidiary)
-  (compile-interaction 'float stream :subsidiary subsidiary))
+  (compile-interaction 'float :subsidiary subsidiary))
 
 (defmethod compile-interaction ((name (eql 'long-float))
-                                stream
                                 &key subsidiary)
-  (compile-interaction 'float stream :subsidiary subsidiary))
+  (compile-interaction 'float :subsidiary subsidiary))
 
 ;;
 ;;;; Character
@@ -580,25 +595,21 @@ default
 ;;
 
 (defmethod compile-interaction ((name (eql 'character))
-                                stream
                                 &key)
   ;; "The types base-char and extended-char form an exhaustive partition of the
   ;; type character." X3J13/94-101R (System Class CHARACTER)
   :char)
 
 (defmethod compile-interaction ((name (eql 'standard-character))
-                                stream
                                 &key)
-  (compile-interaction 'character stream))
+  (compile-interaction 'character))
 
 (defmethod compile-interaction ((name (eql 'base-char))
-                                stream
                                 &key)
-  (compile-interaction 'character stream))
+  (compile-interaction 'character))
 
 (defmethod compile-interaction ((name (eql 'extended-char))
-                                stream
                                 &key)
   ;; "The  type extended-char  is equivalent  to the  type (and  character (not
   ;; base-char))." X3J13/94-101R (Type EXTENDED-CHAR)
-  (compile-interaction 'and stream :subsidiary '(character (not base-char))))
+  (compile-interaction 'and :subsidiary '(character (not base-char))))
