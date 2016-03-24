@@ -66,6 +66,15 @@ default
 (defvar *default-numerical-lower-limit* (- 0 (/ *default-numerical-range* 2)))
 (defvar *default-numerical-upper-limit* (- 0 (/ *default-numerical-range* 2)))
 
+(defun format-slot-values (object &rest slot-names)
+  (format nil "~{~A~^ ~}"
+          (loop for slot-name of-type symbol in slot-names
+                collecting (format nil "~A: ~A"
+                                   slot-name
+                                   (if (slot-boundp object slot-name)
+                                       (slot-value object slot-name)
+                                       "*")))))
+
 (defclass interaction ()
   ())
 
@@ -79,8 +88,8 @@ default
 
 (defmethod print-object ((object static-interaction) stream)
   (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "static ~S"
-            (slot-value object 'object))))
+    (format stream "static ~A"
+            (format-slot-values object 'object))))
 
 (defclass choice-interaction (interaction)
   ((choices
@@ -92,8 +101,7 @@ default
 
 (defmethod print-object ((object choice-interaction) stream)
   (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "choices ~{~S~^ ~}"
-            (slot-value object 'choices))))
+    (format stream "choices ...")))
 
 (defclass cons-interaction (interaction)
   ((car
@@ -111,9 +119,8 @@ default
 
 (defmethod print-object ((object cons-interaction) stream)
   (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "cons ~S ~S"
-            (slot-value object 'car)
-            (slot-value object 'cdr))))
+    (format stream "cons ~A"
+            (format-slot-values object 'car 'cdr))))
 
 (defclass numerical-interaction (interaction)
   ())
@@ -127,8 +134,8 @@ default
 
 (defmethod print-object ((object complex-interaction) stream)
   (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "complex ~S"
-            (slot-value object 'part))))
+    (format stream "complex ~A"
+            (format-slot-values object 'part))))
 
 (defclass real-interaction (numerical-interaction)
   ((lower-limit
@@ -144,9 +151,10 @@ default
 
 (defmethod print-object ((object real-interaction) stream)
   (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "real (LOWER: ~S) (UPPER: ~S)"
-            (slot-value object 'lower-limit)
-            (slot-value object 'upper-limit))))
+    (format stream "real ~A"
+            (format-slot-values object
+                                'lower-limit
+                                'upper-limit))))
 
 (defclass rational-interaction (real-interaction)
   ((lower-limit :type rational)
