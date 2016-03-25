@@ -8,9 +8,7 @@
 (in-package #:interaction)
 
 #|
-
 handle t and nil interactions
-handle slot-value access before actually required by explicit check of slot-boundp.
 
 or: selection box, shown in parallel, pick one then process.
 and: first presentation found will be used.
@@ -55,10 +53,6 @@ type
 reader
 writer
 merge
-
-interaction:
-default
-
 |#
 
 ;;
@@ -74,6 +68,13 @@ default
                                  &allow-other-keys)
   (:documentation ""))
 
+(defmethod compile-interaction (type-specifier
+                                &key subsidiary)
+  (restart-case
+      (warn 'ambiguity :type-specifier type-specifier
+                       :subsidiary subsidiary)
+    (use-value (value) value)))
+
 (defun format-slot-values (object &rest slot-names)
   (format nil "~{~A~^ ~}"
           (loop for slot-name of-type symbol in slot-names
@@ -84,7 +85,7 @@ default
                                        "*")))))
 
 ;;
-;;;; Ambiguity
+;;;; Unspecified
 ;;
 ;;
 
@@ -103,6 +104,11 @@ default
   (if (unspecified-p x)
       default
       x))
+
+;;
+;;;; Ambiguity
+;;
+;;
 
 (define-condition ambiguity (warning)
   ((type-specifier
@@ -128,12 +134,10 @@ default
   "Wrapper macro that handles ambiguities."
   `(call-with-using-value ,form (lambda () ,@body)))
 
-(defmethod compile-interaction (type-specifier
-                                &key subsidiary)
-  (restart-case
-      (warn 'ambiguity :type-specifier type-specifier
-                       :subsidiary subsidiary)
-    (use-value (value) value)))
+;;
+;;;; Type Specifier Lists
+;;
+;;
 
 (defmethod compile-interaction ((type-specifier null)
                                 &key)
