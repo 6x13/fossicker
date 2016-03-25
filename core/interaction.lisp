@@ -111,14 +111,14 @@ merge
   enough approximation  considering both  practical limitations  of the  set of
   objects that can be successfully input by the user directly as the value of a
   place and  the level  of sophistication  for the  set of  object that  can be
-  logically expected to be requested from the user.")
+  logically expected to be requested from the user."))
 
-  (defmethod compile-interaction (type-specifier
-                                  &key subsidiary)
-    (restart-case
-        (warn 'ambiguity :type-specifier type-specifier
-                         :subsidiary subsidiary)
-      (use-value (value) value))))
+(defmethod compile-interaction (type-specifier
+                                &key subsidiary)
+  (restart-case
+      (warn 'ambiguity :type-specifier type-specifier
+                       :subsidiary subsidiary)
+    (use-value (value) value)))
 
 (defun class-slot-names (class)
   (mapcar #'c2mop:slot-definition-name (c2mop:class-slots class)))
@@ -139,7 +139,7 @@ merge
     (format-slot-values object stream)))
 
 ;;
-;;;; Unspecified
+;;;; Unspecified Subsidiary Items
 ;;
 ;;
 
