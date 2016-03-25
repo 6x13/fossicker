@@ -61,10 +61,18 @@ default
 
 |#
 
-(defvar *default-numerical-range* 100)
+;;
+;;;; Interaction
+;;
+;;
 
-(defvar *default-numerical-lower-limit* (- 0 (/ *default-numerical-range* 2)))
-(defvar *default-numerical-upper-limit* (- 0 (/ *default-numerical-range* 2)))
+(defclass interaction ()
+  ())
+
+(defgeneric compile-interaction (type-specifier
+                                 &key subsidiary
+                                 &allow-other-keys)
+  (:documentation ""))
 
 (defun format-slot-values (object &rest slot-names)
   (format nil "~{~A~^ ~}"
@@ -75,126 +83,10 @@ default
                                        (slot-value object slot-name)
                                        "*")))))
 
-(defclass interaction ()
-  ())
-
-(defclass static-interaction (interaction)
-  ((object
-    :type t ; Object can be anything.
-    :initform nil
-    :initarg :object
-    :reader static-interaction-object
-    :documentation "The object that is referenced by static interaction.")))
-
-(defmethod print-object ((object static-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "static ~A"
-            (format-slot-values object 'object))))
-
-(defclass choice-interaction (interaction)
-  ((choices
-    :type list
-    :initform nil
-    :initarg :choices
-    :reader choice-interaction-choices
-    :documentation "List of interaction options.")))
-
-(defmethod print-object ((object choice-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "choices ...")))
-
-(defclass cons-interaction (interaction)
-  ((car
-    :type interaction
-    :initform nil
-    :initarg :car
-    :reader cons-interaction-car
-    :documentation "Interaction for the car of cons.")
-   (cdr
-    :type interaction
-    :initform nil
-    :initarg :cdr
-    :reader cons-interaction-cdr
-    :documentation "Interaction for the cdr of cons.")))
-
-(defmethod print-object ((object cons-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "cons ~A"
-            (format-slot-values object 'car 'cdr))))
-
-(defclass numerical-interaction (interaction)
-  ())
-
-(defclass complex-interaction (numerical-interaction)
-  ((part
-    :type real-interaction
-    :initarg :part
-    :reader complex-interaction-part
-    :documentation "Lower limit of numeric type.")))
-
-(defmethod print-object ((object complex-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "complex ~A"
-            (format-slot-values object 'part))))
-
-(defclass real-interaction (numerical-interaction)
-  ((lower-limit
-    :type real
-    :initarg :lower-limit
-    :reader real-interaction-lower-limit
-    :documentation "Lower limit of numeric type.")
-   (upper-limit
-    :type real
-    :initarg :upper-limit
-    :reader real-interaction-upper-limit
-    :documentation "Upper limit of numeric type.")))
-
-(defmethod print-object ((object real-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "real ~A"
-            (format-slot-values object
-                                'lower-limit
-                                'upper-limit))))
-
-(defclass rational-interaction (real-interaction)
-  ((lower-limit :type rational)
-   (upper-limit :type rational)))
-
-(defclass ratio-interaction (rational-interaction)
-  ((lower-limit :type ratio)
-   (upper-limit :type ratio)))
-
-(defclass integer-interaction (rational-interaction)
-  ((lower-limit :type integer)
-   (upper-limit :type integer)))
-
-(defmethod slot-unbound (class
-                         (instance real-interaction)
-                         (slot-name (eql 'lower-limit)))
-  (setf (slot-value instance 'lower-limit)
-        *default-numerical-lower-limit*))
-
-(defmethod slot-unbound (class
-                         (instance real-interaction)
-                         (slot-name (eql 'upper-limit)))
-  (setf (slot-value instance 'upper-limit)
-        *default-numerical-upper-limit*))
-
-(defclass float-interaction (real-interaction)
-  ((lower-limit :type float)
-   (upper-limit :type float)))
-
-(defmethod slot-unbound (class
-                         (instance float-interaction)
-                         (slot-name (eql 'lower-limit)))
-  (setf (slot-value instance 'lower-limit)
-        (float *default-numerical-lower-limit*)))
-
-(defmethod slot-unbound (class
-                         (instance float-interaction)
-                         (slot-name (eql 'upper-limit)))
-  (setf (slot-value instance 'upper-limit)
-        (float *default-numerical-upper-limit*)))
+;;
+;;;; Ambiguity
+;;
+;;
 
 (defun unspecified-p (x)
   (eql x '*))
@@ -235,11 +127,6 @@ default
 (defmacro with-using-value ((form) &body body)
   "Wrapper macro that handles ambiguities."
   `(call-with-using-value ,form (lambda () ,@body)))
-
-(defgeneric compile-interaction (type-specifier
-                                 &key subsidiary
-                                 &allow-other-keys)
-  (:documentation ""))
 
 (defmethod compile-interaction (type-specifier
                                 &key subsidiary)
@@ -299,6 +186,30 @@ default
   ;; T.
   (compile-interaction 'not :subsidiary '(cons)))
 
+;;
+;;;; Cons
+;;
+;;
+
+(defclass cons-interaction (interaction)
+  ((car
+    :type interaction
+    :initform nil
+    :initarg :car
+    :reader cons-interaction-car
+    :documentation "Interaction for the car of cons.")
+   (cdr
+    :type interaction
+    :initform nil
+    :initarg :cdr
+    :reader cons-interaction-cdr
+    :documentation "Interaction for the cdr of cons.")))
+
+(defmethod print-object ((object cons-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "cons ~A"
+            (format-slot-values object 'car 'cdr))))
+
 (defmethod compile-interaction ((name (eql 'cons))
                                 &key subsidiary)
   ;; "This denotes  the set of  conses whose car is  constrained to be  of type
@@ -320,6 +231,24 @@ default
                    :car car-interaction
                    :cdr cdr-interaction)))
 
+
+(defclass static-interaction (interaction)
+  ((object
+    :type t ; Object can be anything.
+    :initform nil
+    :initarg :object
+    :reader static-interaction-object
+    :documentation "The object that is referenced by static interaction.")))
+
+(defmethod print-object ((object static-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "static ~A"
+            (format-slot-values object 'object))))
+
+;;
+;;;; Static
+;;
+;;
 
 (defmethod compile-interaction ((name (eql 'eql))
                                 &key subsidiary)
@@ -349,6 +278,23 @@ default
         unless (eql ignored interaction)
           collect interaction into interactions of-type list
           finally (return interactions)))
+
+;;
+;;;; Choice
+;;
+;;
+
+(defclass choice-interaction (interaction)
+  ((choices
+    :type list
+    :initform nil
+    :initarg :choices
+    :reader choice-interaction-choices
+    :documentation "List of interaction options.")))
+
+(defmethod print-object ((object choice-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "choices ...")))
 
 (defmethod compile-interaction ((name (eql 'or))
                                 &key ((:subsidiary typespecs))
@@ -453,6 +399,14 @@ default
 ;;
 ;;
 
+(defvar *default-numerical-range* 100)
+
+(defvar *default-numerical-lower-limit* (- 0 (/ *default-numerical-range* 2)))
+(defvar *default-numerical-upper-limit* (- 0 (/ *default-numerical-range* 2)))
+
+(defclass numerical-interaction (interaction)
+  ())
+
 (defmethod compile-interaction ((type-specifier (eql 'number))
                                 &key)
   ;; "The type  number contains  objects which represent  mathematical numbers.
@@ -464,6 +418,37 @@ default
 ;;;;; Real
 ;;
 ;;
+
+(defclass real-interaction (numerical-interaction)
+  ((lower-limit
+    :type real
+    :initarg :lower-limit
+    :reader real-interaction-lower-limit
+    :documentation "Lower limit of numeric type.")
+   (upper-limit
+    :type real
+    :initarg :upper-limit
+    :reader real-interaction-upper-limit
+    :documentation "Upper limit of numeric type.")))
+
+(defmethod print-object ((object real-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "real ~A"
+            (format-slot-values object
+                                'lower-limit
+                                'upper-limit))))
+
+(defmethod slot-unbound (class
+                         (instance real-interaction)
+                         (slot-name (eql 'lower-limit)))
+  (setf (slot-value instance 'lower-limit)
+        *default-numerical-lower-limit*))
+
+(defmethod slot-unbound (class
+                         (instance real-interaction)
+                         (slot-name (eql 'upper-limit)))
+  (setf (slot-value instance 'upper-limit)
+        *default-numerical-upper-limit*))
 
 (defmethod compile-interaction ((name (eql 'real))
                                 &key subsidiary)
@@ -482,6 +467,18 @@ default
 ;;;;; Complex
 ;;
 ;;
+
+(defclass complex-interaction (numerical-interaction)
+  ((part
+    :type real-interaction
+    :initarg :part
+    :reader complex-interaction-part
+    :documentation "Lower limit of numeric type.")))
+
+(defmethod print-object ((object complex-interaction) stream)
+  (print-unreadable-object (object stream :type nil :identity nil)
+    (format stream "complex ~A"
+            (format-slot-values object 'part))))
 
 (defmethod compile-interaction ((name (eql 'complex))
                                 &key subsidiary)
@@ -510,6 +507,10 @@ default
 ;;
 ;;
 
+(defclass rational-interaction (real-interaction)
+  ((lower-limit :type rational)
+   (upper-limit :type rational)))
+
 (defmethod compile-interaction ((name (eql 'rational))
                                 &key subsidiary)
   ;; "lower-limit, upper-limit---interval  designators for type  rational.  The
@@ -523,6 +524,10 @@ default
             :lower-limit lower-limit
             :upper-limit upper-limit))))
 
+(defclass ratio-interaction (rational-interaction)
+  ((lower-limit :type ratio)
+   (upper-limit :type ratio)))
+
 (defmethod compile-interaction ((type-specifier (eql 'ratio))
                                 &key)
   ;; "A ratio is  a number representing the mathematical ratio  of two non-zero
@@ -535,6 +540,10 @@ default
 ;;;;; Integer
 ;;
 ;;
+
+(defclass integer-interaction (rational-interaction)
+  ((lower-limit :type integer)
+   (upper-limit :type integer)))
 
 (defmethod compile-interaction ((name (eql 'integer))
                                 &key subsidiary)
@@ -592,6 +601,22 @@ default
 ;;;;; Float
 ;;
 ;;
+
+(defclass float-interaction (real-interaction)
+  ((lower-limit :type float)
+   (upper-limit :type float)))
+
+(defmethod slot-unbound (class
+                         (instance float-interaction)
+                         (slot-name (eql 'lower-limit)))
+  (setf (slot-value instance 'lower-limit)
+        (float *default-numerical-lower-limit*)))
+
+(defmethod slot-unbound (class
+                         (instance float-interaction)
+                         (slot-name (eql 'upper-limit)))
+  (setf (slot-value instance 'upper-limit)
+        (float *default-numerical-upper-limit*)))
 
 (defmethod compile-interaction ((name (eql 'float))
                                 &key subsidiary)
