@@ -86,6 +86,10 @@ merge
 ;;
 ;;
 
+(defconstant +unspecified-subsidiary-item+ :unspecified
+  "The value  of this constant  is used when formatting  the slot values  of an
+  interaction class for printing. It is not used as the actual slot value.")
+
 (defclass interaction ()
   ())
 
@@ -101,14 +105,23 @@ merge
                        :subsidiary subsidiary)
     (use-value (value) value)))
 
-(defun format-slot-values (object &rest slot-names)
-  (format nil "~{~A~^ ~}"
+(defun class-slot-names (class)
+  (mapcar #'c2mop:slot-definition-name (c2mop:class-slots class)))
+
+(defun format-slot-values (object stream
+                           &aux (class (class-of object))
+                             (slot-names (class-slot-names class)))
+  (format stream "~{~A~^ ~}"
           (loop for slot-name of-type symbol in slot-names
-                collecting (format nil "~A: ~A"
+                collecting (format nil "(~A: ~A)"
                                    slot-name
                                    (if (slot-boundp object slot-name)
                                        (slot-value object slot-name)
-                                       "*")))))
+                                       +unspecified-subsidiary-item+)))))
+
+(defmethod print-object ((object interaction) stream)
+  (print-unreadable-object (object stream :type t :identity nil)
+    (format-slot-values object stream)))
 
 ;;
 ;;;; Unspecified
@@ -235,11 +248,6 @@ merge
     :reader cons-interaction-cdr
     :documentation "Interaction for the cdr of cons.")))
 
-(defmethod print-object ((object cons-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "cons ~A"
-            (format-slot-values object 'car 'cdr))))
-
 (defmethod compile-interaction ((name (eql 'cons))
                                 &key subsidiary)
   ;; "This denotes  the set of  conses whose car is  constrained to be  of type
@@ -269,11 +277,6 @@ merge
     :initarg :object
     :reader static-interaction-object
     :documentation "The object that is referenced by static interaction.")))
-
-(defmethod print-object ((object static-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "static ~A"
-            (format-slot-values object 'object))))
 
 ;;
 ;;;; Static
@@ -323,8 +326,8 @@ merge
     :documentation "List of interaction options.")))
 
 (defmethod print-object ((object choice-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "choices ...")))
+  (print-unreadable-object (object stream :type t :identity nil)
+    (format stream "...")))
 
 (defmethod compile-interaction ((name (eql 'or))
                                 &key ((:subsidiary typespecs))
@@ -432,6 +435,7 @@ merge
 (defvar *default-numerical-range* 100)
 
 (defvar *default-numerical-lower-limit* (- 0 (/ *default-numerical-range* 2)))
+
 (defvar *default-numerical-upper-limit* (- 0 (/ *default-numerical-range* 2)))
 
 (defclass numerical-interaction (interaction)
@@ -460,13 +464,6 @@ merge
     :initarg :upper-limit
     :reader real-interaction-upper-limit
     :documentation "Upper limit of numeric type.")))
-
-(defmethod print-object ((object real-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "real ~A"
-            (format-slot-values object
-                                'lower-limit
-                                'upper-limit))))
 
 (defmethod slot-unbound (class
                          (instance real-interaction)
@@ -504,11 +501,6 @@ merge
     :initarg :part
     :reader complex-interaction-part
     :documentation "Lower limit of numeric type.")))
-
-(defmethod print-object ((object complex-interaction) stream)
-  (print-unreadable-object (object stream :type nil :identity nil)
-    (format stream "complex ~A"
-            (format-slot-values object 'part))))
 
 (defmethod compile-interaction ((name (eql 'complex))
                                 &key subsidiary)
