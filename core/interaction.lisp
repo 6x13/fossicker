@@ -91,19 +91,34 @@ merge
   interaction class for printing. It is not used as the actual slot value.")
 
 (defclass interaction ()
-  ())
+  ()
+  (:documentation   "The  base   class   for   representing  user   interaction
+  characteristics needed  to set the values  of declared types for  places. The
+  interaction class hierarchy  is only partially analogous to  the type lattice
+  represented  by Common  Lisp type  system. Interaction  subclasses names  are
+  selected   considering  both   the   user  interaction   semantics  and   the
+  corresponding  Common Lisp  type  specifier names,  specifically, the  former
+  having precedence over the latter."))
 
 (defgeneric compile-interaction (type-specifier
                                  &key subsidiary
                                  &allow-other-keys)
-  (:documentation ""))
+  (:documentation "The generic function  that recursively compiles the compound
+  interaction  provided a  valid  Common Lisp  type  specifier.  The  resulting
+  interaction characteristics  is achieved by  way of partial analysis  of type
+  specifier. Resulting interaction  object is not necessarily  analogous to the
+  type denoted  by the processed type  specifier but it is  effectively a close
+  enough approximation  considering both  practical limitations  of the  set of
+  objects that can be successfully input by the user directly as the value of a
+  place and  the level  of sophistication  for the  set of  object that  can be
+  logically expected to be requested from the user.")
 
-(defmethod compile-interaction (type-specifier
-                                &key subsidiary)
-  (restart-case
-      (warn 'ambiguity :type-specifier type-specifier
-                       :subsidiary subsidiary)
-    (use-value (value) value)))
+  (defmethod compile-interaction (type-specifier
+                                  &key subsidiary)
+    (restart-case
+        (warn 'ambiguity :type-specifier type-specifier
+                         :subsidiary subsidiary)
+      (use-value (value) value))))
 
 (defun class-slot-names (class)
   (mapcar #'c2mop:slot-definition-name (c2mop:class-slots class)))
