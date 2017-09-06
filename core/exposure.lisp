@@ -283,6 +283,7 @@ INITARG structures for each INITARG.")
             &aux (keys (class-interactive class))
               (properties (apply #'infer-initarg-properties class keys)))
     properties
-    ;; (loop for key of-type keyword in keys
-    ;;       collecting (getf properties key)
+    ;; (loop for initarg of-type initarg in properties
+    ;;    when (member (initarg-keyword initarg) keys)
+    ;;       collecting initarg)
     ))
