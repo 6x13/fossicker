@@ -19,6 +19,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with Fossicker.  If not, see <http://www.gnu.org/licenses/>.
 
+(asdf:register-system-packages "qtools"
+							   '(:cl+qt))
+
 (defpackage #:fossicker-ui-qt
   (:use #:cl+qt
         #:fossicker
