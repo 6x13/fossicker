@@ -11,5 +11,12 @@
                 "FOSSICKER-USER"
                 '("FCKU"))
 
+(rename-package "FOSSICKER-UI-QT"
+                "FOSSICKER-UI-QT"
+                '("FCKUIQT"))
+
 (register-system-packages "fossicker"
                           '(:fck :fcku))
+
+(asdf:register-system-packages "fossicker-ui-qt"
+							   '(:fckuiqt))
