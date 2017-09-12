@@ -1,4 +1,10 @@
 * Fossicker
+ - Maybe use the VC terminology instead:
+   - stage :: accept
+   - commit ::
+   - push ::
+   - diff ::
+
 ** Implementation
 - User will be able to select another  asset from history. If it is an instance
   of a subclass of  asset, user will be able to export, or  delete it. If it is

@@ -35,7 +35,7 @@
                  (:file "fossicker")))
                (:module interfaces
                 :components
-                (;; (:file "cli")
+                ((:file "cli")
                  ;; (:file "srv")
                  (:file "gui"))))
   :perform (load-op :after (o s)

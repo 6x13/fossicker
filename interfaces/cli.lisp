@@ -41,30 +41,27 @@
        (prompt-read "Source"))))
 
 (defun prompt-context (filename)
-  (pathname-as-directory
+  (ensure-directory-pathname
    (let ((context (pathname-directory-pathname filename)))
      (if (y-or-n-p "Context: ~a" context)
          context
          (pathname (prompt-read "Context"))))))
 
-(defun generate (filename)
-  (assert *project* nil "No fossicker project selected for current buffer.")
-  (let* ((fname (pathname filename))
-         (context (prompt-context fname))
-         (path (compile-path spec)))
-    (setf source (prompt-source
-                  (prospect
-                   (generate-vein-map (namestring fname) type)
-                   (mine *config*)
-                   (add-case-variations formats))))
-    (assert (file-exists-p source) nil
-            "Source ~a is not a regular file." source)
-    (assert
-     (or (null formats) (scan (format nil "\\.(~{~a~^|~})" formats)
-                              (file-namestring source)))
-     nil "Source expected to be one of following formats: ~a. Got ~a."
-     formats (pathname-type source))
-    (report
-     (funcall fn path context
-              (file-namestring fname)
-              ext (cdr spec) source))))
+;; (defun generate (filename)
+;;   (assert *project* nil "No fossicker project selected for current buffer.")
+;;   (let* ((fname (pathname filename))
+;;          (context (prompt-context fname))
+;;          (path (compile-path (matching-spec (dispatch fname) (project-specs *project*))))
+;; 		 (source (prompt-source
+;;                   (prospect-asset
+;; 				   fname
+;;                    (mine *config*)
+;;                    (legend *config*)))))
+;;     (assert (file-exists-p source) nil
+;;             "Source ~a is not a regular file." source)
+;;     ;; (assert
+;;     ;;  (or (null formats) (scan (format nil "\\.(~{~a~^|~})" formats)
+;;     ;;                           (file-namestring source)))
+;;     ;;  nil "Source expected to be one of following formats: ~a. Got ~a."
+;;     ;;  formats (pathname-type source))
+;;     (report "ds")))
