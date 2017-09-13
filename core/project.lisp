@@ -91,7 +91,7 @@
     :documentation  "Project specific  pathname  of the  mine  to prospect  for
     sources.")
    (draft
-    :type (or null asset function)
+    :type (or null function asset)
     :initform nil
     :accessor project-draft
     :documentation "Asset that  is currently being sketched. Draft  is an asset
@@ -107,7 +107,7 @@
     :accessor project-selected
     :documentation "Asset that is in edit mode.  Its NAMESTRING slot is static.
     Therefore it cannot change-class. All other  properties of the asset can be
-    edited. Selected asset may or may not be already in database. When draft is
+    edited. Selected asset may or may not already be in database. When draft is
     accepted, it is set as selected but it is not saved in database yet.")
    (assets
     :type list
@@ -146,8 +146,8 @@ convenience."
   "Infers the class of project to generate from project file extension. PROJECT
 class is used if there is not extension."
   (or (intern (string-upcase (pathname-type pathname))
-                           :fossicker)
-                   'project))
+			  :fossicker)
+	  'project))
 
 (defmethod initialize-instance :around
     ((instance project)
@@ -288,14 +288,18 @@ direct representation of the current state of a drafting process."
               "No asset at position ~a for project named ~a."
               index (project-name project)))))
       (null
-       (if (project-draft project)
-           (progn
-             (message "Setting draft as selected for project named ~a."
-                       (project-name project))
-             (setf (project-selected project) (project-draft project))
-             (setf (project-draft project) nil))
-           (message "No draft asset available to select for project named ~a."
-                     (project-name project)))))))
+       (ctypecase (project-draft project)
+		 (null
+		  (message "No draft asset available to select for project named ~a."
+				   (project-name project)))
+		 (function
+		  (message "Draft not yet suitable to select for project named ~a."
+				   (project-name project)))
+		 (asset
+		  (message "Setting draft as selected for project named ~a."
+				   (project-name project))
+		  (setf (project-selected project) (project-draft project))
+		  (setf (project-draft project) nil)))))))
 
 (defgeneric generate (project)
   (:documentation "TEMP: Ensures SELECTED is in ASSETS.")
