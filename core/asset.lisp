@@ -29,25 +29,25 @@
 ;;
 ;;
 
-(defun some-regex (namestring &rest regex)
-  "Check if NAMESTRING matches any of the REGEX strings."
+(defun some-regex (rqststring &rest regex)
+  "Check if RQSTSTRING matches any of the REGEX strings."
   ;; Fix for performance reading CL-PPCRE docs.
   (some
    (lambda (rx)
      (scan (create-scanner rx :case-insensitive-mode t)
-           namestring))
+           rqststring))
    regex))
 
-(define-layered-function dispatch (namestring)
+(define-layered-function dispatch (rqststring)
   (:method-combination list :most-specific-last)
-  (:documentation "Dispatch  loaded asset  subclasses on  NAMESTRING.  Whatever
+  (:documentation "Dispatch  loaded asset  subclasses on  RQSTSTRING.  Whatever
   CLASS-NAMEs the  active dispatch methods  return will be listed  as potential
   dispatch targets. If the DISPATCH method returns NIL, it is removed from list
   by the :AROUND method.")
-  (:method list (namestring)
+  (:method list (rqststring)
     "Returns  NIL, which  is  going to  be  removed from  list  by the  :AROUND
     method. There needs to be at least one primary method." nil)
-  (:method :around (namestring)
+  (:method :around (rqststring)
     "Removes NIL elements from the dispatch list."
     (remove nil (call-next-method))))
 
@@ -110,12 +110,12 @@
     :type (or null string)
     :initform nil
     :documentation "Path of asset relative to project path.")
-   (namestring
-    :initarg :namestring
+   (rqststring
+    :initarg :rqststring
     :type string
-    :initform (error "Asset doesn't have a namestring.")
-    :accessor asset-namestring
-    :documentation "Namestring that is provided by user for generated asset.")
+    :initform (error "Asset doesn't have a request string.")
+    :accessor asset-rqststring
+    :documentation "Request string that is provided by user for generated asset.")
    (source
     :initarg :source
     :type pathname
@@ -169,7 +169,7 @@ returned by PRIMARY method."
                            (string-upcase elt)))
                    (call-next-method)))))
 
-(defclass prospect-any () (namestring)
+(defclass prospect-any () (rqststring)
   (:documentation    "Mixin     class    that     defines    a     method    of
   RESTRICT-PROSPECTABLE-FORMATS,  which simply  returns  NIL. This  is a  dummy
   mixin to make behaviour explicit. The default behaviour of ASSET class is the
@@ -179,17 +179,17 @@ returned by PRIMARY method."
   "Returns NIL,  meaning no restrictions  apply to source  format prospection."
   nil)
 
-(defclass prospect-same () (namestring)
+(defclass prospect-same () (rqststring)
   (:documentation    "Mixin     class    that     defines    a     method    of
   RESTRICT-PROSPECTABLE-FORMATS,   which  simply   returns  the   extension  of
-  NAMESTRING slot value of ASSET instance."))
+  RQSTSTRING slot value of ASSET instance."))
 
 (defmethod restrict-prospectable-formats ((asset prospect-same))
-  "Returns a list containing the extension of the file saved in NAMESTRING slot
+  "Returns a list containing the extension of the file saved in RQSTSTRING slot
 of the ASSET."
-  (list (pathname-type (slot-value asset 'namestring))))
+  (list (pathname-type (slot-value asset 'rqststring))))
 
-(defclass prospect-custom () (namestring)
+(defclass prospect-custom () (rqststring)
   (:documentation    "Mixin     class    that     defines    a     method    of
   RESTRICT-PROSPECTABLE-FORMATS, which signals an error when called. This class
   is  mainly  for  stating  asset   behaviour  explicitly,  and  for  debugging
@@ -224,15 +224,15 @@ supplied."
 ;;
 ;;
 
-(defun map-to-veins (namestring legend)
-  "Recursively traverses LEGEND  matching all entries to  NAMESTRING. Returns a
+(defun map-to-veins (rqststring legend)
+  "Recursively traverses LEGEND  matching all entries to  RQSTSTRING. Returns a
 list of each  matching entry bundled with their corresponding  positions in the
-NAMESTRING to  be sorted later  accordingly.
+RQSTSTRING to  be sorted later  accordingly.
 Bundles  are in form  of (POSITION . VEINS))."
   (when legend
-    (cons (cons (scan (caar legend) namestring)
+    (cons (cons (scan (caar legend) rqststring)
                 (cdar legend))
-          (map-to-veins namestring (cdr legend)))))
+          (map-to-veins rqststring (cdr legend)))))
 
 (defgeneric generate-vein-map (asset legend)
   (:documentation  "Gets  the  vein  list  using  MAP-TO-VEINS,  sorting  veins
@@ -246,7 +246,7 @@ to the generated list.")
                          (stable-sort 
                           (delete-if #'null
                                      (map-to-veins
-                                      (asset-namestring asset)
+                                      (asset-rqststring asset)
                                       legend)
                                      :key #'car)
                           #'< :key #'car))))))

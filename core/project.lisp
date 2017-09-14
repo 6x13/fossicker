@@ -105,7 +105,7 @@
     :type (or null asset)
     :initform nil
     :accessor project-selected
-    :documentation "Asset that is in edit mode.  Its NAMESTRING slot is static.
+    :documentation "Asset that is in edit mode.  Its RQSTSTRING slot is static.
     Therefore it cannot change-class. All other  properties of the asset can be
     edited. Selected asset may or may not already be in database. When draft is
     accepted, it is set as selected but it is not saved in database yet.")
@@ -173,18 +173,18 @@ not explicitly stated."
 
 (defun matching-spec (dispatch specs)
   "Iterates over project  specs and returns first asset  spec that successfully
-dispatched  on namestring.   Project specification  order drives  type dispatch
+dispatched  on RQSTSTRING.   Project specification  order drives  type dispatch
 precedence, not the dispatch list."
   (when specs
     (if (member (caar specs) dispatch)
         (car specs)
         (matching-spec dispatch (cdr specs)))))
 
-(defun infer-asset-initargs (namestring project initargs)
-  "Adds  defaulted  :LEGEND and  :MINE  and  :NAMESTRING keywords  to  INITARGS
+(defun infer-asset-initargs (rqststring project initargs)
+  "Adds  defaulted  :LEGEND and  :MINE  and  :RQSTSTRING keywords  to  INITARGS
 specified in project spec of dispatched asset class."
   (apply #'list
-         :namestring namestring
+         :rqststring rqststring
          :legend (or (project-legend project)
                      (legend *config*))
          :mine (or (project-mine project)
@@ -228,16 +228,16 @@ direct representation of the current state of a drafting process."
             (initialize-draft draft class (append interactive initargs))
             draft))))
 
-(defgeneric draft (project namestring)
-  (:documentation "Generates a draft CLOSURE for PROJECT using NAMESTRING.")
-  (:method ((project project) namestring
-            &aux (dispatch (dispatch namestring))
+(defgeneric draft (project rqststring)
+  (:documentation "Generates a draft CLOSURE for PROJECT using RQSTSTRING.")
+  (:method ((project project) rqststring
+            &aux (dispatch (dispatch rqststring))
               (spec (matching-spec dispatch (project-specs project)))
               (class (car spec))
-              (initargs (infer-asset-initargs namestring
+              (initargs (infer-asset-initargs rqststring
                                               project
                                               (cdr spec))))
-    (assert (stringp namestring) nil "~a is not a filename." namestring)
+    (assert (stringp rqststring) nil "~a is not a filename." rqststring)
     (cond (spec
            ;; Compile and store DRAFT CLOSURE.
            (setf (project-draft project)

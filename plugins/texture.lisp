@@ -25,8 +25,8 @@
   (:interactive :formats :path :source :files :data :benchmark :density)
   (:documentation "Generic texture class."))
 
-(define-layered-method dispatch :in texture list (namestring)
-  (if (some-regex namestring "\\.png$" "\\.jpg$" "\\.tiff$" "\\.tga$")
+(define-layered-method dispatch :in texture list (rqststring)
+  (if (some-regex rqststring "\\.png$" "\\.jpg$" "\\.tiff$" "\\.tga$")
       'texture))
 
 (ensure-active-layer 'texture)

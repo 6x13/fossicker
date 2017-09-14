@@ -10,8 +10,8 @@
   (:metaclass resource)
   (:documentation "Generic audio class."))
 
-(define-layered-method dispatch :in audio list (namestring)
-  (if (some-regex namestring
+(define-layered-method dispatch :in audio list (rqststring)
+  (if (some-regex rqststring
                   "\\.mp3$" "\\.wav$" "\\.ogg$" "\\.aac$")
       'audio))
 

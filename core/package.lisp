@@ -101,19 +101,19 @@
    )
   ;; ASSET
   (:intern                          ; asset.lisp
-   #:map-to-veins                   ; (namestring legend)
+   #:map-to-veins                   ; (rqststring legend)
    #:generate-vein-map              ; (asset legend)
    #:prospect                       ; (map dir formats &optional prospect)
    ;;compile-path                   ; (spec)
    ;;report                         ; (result)
    )
   (:export                          ; asset.lisp
-   #:some-regex                     ; (namestring &rest regex)
-   #:dispatch                       ; (namestring)
+   #:some-regex                     ; (rqststring &rest regex)
+   #:dispatch                       ; (rqststring)
    #:resource
    #:asset ;;;;;;;;;;;;;
    #:asset-formats    ;;            ; (object)
-   #:asset-namestring ;;            ; (object)
+   #:asset-rqststring ;;            ; (object)
    #:asset-source     ;;            ; (object)
    #:asset-files      ;;            ; (object)
    #:asset-date       ;;            ; (object)
@@ -134,7 +134,7 @@
    #:infer-project-name             ; (pathname)
    #:infer-project-class            ; (pathname)
    #:matching-spec                  ; (dispatch specs)
-   #:infer-asset-initargs           ; (namestring project initargs)
+   #:infer-asset-initargs           ; (rqststring project initargs)
    #:initialize-draft               ; (draft class initargs)
    #:compile-draft-closure          ; (draft class initargs)
    #:project-root-p                 ; (project-root)
@@ -156,7 +156,7 @@
    #:project-assets   ;;            ; (object)
    #:project-log      ;;            ; (object)
    ;;;;;;;;;;;;;;;;;;;;;
-   #:draft                          ; (project namestring)
+   #:draft                          ; (project rqststring)
    #:accept                         ; (project interactive)
    #:redraft                        ; (project &key clean)
    #:select                         ; (project &optional index)

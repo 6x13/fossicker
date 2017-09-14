@@ -206,8 +206,8 @@ follow us on Twitter for more libraries and games.")
 ;;
 ;;
 
-(define-subwidget (main namestring) (q+:make-qlineedit "asset-name.png")
-  (setf (q+:size-policy namestring)
+(define-subwidget (main rqststring) (q+:make-qlineedit "asset-name.png")
+  (setf (q+:size-policy rqststring)
         (q+::make-qsizepolicy (q+::qsizepolicy.minimum-expanding)
                               (q+::qsizepolicy.fixed))))
 
@@ -219,24 +219,24 @@ follow us on Twitter for more libraries and games.")
   (mapc (lambda (proj &aux (name (project-name proj)))
           (q+:add-item project name name))
         *project-registry*)
-  ;; Set  current project  as  selected  in widget.  Disable  namestring if  no
+  ;; Set  current project  as  selected  in widget.  Disable  rqststring if  no
   ;; project selected.
   (cond (*project*
-         (setf (q+:enabled namestring) t)
+         (setf (q+:enabled rqststring) t)
          (setf (q+:current-index project)
                (q+:find-data project
                              (project-name
                               *project*))))
         (t
-         (setf (q+:enabled namestring) nil)
+         (setf (q+:enabled rqststring) nil)
          (setf (q+:current-index project) -1))))
 
 (define-slot (main project-selected) ((new-project string))
   (declare (connected project (activated string)))
-  ;; Set project. Ensure namestring enabled.
+  ;; Set project. Ensure rqststring enabled.
   (with-gui-stream (main)
     (set-project new-project)
-    (setf (q+:enabled namestring) t)))
+    (setf (q+:enabled rqststring) t)))
 
 (define-subwidget (main type) (q+:make-qlabel "")
   (setf (q+:size-policy type)
@@ -248,8 +248,8 @@ follow us on Twitter for more libraries and games.")
   (setf (q+:alignment grid) (q+:qt.align-top))
   (q+:add-widget grid (q+:make-qlabel "Project") 0 0)
   (q+:add-widget grid project 0 1)  
-  (q+:add-widget grid (q+:make-qlabel "Namestring") 0 2)
-  (q+:add-widget grid namestring 0 3)
+  (q+:add-widget grid (q+:make-qlabel "Request") 0 2)
+  (q+:add-widget grid rqststring 0 3)
   (q+:add-widget grid (q+:make-qlabel "Type") 1 0)
   (q+:add-widget grid type 1 1 1 3))
 
@@ -273,11 +273,11 @@ follow us on Twitter for more libraries and games.")
   (setf (q+:alignment initargs) (q+:qt.align-top)))
 
 (define-slot (main name-set) ((new-name string))
-  (declare (connected namestring (text-edited string)))
+  (declare (connected rqststring (text-edited string)))
   (sweep-layout initargs)
   (with-gui-stream (main)
     (let ((class (draft *project*
-                        (q+:text namestring))))
+                        (q+:text rqststring))))
       (cond (class
              (dolist (arg (compute-initarg-properties class))
                (q+:add-widget initargs

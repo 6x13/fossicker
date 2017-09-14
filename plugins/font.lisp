@@ -9,7 +9,7 @@
   ()
   (:documentation "Generic font class."))
 
-(define-layered-method dispatch :in font list (namestring)
-  (if (some-regex namestring "\\.ttf$" "\\.otf$") 'font))
+(define-layered-method dispatch :in font list (rqststring)
+  (if (some-regex rqststring "\\.ttf$" "\\.otf$") 'font))
 
 (ensure-active-layer 'font)

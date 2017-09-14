@@ -9,7 +9,7 @@
   ()
   (:documentation "Generic particle class."))
 
-(define-layered-method dispatch :in particle list (namestring)
-  (if (some-regex namestring "\\.pl$") 'particle))
+(define-layered-method dispatch :in particle list (rqststring)
+  (if (some-regex rqststring "\\.pl$") 'particle))
 
 (ensure-active-layer 'particle)

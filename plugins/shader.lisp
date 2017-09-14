@@ -30,10 +30,10 @@
 
 (defmethod restrict-prospectable-formats ((asset shader))
   (fossicker/plugins/shader:match-prospect-extension
-   (pathname-type (slot-value asset 'namestring))))
+   (pathname-type (slot-value asset 'rqststring))))
 
-(define-layered-method dispatch :in shader list (namestring)
-  (if (some-regex namestring
+(define-layered-method dispatch :in shader list (rqststring)
+  (if (some-regex rqststring
                   "\\.vert\$" "\\.frag\$" "\\.tesc\$"
                   "\\.tese\$" "\\.geom\$" "\\.comp\$")
       'shader))

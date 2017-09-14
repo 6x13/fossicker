@@ -9,7 +9,7 @@
   ()
   (:documentation "Generic model class."))
 
-(define-layered-method dispatch :in model list (namestring)
-  (if (some-regex namestring "\\.obj$" "\\.3ds$") 'model))
+(define-layered-method dispatch :in model list (rqststring)
+  (if (some-regex rqststring "\\.obj$" "\\.3ds$") 'model))
 
 (ensure-active-layer 'model)

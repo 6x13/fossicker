@@ -73,7 +73,7 @@
     :type list
     :initform nil
     :accessor legend
-    :documentation "Legend  to be used  when mapping a NAMESTRING  specified by
+    :documentation "Legend  to be used  when mapping a RQSTSTRING  specified by
     user to a prospect template from database.")
    (mine
     :initarg :mine

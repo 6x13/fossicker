@@ -9,7 +9,7 @@
   ()
   (:documentation "Generic data class."))
 
-(define-layered-method dispatch :in data list (namestring)
-  (if (some-regex namestring "\\.xml$" "\\.json$") 'data))
+(define-layered-method dispatch :in data list (rqststring)
+  (if (some-regex rqststring "\\.xml$" "\\.json$") 'data))
 
 (ensure-active-layer 'data)
