@@ -21,11 +21,6 @@
 
 (in-package :cl-user)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Plugins: All - Meta Package
-;;
-;;
-
 (defpackage :fossicker/plugins/all
   (:use
    :fossicker/plugins/audio
