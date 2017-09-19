@@ -35,6 +35,5 @@ This is  free software, and  you are welcome  to redistribute it  under certain
 conditions; type `show c' for details.")
 
 (defun initialize ()
-  (format t "~&")
   (configure)
-  (when (startup-notice *config*) (format t "~%~a~%" *startup-notice*)))
+  (when (startup-notice *config*) (message *startup-notice*)))
