@@ -21,7 +21,7 @@
 
 (in-package :fossicker)
 
-;; (declaim (optimize                                                       
+;; (declaim (optimize
 ;;           (speed 0) (compilation-speed 0) (safety 3) (debug 3)))
 
 ;;;;;;;;;;
@@ -41,6 +41,34 @@
 
 ;; (defgeneric store (project)
 ;;   (:documentation
-;;    "Generates asset, pushes it to ASSETS and sets it as CURRENT.")
+;;    "")
 ;;   (:method ((project project)))
 ;;   (store (merge-pathnames* (project-file-directory project) "") ()))
+
+(defun save-project-history (&optional name &aux (project nil))
+  "Save named project history, or if null, save active project history."
+  (assert *project-registry* nil
+          "No fossicker projects defined. You need at least one.")
+  (assert (or (null name)
+              (member name
+                      *project-registry*
+                      :key #'project-name
+                      :test #'string=))
+          nil "~a is not in project list." name)
+  (setf project (if name (get-project name) *project*))
+
+  (message "History for the project ~a saved to disk." project))
+
+(defun load-project-history (&optional name &aux (project nil))
+  "Save named project history, or if null, save active project history."
+  (assert *project-registry* nil
+          "No fossicker projects defined. You need at least one.")
+  (assert (or (null name)
+              (member name
+                      *project-registry*
+                      :key #'project-name
+                      :test #'string=))
+          nil "~a is not in project list." name)
+  (setf project (if name (get-project name) *project*))
+
+  (message "History for the project ~a loaded from disk." project))

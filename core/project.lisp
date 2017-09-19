@@ -125,36 +125,6 @@
   (:documentation "Base project class that can  be used and subclassed by other
   project types."))
 
-(defgeneric select (project &optional index)
-  (:documentation "If INDEX is supplied, sets SELECTED to the ASSET instance at
-  the INDEX position of ASSETS slot,  otherwise sets DRAFT as SELECTED and sets
-  DRAFT to NIL.")
-  (:method ((project project) &optional index)
-    (ctypecase index
-      (unsigned-byte
-       (let ((instance (nth index (project-assets project))))
-         (if instance
-             (progn
-               (message "Changed selection for project named ~a."
-                        (project-name project))
-               (setf (project-selected project) instance))
-             (message
-              "No asset at position ~a for project named ~a."
-              index (project-name project)))))
-      (null
-       (ctypecase (project-draft project)
-         (null
-          (message "No draft asset available to select for project named ~a."
-                   (project-name project)))
-         (function
-          (message "Draft not yet suitable to select for project named ~a."
-                   (project-name project)))
-         (asset
-          (message "Setting draft as selected for project named ~a."
-                   (project-name project))
-          (setf (project-selected project) (project-draft project))
-          (setf (project-draft project) nil)))))))
-
 (defun get-data-from-file (path)
   "Read one S-EXPRESSION from PATH."
   (assert (file-exists-p path) nil "File ~a doesn't exist." path)
@@ -200,6 +170,41 @@ not explicitly stated."
                  ;; any possible user specified initarg overrides them.
                  (list :name (infer-project-name file)
                        :root (infer-project-root file)))))
+
+;;
+;;;; Asset Operations
+;;
+;;
+
+(defgeneric select (project &optional index)
+  (:documentation "If INDEX is supplied, sets SELECTED to the ASSET instance at
+  the INDEX position of ASSETS slot,  otherwise sets DRAFT as SELECTED and sets
+  DRAFT to NIL.")
+  (:method ((project project) &optional index)
+    (ctypecase index
+      (unsigned-byte
+       (let ((instance (nth index (project-assets project))))
+         (if instance
+             (progn
+               (message "Changed selection for project named ~a."
+                        (project-name project))
+               (setf (project-selected project) instance))
+             (message
+              "No asset at position ~a for project named ~a."
+              index (project-name project)))))
+      (null
+       (ctypecase (project-draft project)
+         (null
+          (message "No draft asset available to select for project named ~a."
+                   (project-name project)))
+         (function
+          (message "Draft not yet suitable to select for project named ~a."
+                   (project-name project)))
+         (asset
+          (message "Setting draft as selected for project named ~a."
+                   (project-name project))
+          (setf (project-selected project) (project-draft project))
+          (setf (project-draft project) nil)))))))
 
 (defun matching-spec (dispatch specs)
   "Iterates over project  specs and returns first asset  spec that successfully
@@ -314,7 +319,7 @@ direct representation of the current state of a drafting process."
                  (project-name project)))))
 
 ;;
-;;;; Selection
+;;;; Project Operations
 ;;
 ;;
 
