@@ -27,7 +27,8 @@
 ;;
 
 (defun message (&rest args)
-  (format t "~&~A" (apply #'format nil args)))
+  (format t "~&~A" (apply #'format nil args))
+  (force-output nil))
 
 (defun prompt (&rest args)
   (apply #'y-or-n-p args))

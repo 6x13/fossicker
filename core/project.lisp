@@ -293,6 +293,8 @@ direct representation of the current state of a drafting process."
     (check-type (project-draft project) function)
     (setf (project-draft project)
           (funcall (project-draft project) interactive))
+    (message "Submitting the draft for project named ~a."
+             (project-name project))
     (select project)))
 
 ;; TODO
