@@ -176,7 +176,7 @@
    #:project-log      ;;            ; (object)
    ;;;;;;;;;;;;;;;;;;;;;
    #:draft                          ; (project rqststring)
-   #:accept                         ; (project interactive)
+   #:submit                         ; (project interactive)
    #:redraft                        ; (project &key clean)
    #:select                         ; (project &optional index)
    #:generate                       ; (project)

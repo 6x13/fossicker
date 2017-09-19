@@ -1,9 +1,6 @@
 * Fossicker
- - Maybe use the VC terminology instead:
-   - stage :: accept
-   - commit ::
-   - push ::
-   - diff ::
+draft->submit->select->apply?
+draft->stage->checkout->commit->push
 
 ** Implementation
 - User will be able to select another  asset from history. If it is an instance

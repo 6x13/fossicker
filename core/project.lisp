@@ -108,7 +108,7 @@
     :documentation "Asset that is in edit mode.  Its RQSTSTRING slot is static.
     Therefore it cannot change-class. All other  properties of the asset can be
     edited. Selected asset may or may not already be in database. When draft is
-    accepted, it is set as selected but it is not saved in database yet.")
+    submitted, it is set as selected but it is not saved in database yet.")
    (assets
     :type list
     :initform nil
@@ -124,6 +124,36 @@
    :file (error "Project needs to have an associated file."))
   (:documentation "Base project class that can  be used and subclassed by other
   project types."))
+
+(defgeneric select (project &optional index)
+  (:documentation "If INDEX is supplied, sets SELECTED to the ASSET instance at
+  the INDEX position of ASSETS slot,  otherwise sets DRAFT as SELECTED and sets
+  DRAFT to NIL.")
+  (:method ((project project) &optional index)
+    (ctypecase index
+      (unsigned-byte
+       (let ((instance (nth index (project-assets project))))
+         (if instance
+             (progn
+               (message "Changed selection for project named ~a."
+                        (project-name project))
+               (setf (project-selected project) instance))
+             (message
+              "No asset at position ~a for project named ~a."
+              index (project-name project)))))
+      (null
+       (ctypecase (project-draft project)
+         (null
+          (message "No draft asset available to select for project named ~a."
+                   (project-name project)))
+         (function
+          (message "Draft not yet suitable to select for project named ~a."
+                   (project-name project)))
+         (asset
+          (message "Setting draft as selected for project named ~a."
+                   (project-name project))
+          (setf (project-selected project) (project-draft project))
+          (setf (project-draft project) nil)))))))
 
 (defun get-data-from-file (path)
   "Read one S-EXPRESSION from PATH."
@@ -146,8 +176,8 @@ convenience."
   "Infers the class of project to generate from project file extension. PROJECT
 class is used if there is not extension."
   (or (intern (string-upcase (pathname-type pathname))
-			  :fossicker)
-	  'project))
+              :fossicker)
+      'project))
 
 (defmethod initialize-instance :around
     ((instance project)
@@ -257,12 +287,13 @@ direct representation of the current state of a drafting process."
            (message "Couldn't dispatch on any asset class.")
            nil))))
 
-(defgeneric accept (project interactive)
-  (:documentation "Generates draft ASSET for PROJECT using INTERACTIVE.")
+(defgeneric submit (project interactive)
+  (:documentation "Completes draft ASSET for PROJECT using INTERACTIVE.")
   (:method ((project project) interactive)
     (check-type (project-draft project) function)
     (setf (project-draft project)
-          (funcall (project-draft project) interactive))))
+          (funcall (project-draft project) interactive))
+    (select project)))
 
 ;; TODO
 (defgeneric redraft (project &key clean)
@@ -270,36 +301,6 @@ direct representation of the current state of a drafting process."
   slot.  Then  sets  SELECTED to  NIL.  If  CLEAN  is  T, REDRAFT  will  remove
   previously generated and discarded files from file system.")
   (:method ((project project) &key (clean t))))
-
-(defgeneric select (project &optional index)
-  (:documentation "If INDEX is supplied, sets SELECTED to the ASSET instance at
-  the INDEX position of ASSETS slot,  otherwise sets DRAFT as SELECTED and sets
-  DRAFT to NIL.")
-  (:method ((project project) &optional index)
-    (ctypecase index
-      (unsigned-byte
-       (let ((instance (nth index (project-assets project))))
-         (if instance
-             (progn
-               (message "Changed selection for project named ~a."
-                        (project-name project))
-               (setf (project-selected project) instance))
-             (message 
-              "No asset at position ~a for project named ~a."
-              index (project-name project)))))
-      (null
-       (ctypecase (project-draft project)
-		 (null
-		  (message "No draft asset available to select for project named ~a."
-				   (project-name project)))
-		 (function
-		  (message "Draft not yet suitable to select for project named ~a."
-				   (project-name project)))
-		 (asset
-		  (message "Setting draft as selected for project named ~a."
-				   (project-name project))
-		  (setf (project-selected project) (project-draft project))
-		  (setf (project-draft project) nil)))))))
 
 (defgeneric generate (project)
   (:documentation "TEMP: Ensures SELECTED is in ASSETS.")
