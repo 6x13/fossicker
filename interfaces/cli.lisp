@@ -26,8 +26,8 @@
 ;;
 ;;
 
-(defun message (&rest args)
-  (apply #'format (cons t args)))
+;; (defun message (&rest args)
+;;   (apply #'format (cons t args)))
 
 (defun prompt-read (prompt)
   (format *query-io* "~a: " prompt)
