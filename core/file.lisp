@@ -185,12 +185,12 @@ deleted. It might as well be :PENDING. :SAFE to operate."
 (defun file-sanity-checks (file &aux (pathname (file-pathname file)))
   "Make  sure  the pathname  actually  represents  a  file both  logically  and
 physically."
-  (message "Doing sanity checks on file: ~A.~%" pathname)
+  (message "Doing sanity checks on file: ~A." pathname)
   (assert (file-pathname-p pathname) nil
           "The calculated pathname does not represent a file.")
   (assert (not (directory-exists-p pathname)) nil
           "Calculated pathname represents a directory. Not a file.")
-  (message "Sanity checks successful.~%"))
+  (message "Sanity checks successful."))
 
 (defun file-confirm-intention (file &aux (status (file-status file))
                                       (pathname (file-pathname file)))
@@ -198,22 +198,22 @@ physically."
 doing  nothing.   Otherwise  check  if  file already  exists  in  file  system,
 confirming overwrite operation if so."
   (check-type status intention)
-  (message "Confirming intention on file: ~A.~%" pathname)
+  (message "Confirming intention on file: ~A." pathname)
   (file-sanity-checks file)
   (if (and status (eq (file-report-status file) :exists))
       (if (setf (file-status file)
                 (prompt "File exists at location ~A.~%~A"
                         pathname
                         "Sure you want to overwrite?"))
-          (message "Confirmed. File will be overwritten.~%")
-          (message "Discarded.~%"))
-      (message "No confirmation necessary.~%")))
+          (message "Confirmed. File will be overwritten.")
+          (message "Discarded."))
+      (message "No confirmation necessary.")))
 
 (defun file-safely-remove (file &aux (pathname (file-pathname file)))
   "Make sanity checks about pathname and the physical file it represents. Query
 file status. Interactively handle file removal."
   (file-sanity-checks file)
-  (message "Starting remove operation on file: ~A.~%" pathname)
+  (message "Starting remove operation on file: ~A." pathname)
   (multiple-value-bind (physical operational safety) (file-report-status file)
     (declare (ignore operational))
     (let ((safe (eq safety :safe)))
@@ -237,7 +237,7 @@ file status. Interactively handle file removal."
                  (:exists
                   "A file already exists at the calculated location.")))
               (progn
-                (message "Action confirmed. Removing file.~%")
+                (message "Action confirmed. Removing file.")
                 (delete-file-if-exists pathname)
-                (message "File removed.~%"))
-              (message "Discarded. Skipping removal.~%"))))))
+                (message "File removed."))
+              (message "Discarded. Skipping removal."))))))
