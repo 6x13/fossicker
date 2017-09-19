@@ -222,9 +222,11 @@ file status. Interactively handle file removal."
            (case physical
              (:checks
               (delete-file-if-exists pathname)
-              "File  was  created  by   Fossicker  and  is  unmodified. Safely removed file.")
+              "File was created by Fossicker and is unmodified. ~
+               Safely removed file.")
              (:deleted
-              "The  file that  was created  by  Fossicker seems  to be  removed externally. No cleaning necessary.")
+              "The file that was created by Fossicker seems to be removed ~
+               externally. No cleaning necessary.")
              (:absent
               "Currently no file exists at location. No cleaning necessary.")))
           (if (prompt

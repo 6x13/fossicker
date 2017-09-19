@@ -158,7 +158,8 @@
   versions.")
   (:method ((asset t))
     "Sane default. No prospectable format restrictions."
-    (warn "Asset subclass named ~A didn't specify prospectable format restriction behaviour. Assuming no restrictions."
+    (warn "Asset subclass named ~A didn't specify prospectable format ~
+           restriction behaviour. Assuming no restrictions."
           (type-of asset)) nil)
   (:method :around ((asset asset))
     "Compiles  a new  list  with  the upcase-downcase  variations  of the  list
@@ -199,7 +200,8 @@ of the ASSET."
   "Signals    an    error    because    some   other    primary    method    on
 RESTRICT-PROSPECTABLE-FORMATS  that   precedes  this   one  should   have  been
 supplied."
-  (error  "Asset  subclass named ~A chose  to restrict  prospectable  formats  manually without actually specifying a restriction method."
+  (error  "Asset  subclass named ~A chose  to restrict  prospectable  formats ~
+           manually without actually specifying a restriction method."
           (type-of asset)))
 
 ;;
