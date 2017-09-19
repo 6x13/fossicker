@@ -291,10 +291,10 @@ direct representation of the current state of a drafting process."
   (:documentation "Completes draft ASSET for PROJECT using INTERACTIVE.")
   (:method ((project project) interactive)
     (check-type (project-draft project) function)
-    (setf (project-draft project)
-          (funcall (project-draft project) interactive))
     (message "Submitting the draft for project named ~a."
              (project-name project))
+    (setf (project-draft project)
+          (funcall (project-draft project) interactive))
     (select project)))
 
 ;; TODO
