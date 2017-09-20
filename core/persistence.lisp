@@ -45,6 +45,12 @@
 ;;   (:method ((project project)))
 ;;   (store (merge-pathnames* (project-file-directory project) "") ()))
 
+(defun get-history-path (project
+						 &aux (file (project-file project)))
+  (merge-pathnames* (format nil "~a.history.~a"
+							(directory-namestring file)
+							(file-namestring file))))
+
 (defun save-project-history (&optional name &aux (project nil))
   "Save named project history, or if null, save active project history."
   (assert *project-registry* nil
@@ -56,7 +62,12 @@
                       :test #'string=))
           nil "~a is not in project list." name)
   (setf project (if name (get-project name) *project*))
-
+  (with-open-file (out (get-history-path project)
+					   :direction :output
+					   :if-exists :supersede
+					   :if-does-not-exist :create)
+	(loop for asset in (project-assets project)
+		  doing (format out "~&~S" (marshal asset))))
   (message "History for the project ~a saved to disk." project))
 
 (defun load-project-history (&optional name &aux (project nil))
@@ -70,5 +81,11 @@
                       :test #'string=))
           nil "~a is not in project list." name)
   (setf project (if name (get-project name) *project*))
-
+  (with-open-file (in (get-history-path project)
+					  :direction :input)
+	(loop with eof = (gensym)
+		  for object = (read in nil eof)
+		  until (eq object eof)
+		  collecting object into assets
+		  finally (setf (project-assets project) assets)))
   (message "History for the project ~a loaded from disk." project))

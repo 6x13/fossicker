@@ -134,10 +134,12 @@
     :documentation "Date of creation for ASSET instance.")
    (description
     :type string
+    :initform ""
     :interactive t
     :documentation "Description of the asset to be used in generated report.")
    (benchmark
     :type string
+    :initform ""
     :documentation  "The  data  reported  by TIME  macro  for  measuring  asset
     processor performance."))
   (:metaclass exposure)
@@ -208,6 +210,42 @@ supplied."
 ;;;; Asset Generics
 ;;
 ;;
+
+(defgeneric marshal (asset)
+  (:documentation "Converts asset to s-exp list.")
+  (:method ((asset asset))
+    (with-slots (path
+                 rqststring
+                 source
+                 files
+                 date
+                 description
+                 benchmark) asset
+      (list :rqststring rqststring
+            :path path
+            :source source
+            :files files
+            :date date
+            :description description
+            :benchmark benchmark))))
+
+;; (defgeneric unmarshal (asset)
+;;   (:documentation "Converts s-exp list to asset.")
+;;   (:method ((asset asset))
+;;     (with-slots (path
+;;                  rqststring
+;;                  source
+;;                  files
+;;                  date
+;;                  description
+;;                  benchmark) asset
+;;       (list :rqststring rqststring
+;;             :path path
+;;             :source source
+;;             :files files
+;;             :date date
+;;             :description description
+;;             :benchmark benchmark))))
 
 ;; TODO
 (defgeneric save (asset)

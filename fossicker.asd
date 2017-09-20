@@ -41,13 +41,13 @@
   :components ((:module core
                 :components
                 ((:file "package")
-                 ;; (:file "persistence")
                  (:file "file")
                  (:file "documentation")
                  (:file "interaction")
                  (:file "exposure")
                  (:file "asset")
                  (:file "project")
+                 (:file "persistence")
                  (:file "config")
                  ;; (:file "prospect")
                  (:file "interface")

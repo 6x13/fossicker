@@ -204,7 +204,8 @@ not explicitly stated."
           (message "Setting draft as selected for project named ~a."
                    (project-name project))
           (setf (project-selected project) (project-draft project))
-          (setf (project-draft project) nil)))))))
+          (setf (project-draft project) nil)))))
+	(project-selected project)))
 
 (defun matching-spec (dispatch specs)
   "Iterates over project  specs and returns first asset  spec that successfully
