@@ -75,9 +75,10 @@
   (if (probe-file path)
 	  (with-open-file (in path :direction :input)
 		(loop with eof = (gensym)
-			  for object = (read in nil eof)
-			  until (eq object eof)
-			  collecting object into assets
+			  for asset = (allocate-instance (find-class 'asset))
+			  for data = (read in nil eof)
+			  until (eq data eof)
+			  collecting (unmarshal asset data) into assets
 			  finally (setf (project-assets project) assets))
 		(message "History for the project ~a loaded from disk." (project-name project)))
 	  (message "No history for the project ~a found on disk." (project-name project))))

@@ -63,9 +63,9 @@
      :direct-superclasses (list (find-class 'asset))))
 
   (defmethod validate-superclass ((class resource)
-                                  (superclass cl:standard-class)) 
+                                  (superclass cl:standard-class))
     t)
-  
+
   (defmethod initialize-instance :around
       ((class resource) &rest initargs
        &key direct-superclasses)
@@ -214,38 +214,43 @@ supplied."
 (defgeneric marshal (asset)
   (:documentation "Converts asset to s-exp list.")
   (:method ((asset asset))
-    (with-slots (path
+    (with-slots (formats
+                 path
                  rqststring
                  source
                  files
                  date
                  description
                  benchmark) asset
-      (list :rqststring rqststring
+      (list :rqst rqststring
             :path path
-            :source source
-            :files files
+            :fmts formats
+            :mine source
+            :file files
             :date date
-            :description description
-            :benchmark benchmark))))
+            :info description
+            :perf benchmark))))
 
-;; (defgeneric unmarshal (asset)
-;;   (:documentation "Converts s-exp list to asset.")
-;;   (:method ((asset asset))
-;;     (with-slots (path
-;;                  rqststring
-;;                  source
-;;                  files
-;;                  date
-;;                  description
-;;                  benchmark) asset
-;;       (list :rqststring rqststring
-;;             :path path
-;;             :source source
-;;             :files files
-;;             :date date
-;;             :description description
-;;             :benchmark benchmark))))
+(defgeneric unmarshal (asset data)
+  (:documentation "Converts s-exp list to asset.")
+  (:method ((asset asset) data)
+    (with-slots (formats
+                 path
+                 rqststring
+                 source
+                 files
+                 date
+                 description
+                 benchmark) asset
+      (psetf formats        (getf data :fmts)
+             path           (getf data :path)
+             rqststring     (getf data :rqst)
+             source         (getf data :mine)
+             files          (getf data :file)
+             date           (getf data :date)
+             description    (getf data :info)
+             benchmark      (getf data :perf)))
+    asset))
 
 ;; TODO
 (defgeneric save (asset)
@@ -283,7 +288,7 @@ to the generated list.")
     (cons (string-downcase (type-of asset))
           (apply #'append
                  (mapcar #'cdr
-                         (stable-sort 
+                         (stable-sort
                           (delete-if #'null
                                      (map-to-veins
                                       (asset-rqststring asset)
