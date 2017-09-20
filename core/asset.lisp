@@ -318,16 +318,3 @@ to the generated list.")
   (:documentation  "Prospects ASSET according to LEGEND in MINE.")
   (:method ((asset asset) legend mine)
     (prospect (generate-vein-map asset legend) mine (asset-formats asset))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun compile-path (spec)
-  (subpathname
-   (subpathname (project-root *project*) (project-path *project*))
-   (car spec) :type :directory))
-
-(defun report (result)
-  (message (if (listp result)
-               (format nil "~a assets generated!"
-                       (if result (length result) "No"))
-               "Finished!")))

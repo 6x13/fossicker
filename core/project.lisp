@@ -312,10 +312,15 @@ direct representation of the current state of a drafting process."
 
 (defgeneric generate (project)
   (:documentation "TEMP: Ensures SELECTED is in ASSETS.")
-  (:method ((project project))
+  (:method ((project project) &aux (result nil))
     (if (project-selected project)
-        (pushnew (project-selected project)
-                 (project-assets project))
+        (progn (pushnew (project-selected project)
+                        (project-assets project))
+               ;; TODO
+               (message (if (listp result)
+                            (format nil "~a assets generated!"
+                                    (if result (length result) "No"))
+                            "Finished!")))
         (message "Skipping generation. No asset selected for project named ~a."
                  (project-name project)))))
 

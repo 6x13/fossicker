@@ -123,8 +123,6 @@
    #:map-to-veins                   ; (rqststring legend)
    #:generate-vein-map              ; (asset legend)
    #:prospect                       ; (map dir formats &optional prospect)
-   ;;compile-path                   ; (spec)
-   ;;report                         ; (result)
    )
   (:export                          ; asset.lisp
    #:some-regex                     ; (rqststring &rest regex)
