@@ -47,9 +47,7 @@
                  (:file "exposure")
                  (:file "asset")
                  (:file "project")
-                 (:file "persistence")
                  (:file "config")
-                 ;; (:file "prospect")
                  (:file "interface")
                  (:file "fossicker")))
                (:module interfaces

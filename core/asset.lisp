@@ -222,14 +222,14 @@ supplied."
                  date
                  description
                  benchmark) asset
-      (list :rqst rqststring
-            :path path
-            :fmts formats
-            :mine source
-            :file files
-            :date date
-            :info description
-            :perf benchmark))))
+      (list :rqststring  rqststring
+            :path        path
+            :formats     formats
+            :source      source
+            :files       files
+            :date        date
+            :description description
+            :benchmark   benchmark))))
 
 (defgeneric unmarshal (asset data)
   (:documentation "Converts s-exp list to asset.")
@@ -242,14 +242,14 @@ supplied."
                  date
                  description
                  benchmark) asset
-      (psetf formats        (getf data :fmts)
+      (psetf formats        (getf data :formats)
              path           (getf data :path)
-             rqststring     (getf data :rqst)
-             source         (getf data :mine)
-             files          (getf data :file)
+             rqststring     (getf data :rqststring)
+             source         (getf data :source)
+             files          (getf data :files)
              date           (getf data :date)
-             description    (getf data :info)
-             benchmark      (getf data :perf)))
+             description    (getf data :description)
+             benchmark      (getf data :benchmark)))
     asset))
 
 ;; TODO

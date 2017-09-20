@@ -21,7 +21,7 @@
 
 (in-package :fossicker)
 
-;; (declaim (optimize                                                       
+;; (declaim (optimize
 ;;           (speed 0) (compilation-speed 0) (safety 3) (debug 3)))
 
 ;;;;;;;;;;;;
@@ -205,7 +205,7 @@ not explicitly stated."
                    (project-name project))
           (setf (project-selected project) (project-draft project))
           (setf (project-draft project) nil)))))
-	(project-selected project)))
+    (project-selected project)))
 
 (defun matching-spec (dispatch specs)
   "Iterates over project  specs and returns first asset  spec that successfully
@@ -237,7 +237,7 @@ isolated manner."
      ;; If DRAFT exists and the CLASS matches, just reinitialize with INITARGS.
      (apply #'reinitialize-instance draft initargs))
     ;; DISABLED! LOCAL-SLOTS that  accidentally have the same name  will not be
-    ;; reinitialized with INITFORM of changed CLASS.    
+    ;; reinitialized with INITFORM of changed CLASS.
     ;; (draft
     ;;  ;; If DRAFT exists and CLASS is different,  change class with INITARGS.
     ;;  (apply #'change-class draft class initargs))
@@ -258,7 +258,7 @@ in  order to  generate an  ASSET, or  an ASSET  that is  expected to  either be
 DISCARDED or SELECTED. In a way, the value  of the DRAFT slot of a PROJECT is a
 direct representation of the current state of a drafting process."
   (if (functionp draft)
-      (compile-draft-closure (funcall draft) class initargs) 
+      (compile-draft-closure (funcall draft) class initargs)
       (lambda (&optional (interactive nil interactive-supplied-p))
         (if interactive-supplied-p
             (initialize-draft draft class (append interactive initargs))
@@ -324,6 +324,44 @@ direct representation of the current state of a drafting process."
 ;;
 ;;
 
+(defun get-history-path (project
+                         &aux (file (project-file project)))
+  (merge-pathnames* (format nil "~a.history.~a"
+                            (directory-namestring file)
+                            (file-namestring file))))
+
+(defun save-project-history (&optional name
+                             &aux (project (if name
+                                               (get-project name)
+                                               *project*)))
+  "Save named project history, or if null, save active project history."
+  (assert project nil "No suitable projects to process.")
+  (with-open-file (out (get-history-path project)
+                       :direction :output
+                       :if-exists :supersede
+                       :if-does-not-exist :create)
+    (loop for asset in (project-assets project)
+          doing (format out "~&(~{~1,0T~12S ~S~^~%~})" (marshal asset))))
+  (message "History for the project ~a saved to disk." (project-name project)))
+
+(defun load-project-history (&optional name
+                             &aux (project (if name
+                                               (get-project name)
+                                               *project*))
+                               (path (get-history-path project)))
+  "Load named project history, or if null, load active project history."
+  (assert project nil "No suitable projects to process.")
+  (if (probe-file path)
+      (with-open-file (in path :direction :input)
+        (loop with eof = (gensym)
+              for asset = (allocate-instance (find-class 'asset))
+              for data = (read in nil eof)
+              until (eq data eof)
+              collecting (unmarshal asset data) into assets
+              finally (setf (project-assets project) assets))
+        (message "History for the project ~a loaded from disk." (project-name project)))
+      (message "No history for the project ~a found on disk." (project-name project))))
+
 (defun project-root-p (project-root)
   (when *default-pathname-defaults*
     (let ((project (namestring (truename project-root)))
@@ -369,11 +407,13 @@ current working directory path to select the project."
 
 (defun load-project (&rest initargs &key file (import t) &allow-other-keys)
   "Loads the project specified in FILE into *PROJECT-REGISTRY*."
-  (push (apply #'make-instance
-               (infer-project-class file)
-               :import import
-               initargs)
-        *project-registry*))
+  (let* ((project (apply #'make-instance
+                         (infer-project-class file)
+                         :import import
+                         initargs))
+         (name (project-name project)))
+    (push project *project-registry*)
+    (load-project-history name)))
 
 (defun unload-project (name)
   "Unloads the project with the NAME from *PROJECT-REGISTRY*."
