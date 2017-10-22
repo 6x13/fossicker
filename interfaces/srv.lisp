@@ -26,3 +26,15 @@
 ;;
 ;;
 
+;; (defun start-simple-server (port)
+;;   "Listening on a port for a message, and print the received message."
+;;   (usocket:with-socket-listener (socket "127.0.0.1" port)
+;;     (usocket:wait-for-input socket)
+;;     (usocket:with-connected-socket (connection (usocket:socket-accept socket))
+;; 	  (format t "~a~%" (read-line (usocket:socket-stream connection))))))
+
+;; (defun start-simple-client (port)
+;;   "Connect to a server and send a message."
+;;   (usocket:with-client-socket (socket stream "127.0.0.1" port)
+;;     (format stream "Hello world!~%")
+;; (force-output stream)))

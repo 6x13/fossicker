@@ -34,6 +34,7 @@
                #:ironclad
                #:cl-ppcre
                #:trivial-gray-streams
+			   #:net.didierverna.clon
                #:qtools
                #:qtcore
                #:qtgui)
@@ -53,10 +54,11 @@
                (:module interfaces
                 :components
                 ((:file "cli")
-                 ;; (:file "srv")
+                 (:file "srv")
                  (:file "gui"))))
-  :perform (load-op :after (o s)
-                    (funcall (find-symbol "INITIALIZE" "FOSSICKER"))))
+  ;; :perform (load-op :after (o s)
+  ;;                   (funcall (find-symbol "INITIALIZE" "FOSSICKER")))
+  )
 
 (register-system-packages "closer-mop"
                           '(:c2mop

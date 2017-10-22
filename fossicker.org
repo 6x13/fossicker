@@ -1,4 +1,5 @@
 * Fossicker
+       approve
 draft->submit->select->apply?
 draft->stage->checkout->commit->push
 
@@ -6,18 +7,19 @@ draft->stage->checkout->commit->push
 - User will be able to select another  asset from history. If it is an instance
   of a subclass of  asset, user will be able to export, or  delete it. If it is
   an instance of asset, user will be able to regenerate, or delete.
-- Write project  history to seperate file?  so it can be  ignored from project?
-- Any asset read from  histroy is just an asset, not an  instance of a specific
-  asset class. Because type specifications will change between sessions.
 - Asset  class  will  provide  delete/regenerate  function  for  their  history
   assets. If deleted it is deleted from history.
 ** Interface
 - UI: Generate, Project, History, Settings
 - For  Slime and  CLI, standard  error handling  is good,  but for  GUI, errors
   should be handled with a proper method.
-- If  no parameter  is provided  on startup,  or -gui  parameter is  explicitly
-  provided, and if there is an  active desktop session, fossicker will start in
-  GUI mode.  If  it was explicitly started  with -cli parameter or  there is no
+- If  and
+      (or (no parameter  is provided  on startup) 
+         (-gui  parameter is  explicitly provided))
+      (there is an  active desktop session), fossicker will start in
+  GUI mode.
+
+If  it was explicitly started  with -cli parameter or  there is no
   desktop session  available, it will  start in  command line, the  CLI session
   will  be managed  by  one character  mode  settings like  fdisk.  If -srv  is
   provided, the swank  server will start so emacs or  other clients can connect
